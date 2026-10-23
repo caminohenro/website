@@ -15,8 +15,8 @@
     "categoryId": ""
   },
   "features": {
-    "enableInventory": false,
-    "enableMap": false,
+    "enableInventory": true,
+    "enableMap": true,
     "enableForum": true
   }
 }

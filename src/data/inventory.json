@@ -1,0 +1,132 @@
+{
+  "items": [
+    {
+      "id": "gear-sugegasa",
+      "name": "Sugegasa Woven Sedge Hat",
+      "japaneseName": "菅笠",
+      "slot": "Equipped",
+      "weightGrams": 380,
+      "condition": "Seasoned",
+      "icon": "<svg viewBox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 32L24 12L44 32Q24 27 4 32Z\"/><path d=\"M14 22Q24 19 34 22\"/><path d=\"M9 27Q24 23 39 27\"/><path d=\"M16 31C16 37 32 37 32 31\"/></svg>",
+      "shortSummary": "Conical Shikoku sedge hat inscribed with the Dōgyō Ninin mantra, shielding brow and spirit from Atlantic gales to Pacific rains.",
+      "lore": "Woven from wild sedge grass in the river valleys of Shikoku and carried westward only to walk home again across Eurasia, this hat is a portable roof and a vow of humility. Its sloped brim sheds torrential mountain downpours and fierce steppe sun alike, creating a quiet sanctuary of shade just wide enough for one walker’s thoughts. Inscribed in sumi ink with the words \"Dōgyō Ninin\" (Two Walking Together), it reminds every stranger along the road that the pilgrim never travels alone.",
+      "specs": {
+        "Material": "Hand-woven Japanese sedge grass (Suge), bamboo inner ring & cotton chin cord",
+        "Origin": "Tokushima Prefecture, Shikoku, Japan",
+        "Role": "Primary sun & rain canopy; sacred emblem of the Henro pilgrimage"
+      }
+    },
+    {
+      "id": "gear-sandals",
+      "name": "Camino Minimalist Trail Sandals",
+      "japaneseName": "草履・サンダル",
+      "slot": "Equipped",
+      "weightGrams": 340,
+      "condition": "Worn",
+      "icon": "<svg viewBox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 8C10 8 8 13 9 22C10 31 11 40 16 40C21 40 22 33 21 22C20 13 18 8 14 8Z\"/><path d=\"M34 8C30 8 28 13 29 22C30 33 31 40 36 40C41 40 42 31 43 22C44 13 40 8 34 8Z\"/><path d=\"M15 14L15 20M15 20L10 28M15 20L21 28\"/><path d=\"M35 14L35 20M35 20L29 28M35 20L41 28\"/></svg>",
+      "shortSummary": "Thin-soled Huarache-style trail sandals bound with continuous nylon webbing, demanding attentive footwork on every stone.",
+      "lore": "Heavy leather boots try to conquer the earth by insulating the foot from it; minimalist sandals ask the walker to listen to the ground instead. With only ten millimeters of rubber between skin and continental bedrock, every pebble in Galicia and every mountain pass ahead requires deliberate, unhurried balance. When soaked by sudden storms, they dry in twenty minutes of walking and never trap blisters.",
+      "specs": {
+        "Material": "10mm Vibram Morflex sole with continuous tubular nylon heel-and-toe lacing",
+        "Origin": "Galicia, Spain (re-laced at Cape Finisterra)",
+        "Role": "All-terrain footwear enforcing mindful cadence and natural foot strength"
+      }
+    },
+    {
+      "id": "gear-kongozue",
+      "name": "Kongo-zue Pilgrim Staff",
+      "japaneseName": "金剛杖",
+      "slot": "Equipped",
+      "weightGrams": 450,
+      "condition": "Seasoned",
+      "icon": "<svg viewBox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"24\" y1=\"4\" x2=\"24\" y2=\"44\"/><path d=\"M20 8H28\"/><path d=\"M19 14H29\"/><path d=\"M21 20H27\"/><circle cx=\"24\" cy=\"6\" r=\"2\"/></svg>",
+      "shortSummary": "Hand-carved wooden walking staff serving as a third leg on steep descents and the living bone of the pilgrimage.",
+      "lore": "In the Shikoku tradition, the Kongo-zue is revered as the physical embodiment of Kōbō Daishi walking beside the pilgrim, never to be carelessly leaned against bridge rails, washed in rivers before crossing, or rested on the ground indoors. Practically, it absorbs thousands of kilograms of knee impact across rocky descents, tests the depth of muddy fords, and keeps territorial village dogs at a respectful distance. By the time it reaches the Inland Sea, its base will be worn shorter by the friction of twelve countries.",
+      "specs": {
+        "Material": "Japanese cypress (Hinoki) shaft with brocade head cover & brass ferrule bell",
+        "Origin": "Mount Kōya / Shikoku Temple 1 (Ryozen-ji)",
+        "Role": "Third point of contact on mountain grades; spiritual anchor of the walk"
+      }
+    },
+    {
+      "id": "gear-rucksack",
+      "name": "40L Weatherproof Rucksack",
+      "japaneseName": "背嚢",
+      "slot": "Main Pack",
+      "weightGrams": 890,
+      "condition": "Seasoned",
+      "icon": "<svg viewBox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"12\" y=\"12\" width=\"24\" height=\"28\" rx=\"3\"/><path d=\"M16 12V9C16 7 19 6 24 6C29 6 32 7 32 9V12\"/><path d=\"M12 20H36\"/><rect x=\"18\" y=\"25\" width=\"12\" height=\"10\"/><line x1=\"24\" y1=\"18\" x2=\"24\" y2=\"23\"/></svg>",
+      "shortSummary": "Frameless roll-top canvas-and-ripstop pack holding every earthly possession required between the Atlantic and Japan.",
+      "lore": "A forty-liter vessel imposes a quiet philosophical law: if a new object enters this pack, an older attachment must leave. Stripped of heavy internal aluminum frames and redundant zippers that fail in desert grit, its roll-top closure seals out driving rain while keeping the center of gravity pressed close to the spine. Everything required to sleep, write, mend, and endure winter passes lives inside this single cylinder.",
+      "specs": {
+        "Material": "Waxed hybrid ripstop canvas with seam-taped roll-top collar",
+        "Origin": "Porto, Portugal / Modified in Santiago de Compostela",
+        "Role": "Primary load-bearing vessel housing all non-worn shelter, tools, and provisions"
+      }
+    },
+    {
+      "id": "gear-bivy-quilt",
+      "name": "Ultralight Bivy & Down Quilt",
+      "japaneseName": "野営寝具",
+      "slot": "Shelter & Sleep",
+      "weightGrams": 920,
+      "condition": "Pristine",
+      "icon": "<svg viewBox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 36L24 14L42 36H6Z\"/><path d=\"M24 14V36\"/><path d=\"M14 36L24 24L34 36\"/></svg>",
+      "shortSummary": "Compact waterproof breathable bivouac sack paired with a 850-fill goose down quilt rated for freezing alpine nights.",
+      "lore": "True freedom from anxiety on the open road begins the moment you know you can sleep warmly behind a stone wall, under a church portico, or in an open meadow when no village inn is within reach. Combining a minimalist storm-bivy with a compressible down quilt cuts shelter weight under one kilogram while preserving warmth down to sub-zero elevations. It transforms the entire continent from an unfamiliar wilderness into an hospitable bedroom.",
+      "specs": {
+        "Material": "3-layer waterproof-breathable membrane bivy & 850FP hydrophobic down quilt",
+        "Origin": "Pyrenees Mountain Outfitter, Europe",
+        "Role": "Autonomous night shelter and thermal insulation down to -5°C (23°F)"
+      }
+    },
+    {
+      "id": "gear-journal-phone",
+      "name": "Trail Journal, Ink Pen & Field Phone",
+      "japaneseName": "筆録具",
+      "slot": "Electronics & Writing",
+      "weightGrams": 410,
+      "condition": "Seasoned",
+      "icon": "<svg viewBox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"10\" y=\"8\" width=\"22\" height=\"32\" rx=\"1\"/><line x1=\"15\" y1=\"15\" x2=\"27\" y2=\"15\"/><line x1=\"15\" y1=\"21\" x2=\"27\" y2=\"21\"/><line x1=\"15\" y1=\"27\" x2=\"23\" y2=\"27\"/><path d=\"M36 10L36 34L34 39L32 34L32 10Z\"/></svg>",
+      "shortSummary": "Stitched Washi-paper field notebook, brass fountain pen, and low-power smartphone for recording essays and waypoints.",
+      "lore": "Walked kilometers vanish into memory like mist unless they are distilled into words at dusk. First drafts and roadside sketches are always written by hand in waterproof black ink while the day’s conversations are still warm, before being transcribed onto the field phone to update this digital scroll. Together they bridge the medieval monastic chronicle with a zero-backend static archive accessible across the globe.",
+      "specs": {
+        "Material": "Lay-flat cream cotton-washi notebook, solid brass fountain pen & ruggedized handset",
+        "Origin": "Kyoto paper mill & Lisbon field kit",
+        "Role": "Inscribing philosophical dispatches, financial ledger entries, and GPS checkpoints"
+      }
+    },
+    {
+      "id": "gear-repair-kit",
+      "name": "Brass Needle, Cordage & Repair Kit",
+      "japaneseName": "修繕具",
+      "slot": "Main Pack",
+      "weightGrams": 145,
+      "condition": "Pristine",
+      "icon": "<svg viewBox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"10\" y1=\"38\" x2=\"38\" y2=\"10\"/><circle cx=\"34\" cy=\"14\" r=\"1.5\"/><path d=\"M14 14C20 8 28 20 34 14\"/><rect x=\"12\" y=\"24\" width=\"12\" height=\"12\" rx=\"2\"/></svg>",
+      "shortSummary": "Sailmaker’s needles, waxed linen thread, spare sandal webbing, and tenacious patches for field self-reliance.",
+      "lore": "In a throwaway consumer economy, a torn strap or punctured bivy is an excuse to buy anew; on a fourteen-thousand-kilometer walk, repair is an act of devotion. Every stitch added to a frayed rucksack seam records a chapter of endurance in the spirit of Japanese Boro mending. Weighing less than a single apple, this tin guarantees that no mechanical failure in remote steppes can halt the pilgrimage.",
+      "specs": {
+        "Material": "Heavy-duty sail needles, 50m waxed hemp/nylon cord, Tenacious Tape & brass safety pins",
+        "Origin": "Assembled in Finisterra, Spain",
+        "Role": "Field maintenance of sandals, sedge hat bindings, and shelter fabrics"
+      }
+    },
+    {
+      "id": "gear-provisions",
+      "name": "Dried Figs, Oats & 2L Water Vessel",
+      "japaneseName": "糧食・水",
+      "slot": "Consumables",
+      "weightGrams": 2350,
+      "condition": "Pristine",
+      "icon": "<svg viewBox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M18 8H30V13L34 18V38C34 40 32 42 30 42H18C16 42 14 40 14 38V18L18 13V8Z\"/><line x1=\"14\" y1=\"26\" x2=\"34\" y2=\"26\"/><circle cx=\"24\" cy=\"34\" r=\"3\"/></svg>",
+      "shortSummary": "Two liters of spring water and dense, non-perishable trail rations carried between village fountains and bakeries.",
+      "lore": "Water and simple grain are the heaviest items in the pack and the only ones that continuously turn into footsteps. Carrying rolled oats, sun-dried Iberian figs, olive oil, and two liters of cold fountain water provides two full days of quiet autonomy between rural settlements. When a roadside host offers fresh fruit as Osettai, this ration pouch is where the gift travels until noon.",
+      "specs": {
+        "Material": "2L BPA-free collapsible flasks & waxed linen ration sack (500g dry provisions)",
+        "Origin": "Replenished daily at village fountains & local markets",
+        "Role": "Immediate caloric and hydration reserve across dry stretches"
+      }
+    }
+  ]
+}
