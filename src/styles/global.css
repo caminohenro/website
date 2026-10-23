@@ -1,0 +1,446 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-outer-obsidian: #08090C;
+  --bg-header: rgba(10, 12, 16, 0.88);
+  --bg-washi-scroll: #E6DFCF;
+  --bg-washi-subtle: rgba(28, 26, 23, 0.04);
+  --ink-sumi: #1C1A17;
+  --ink-muted: #5A534A;
+  --header-text: #E6DFCF;
+  --header-muted: #A09A8E;
+  --accent-indigo: #0A367E;
+  --accent-crimson: #6E2B25;
+  --border-ink: rgba(28, 26, 23, 0.15);
+  --color-washi: #E6DFCF;
+  --color-washi-dark: #D8CEB8;
+  --color-sumi: #1C1A17;
+  --color-sumi-muted: #5A534A;
+  --color-crimson: #6E2B25;
+  --color-crimson-light: #8C3B33;
+}
+
+html {
+  background-color: var(--bg-outer-obsidian);
+  color: var(--ink-sumi);
+  font-family: 'EB Garamond', Georgia, 'Yu Mincho', serif;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-outer-obsidian);
+  color: var(--ink-sumi);
+  font-family: 'EB Garamond', Georgia, 'Yu Mincho', serif;
+  line-height: 1.85;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================================================
+   LAYER 1: STATIC BACKGROUND (The Road & Hidden Apple)
+   ========================================================================== */
+.fixed-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center 84%;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+.backdrop-dimmer {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(
+    circle at 50% 72%,
+    rgba(8, 9, 12, var(--center-dim, 0.58)) 0%,
+    rgba(8, 9, 12, var(--edge-dim, 0.84)) 100%
+  );
+  transition: background 0.35s ease;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   PERSISTENT WEBSITE HEADER (Outside the Scroll)
+   ========================================================================== */
+header.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg-header);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(230, 223, 207, 0.16);
+  padding: 12px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.header-logo-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--bg-washi-scroll);
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  transition: all 0.25s ease;
+}
+
+.header-logo-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.header-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-jp {
+  font-size: 0.72rem;
+  letter-spacing: 0.25em;
+  color: var(--header-muted);
+  line-height: 1.3;
+}
+
+.header-en {
+  font-size: 1.2rem;
+  letter-spacing: 0.14em;
+  color: var(--header-text);
+  font-weight: normal;
+  line-height: 1.2;
+}
+
+nav.site-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.nav-btn {
+  background: transparent;
+  border: none;
+  color: var(--header-muted);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.76rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  padding: 7px 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+  text-decoration: none;
+}
+
+.nav-btn:hover {
+  color: var(--header-text);
+}
+
+.nav-btn.active {
+  color: var(--header-text);
+  border-bottom: 2px solid var(--accent-crimson);
+}
+
+.nav-btn.donate-btn {
+  background: var(--accent-crimson);
+  color: #F4F1EA;
+  padding: 7px 15px;
+  margin-left: 8px;
+  border-radius: 2px;
+  border-bottom: none;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.nav-btn.donate-btn:hover {
+  filter: brightness(1.12);
+  color: #F4F1EA;
+}
+
+/* ==========================================================================
+   LAYER 2: SEPARATE PAGE SCROLL & WOODEN ROLLERS
+   ========================================================================== */
+.scroll-stage {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  padding-top: 28px;
+  margin-bottom: 10vh;
+}
+
+.scroll-roller-top,
+.scroll-roller-bottom {
+  max-width: 776px;
+  width: 96vw;
+  height: 20px;
+  margin: 0 auto;
+  background: linear-gradient(180deg, #3A2618 0%, #1F130B 55%, #0F0905 100%);
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.9);
+  position: relative;
+  z-index: 12;
+}
+
+.scroll-roller-top::before,
+.scroll-roller-top::after,
+.scroll-roller-bottom::before,
+.scroll-roller-bottom::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 14px;
+  background: linear-gradient(180deg, #9C7A44, #59411E);
+  border-radius: 3px;
+}
+
+.scroll-roller-top::before,
+.scroll-roller-bottom::before {
+  left: 0;
+}
+
+.scroll-roller-top::after,
+.scroll-roller-bottom::after {
+  right: 0;
+}
+
+.washi-scroll {
+  max-width: 740px;
+  width: 92vw;
+  margin: 0 auto;
+  background-color: var(--bg-washi-scroll);
+  background-image:
+    linear-gradient(90deg, rgba(160, 145, 118, 0.28) 0%, transparent 6%, transparent 94%, rgba(160, 145, 118, 0.28) 100%),
+    repeating-linear-gradient(0deg, rgba(28, 26, 23, 0.015) 0px, rgba(28, 26, 23, 0.015) 1px, transparent 1px, transparent 3px);
+  box-shadow:
+    0 20px 70px rgba(0, 0, 0, 0.9),
+    0 0 0 1px rgba(28, 26, 23, 0.25);
+  padding: 52px 64px 64px;
+  min-height: 72vh;
+  position: relative;
+  animation: unfurl 0.28s ease-out;
+}
+
+@keyframes unfurl {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 680px) {
+  header.site-header { padding: 10px 16px; }
+  .washi-scroll { padding: 36px 24px 48px; }
+}
+
+/* ==========================================================================
+   TYPOGRAPHY & CONTAINERLESS DIVIDERS INSIDE EACH SCROLL
+   ========================================================================== */
+.scroll-title-block {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.scroll-eyebrow {
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.73rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent-crimson);
+  margin-bottom: 8px;
+}
+
+h1.page-heading {
+  font-size: 2rem;
+  font-weight: normal;
+  letter-spacing: 0.08em;
+  color: var(--ink-sumi);
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+
+.page-subtitle {
+  font-style: italic;
+  font-size: 0.96rem;
+  color: var(--ink-muted);
+}
+
+.page-break {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin: 44px 0;
+}
+
+.page-break .line {
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, transparent, var(--accent-crimson), transparent);
+  opacity: 0.55;
+}
+
+.page-break .kanji {
+  font-size: 0.85rem;
+  letter-spacing: 0.26em;
+  color: var(--accent-crimson);
+  text-transform: uppercase;
+}
+
+.stream-item {
+  display: block;
+  padding: 22px 12px;
+  border-bottom: 1px solid var(--border-ink);
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.stream-item:hover {
+  background: var(--bg-washi-subtle);
+}
+
+.stream-item:last-child {
+  border-bottom: none;
+}
+
+.stream-meta {
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  color: var(--accent-crimson);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.stream-title {
+  font-size: 1.32rem;
+  color: var(--ink-sumi);
+  margin-bottom: 6px;
+  font-weight: normal;
+}
+
+.stream-excerpt {
+  font-size: 0.98rem;
+  color: var(--ink-muted);
+  margin-bottom: 8px;
+}
+
+.stream-read-link {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-crimson);
+  font-weight: 600;
+}
+
+.ink-action-btn {
+  display: inline-block;
+  background: transparent;
+  border: 1px solid var(--accent-crimson);
+  color: var(--accent-crimson);
+  padding: 10px 24px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ink-action-btn:hover {
+  background: var(--accent-crimson);
+  color: #F4F1EA;
+}
+
+.scroll-foot-hint {
+  text-align: center;
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-ink);
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   BOTTOM SURPRISE REVEAL CAPTION (Below the wooden roller on every page)
+   ========================================================================== */
+.apple-reveal-stage {
+  position: relative;
+  z-index: 5;
+  height: 82vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding-bottom: 6vh;
+  pointer-events: none;
+}
+
+.apple-whisper {
+  font-family: 'EB Garamond', Georgia, serif;
+  color: #F4F1EA;
+  text-align: center;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.95);
+  background: rgba(8, 9, 12, 0.6);
+  padding: 12px 28px;
+  border-top: 1px solid rgba(244, 241, 234, 0.25);
+  border-bottom: 1px solid rgba(244, 241, 234, 0.25);
+  letter-spacing: 0.14em;
+  font-size: 0.95rem;
+}
+
+/* Editorial Essay Typography */
+.essay-prose {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 1.1rem;
+  line-height: 1.85;
+  color: var(--ink-sumi);
+}
+
+.essay-prose p {
+  margin-top: 0;
+  margin-bottom: 22px;
+  text-align: justify;
+}
+
+.essay-prose > p:first-of-type::first-letter {
+  float: left;
+  font-size: 3.3rem;
+  line-height: 0.82;
+  padding-top: 4px;
+  padding-right: 12px;
+  color: var(--accent-crimson);
+}
+
+.essay-prose blockquote {
+  margin: 30px 0;
+  padding-left: 20px;
+  border-left: 2px solid var(--accent-crimson);
+  font-style: italic;
+  font-size: 1.12rem;
+  color: var(--ink-sumi);
+}

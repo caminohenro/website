@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <g fill="none" stroke="#6E2B25" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Outer and Inner Circular Stamp Borders -->
+    <circle cx="120" cy="120" r="110" stroke-width="6" />
+    <circle cx="120" cy="120" r="102" stroke-width="2" stroke-dasharray="14 6 4 6" />
+
+    <!-- Crossed Pilgrim Staves (Kongozue) -->
+    <line x1="52" y1="192" x2="188" y2="56" stroke-width="6" />
+    <line x1="188" y1="192" x2="52" y2="56" stroke-width="6" />
+    <!-- Staff Top Notches -->
+    <line x1="176" y1="62" x2="182" y2="68" stroke-width="3" />
+    <line x1="64" y1="62" x2="58" y2="68" stroke-width="3" />
+
+    <!-- Woven Sedge Hat (Sugegasa) Silhouette at Top -->
+    <path d="M 48 86 L 120 38 L 192 86 Q 120 74 48 86 Z" fill="#6E2B25" stroke="#6E2B25" stroke-width="3" />
+    <path d="M 88 60 Q 120 53 152 60" stroke="#E6DFCF" stroke-width="2" />
+    <path d="M 68 73 Q 120 64 172 73" stroke="#E6DFCF" stroke-width="2" />
+
+    <!-- Camino Scallop Shell in Center -->
+    <path d="M 120 182 L 74 134 C 68 106 94 94 120 94 C 146 94 172 106 166 134 Z" fill="#E6DFCF" stroke="#6E2B25" stroke-width="4.5" />
+    <!-- Scallop Shell Ribs -->
+    <line x1="120" y1="182" x2="120" y2="94" stroke-width="3" />
+    <line x1="120" y1="182" x2="103" y2="97" stroke-width="2.5" />
+    <line x1="120" y1="182" x2="87" y2="106" stroke-width="2.5" />
+    <line x1="120" y1="182" x2="77" y2="120" stroke-width="2.5" />
+    <line x1="120" y1="182" x2="137" y2="97" stroke-width="2.5" />
+    <line x1="120" y1="182" x2="153" y2="106" stroke-width="2.5" />
+    <line x1="120" y1="182" x2="163" y2="120" stroke-width="2.5" />
+    <!-- Scallop Base Ears -->
+    <path d="M 105 178 L 135 178 L 130 188 L 110 188 Z" fill="#6E2B25" stroke-width="2" />
+  </g>
+</svg>

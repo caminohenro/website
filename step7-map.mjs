@@ -1,0 +1,622 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
+// 1. Update src/data/siteConfig.json to enable the Map feature while preserving existing settings
+const siteConfigPath = path.resolve(process.cwd(), 'src/data/siteConfig.json');
+let siteConfig = {
+  siteTitleJp: 'カミノ遍路',
+  siteTitleEn: 'CAMINO HENRO',
+  tagline: 'From the End of the Earth to the Land of the Rising Sun',
+  pilgrimAlias: 'Henro',
+  routeSummary: 'Finisterra, Spain → Shikoku, Japan',
+  currentLocation: 'Santiago de Compostela, Galicia, Spain',
+  crestImage: '/assets/crest.svg',
+  backgroundImage: '/assets/apple-bg.svg',
+  stripeDonationUrl: 'https://buy.stripe.com/test_placeholder',
+  giscus: {
+    repo: 'YOUR_GITHUB_USERNAME/camino-henro',
+    repoId: '',
+    category: 'General',
+    categoryId: '',
+  },
+  features: {
+    enableInventory: false,
+    enableMap: true,
+    enableForum: false,
+  },
+};
+
+if (fs.existsSync(siteConfigPath)) {
+  try {
+    const existing = JSON.parse(fs.readFileSync(siteConfigPath, 'utf8'));
+    siteConfig = {
+      ...existing,
+      features: {
+        ...(existing.features || {}),
+        enableMap: true,
+      },
+    };
+  } catch (err) {
+    console.warn('Could not parse existing siteConfig.json, writing fresh config with enableMap = true.');
+  }
+}
+
+const routeData = {
+  stats: {
+    totalPlannedKm: 14500,
+    completedKm: 115,
+    daysOnTrail: 5,
+    countriesCrossed: 1,
+  },
+  plannedWaypoints: [
+    [42.9078, -9.2650, 'Cape Finisterra, Spain'],
+    [42.8782, -8.5448, 'Santiago de Compostela, Spain'],
+    [43.1636, -1.2358, 'Saint-Jean-Pied-de-Port, Pyrenees'],
+    [45.7640, 4.8357, 'Lyon, France'],
+    [45.4408, 12.3155, 'Venice, Italy'],
+    [44.7866, 20.4489, 'Belgrade, Serbia'],
+    [41.0082, 28.9784, 'Istanbul, Turkey'],
+    [41.7151, 44.8271, 'Tbilisi, Georgia'],
+    [39.6542, 66.9597, 'Samarkand, Uzbekistan'],
+    [43.2220, 76.8512, 'Almaty, Kazakhstan'],
+    [34.3416, 108.9398, "Xi'an, China"],
+    [35.1796, 129.0756, 'Busan, South Korea'],
+    [34.1594, 134.5025, 'Ryōzen-ji (Temple 1), Shikoku, Japan'],
+  ],
+  checkpoints: [
+    {
+      id: 'chk-001',
+      title: 'Cape Finisterra (Zero Kilometer Stone), Spain',
+      date: '2026-10-10',
+      lat: 42.9078,
+      lng: -9.2650,
+      kmMarker: 0,
+      summary:
+        'Stood at the Atlantic promontory where medieval pilgrims ended their westward walk, tightened my pack straps, and turned eastward toward Shikoku.',
+      essaySlug: '2026-10-10-the-end-of-the-earth',
+    },
+    {
+      id: 'chk-002',
+      title: 'Cee, Galicia, Spain',
+      date: '2026-10-14',
+      lat: 42.9564,
+      lng: -9.1897,
+      kmMarker: 18,
+      summary:
+        'Descended from the coastal eucalyptus ridges into Cee; received two rain-speckled apples and hot mint infusion beside a stone wall in the spirit of donativo and Osettai.',
+      essaySlug: '2026-10-14-two-traditions-of-alms',
+    },
+    {
+      id: 'chk-003',
+      title: 'Santiago de Compostela, Galicia, Spain',
+      date: '2026-10-16',
+      lat: 42.8782,
+      lng: -8.5448,
+      kmMarker: 115,
+      summary:
+        'Walked uphill through the misty oak valleys of Negreira and entered the granite heart of Santiago, greeting westbound finishers while continuing east toward the Pyrenees.',
+      essaySlug: '',
+    },
+  ],
+};
+
+const files = {
+  'src/data/siteConfig.json': JSON.stringify(siteConfig, null, 2),
+  'src/data/route.json': JSON.stringify(routeData, null, 2),
+  'src/pages/map.astro': `---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import routeData from '../data/route.json';
+
+const stats = routeData.stats || {
+  totalPlannedKm: 14500,
+  completedKm: 115,
+  daysOnTrail: 5,
+  countriesCrossed: 1,
+};
+
+const plannedWaypoints = Array.isArray(routeData.plannedWaypoints)
+  ? routeData.plannedWaypoints
+  : [];
+
+const checkpoints = Array.isArray(routeData.checkpoints)
+  ? routeData.checkpoints
+  : [];
+
+const rawPct =
+  stats.totalPlannedKm > 0
+    ? (stats.completedKm / stats.totalPlannedKm) * 100
+    : 0;
+
+const formattedPct = rawPct.toFixed(2);
+const visualBarPct = Math.max(rawPct, 1.5);
+---
+
+<BaseLayout
+  title="Eurasia Route Map | CAMINO HENRO"
+  description="Interactive overland cartography tracing the continuous footpath from Cape Finisterra, Spain to Shikoku, Japan."
+>
+  <!-- Load Leaflet 1.9.4 CSS from unpkg CDN -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
+  <!-- Page Header -->
+  <header class="pt-2 pb-8 border-b border-[#6E2B25]">
+    <div class="flex items-center justify-between gap-4 mb-2">
+      <p class="font-jp text-sm sm:text-base tracking-[0.2em] text-[#6E2B25]">
+        行程図・ユーラシア遍路道
+      </p>
+      <span class="font-mono text-xs uppercase tracking-widest text-[#524D46]">
+        34°N–45°N Overland Corridor
+      </span>
+    </div>
+    <h1 class="font-heading text-3xl sm:text-5xl font-bold tracking-wider uppercase text-[#1C1A17] mb-3">
+      Eurasia Route Map
+    </h1>
+    <p class="font-body text-base sm:text-lg text-[#524D46] max-w-2xl leading-relaxed">
+      An ink-and-parchment cartographic ledger tracing the unbroken footpath from the zero-kilometer stone at Cape Finisterra across Europe and Asia to Temple 1 (Ryōzen-ji) in Shikoku, Japan.
+    </p>
+  </header>
+
+  <!-- 4-Column Expedition Telemetry Bar + Progress Bar -->
+  <section class="py-6 border-b border-[#1C1A17]/15">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
+      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-4">
+        <span class="block text-[10px] uppercase tracking-widest text-[#524D46] mb-1">
+          Completed Distance
+        </span>
+        <span class="text-xl sm:text-2xl font-medium text-[#6E2B25]">
+          {stats.completedKm.toLocaleString('en-US')} km
+        </span>
+      </div>
+
+      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-4">
+        <span class="block text-[10px] uppercase tracking-widest text-[#524D46] mb-1">
+          Planned Corridor
+        </span>
+        <span class="text-xl sm:text-2xl font-medium text-[#1C1A17]">
+          {stats.totalPlannedKm.toLocaleString('en-US')} km
+        </span>
+      </div>
+
+      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-4">
+        <span class="block text-[10px] uppercase tracking-widest text-[#524D46] mb-1">
+          Days on Trail
+        </span>
+        <span class="text-xl sm:text-2xl font-medium text-[#1C1A17]">
+          {stats.daysOnTrail}
+        </span>
+      </div>
+
+      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-4">
+        <span class="block text-[10px] uppercase tracking-widest text-[#524D46] mb-1">
+          Countries Crossed
+        </span>
+        <span class="text-xl sm:text-2xl font-medium text-[#1C1A17]">
+          {stats.countriesCrossed}
+        </span>
+      </div>
+    </div>
+
+    <!-- Progress Percentage Bar -->
+    <div class="mt-5">
+      <div class="flex items-center justify-between font-mono text-xs text-[#524D46] mb-1.5">
+        <span class="uppercase tracking-widest">
+          Continental Footpath Progress (Finisterra → Shikoku)
+        </span>
+        <span class="text-[#6E2B25] font-medium">
+          {formattedPct}% ({stats.completedKm} / {stats.totalPlannedKm.toLocaleString('en-US')} km)
+        </span>
+      </div>
+      <div class="w-full h-2.5 bg-[#D8CEB8] border border-[#1C1A17]/25 overflow-hidden">
+        <div
+          class="h-full bg-[#6E2B25] transition-all duration-500"
+          style={\`width: \${visualBarPct}%;\`}
+        ></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Map Controls & Map Container -->
+  <section class="py-8 border-b border-[#6E2B25]">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+      <div class="flex flex-wrap items-center gap-2 font-mono text-xs">
+        <button
+          id="btn-zoom-corridor"
+          type="button"
+          class="border border-[#1C1A17] bg-[#E6DFCF] hover:border-[#6E2B25] hover:text-[#6E2B25] text-[#1C1A17] px-3 py-2 uppercase tracking-wider transition-colors"
+        >
+          View Full Eurasia Corridor
+        </button>
+        <button
+          id="btn-zoom-walked"
+          type="button"
+          class="border border-[#6E2B25] bg-[#6E2B25] text-[#E6DFCF] hover:bg-[#8C3B33] px-3 py-2 uppercase tracking-wider transition-colors"
+        >
+          Zoom to Walked Trail (Galicia)
+        </button>
+      </div>
+
+      <!-- Legend -->
+      <div class="flex flex-wrap items-center gap-4 font-mono text-xs text-[#524D46]">
+        <span class="inline-flex items-center gap-1.5">
+          <span class="inline-block w-5 h-[3px] bg-[#6E2B25]"></span>
+          <span>Walked Trail</span>
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <span class="inline-block w-5 border-t-2 border-dashed border-[#524D46]"></span>
+          <span>Planned Corridor</span>
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#6E2B25] border border-[#E6DFCF]"></span>
+          <span>Checkpoint Stamp</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Leaflet Map Viewport -->
+    <div
+      id="henro-map"
+      class="w-full bg-[#D8CEB8] relative z-10"
+      style="height: 480px; border: 1px solid #1C1A17;"
+      aria-label="Interactive Eurasia Pilgrimage Map"
+    ></div>
+
+    <p class="mt-2.5 font-mono text-[11px] text-[#524D46]">
+      Tip: Click any crimson stamp along the trail to inspect field notes and read the dispatch written at that stage.
+    </p>
+  </section>
+
+  <!-- Chronological Checkpoint Log Table -->
+  <section class="pt-8 pb-4">
+    <div class="flex flex-wrap items-baseline justify-between gap-2 mb-6">
+      <div>
+        <span class="font-jp text-xs text-[#6E2B25] tracking-widest block mb-1">
+          宿場・踏破記録
+        </span>
+        <h2 class="font-heading text-2xl sm:text-3xl font-semibold tracking-wider uppercase text-[#1C1A17]">
+          Chronological Checkpoint Log
+        </h2>
+      </div>
+      <span class="font-mono text-xs text-[#524D46]">
+        {checkpoints.length} Stages Inscribed
+      </span>
+    </div>
+
+    <div class="overflow-x-auto border border-[#1C1A17]/20">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-[#1C1A17]/20 bg-[#D8CEB8]/60 font-mono text-[11px] uppercase tracking-widest text-[#524D46]">
+            <th class="py-3 px-4">Date</th>
+            <th class="py-3 px-4">KM</th>
+            <th class="py-3 px-4">Stage / Checkpoint</th>
+            <th class="py-3 px-4">Trail Note</th>
+            <th class="py-3 px-4 text-right">Dispatch</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-[#1C1A17]/15 text-sm">
+          {checkpoints.map((cp, idx) => (
+            <tr class="hover:bg-[#D8CEB8]/30 transition-colors">
+              <td class="py-3.5 px-4 font-mono text-xs text-[#524D46] whitespace-nowrap align-top">
+                {cp.date}
+              </td>
+              <td class="py-3.5 px-4 font-mono text-xs text-[#6E2B25] font-medium whitespace-nowrap align-top">
+                KM {cp.kmMarker}
+              </td>
+              <td class="py-3.5 px-4 align-top">
+                <button
+                  type="button"
+                  data-focus-index={idx}
+                  class="checkpoint-focus-btn text-left font-heading text-lg font-semibold text-[#1C1A17] hover:text-[#6E2B25] transition-colors block"
+                >
+                  {cp.title}
+                </button>
+                <span class="font-mono text-[11px] text-[#524D46]">
+                  {cp.lat.toFixed(4)}°N, {cp.lng.toFixed(4)}°E
+                </span>
+              </td>
+              <td class="py-3.5 px-4 font-body text-[#1C1A17]/90 leading-relaxed align-top max-w-xs">
+                {cp.summary}
+              </td>
+              <td class="py-3.5 px-4 font-mono text-xs text-right whitespace-nowrap align-top">
+                {cp.essaySlug ? (
+                  <a
+                    href={\`/essays/\${cp.essaySlug}\`}
+                    class="text-[#6E2B25] hover:text-[#8C3B33] underline underline-offset-4 font-medium"
+                  >
+                    Read Dispatch →
+                  </a>
+                ) : (
+                  <span class="text-[#524D46]/70">Log Only</span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Custom Cartographic Sepia Filter & Washi Popup Styling -->
+  <style is:global>
+    #henro-map .leaflet-tile-pane {
+      filter: sepia(0.55) contrast(1.05) brightness(0.92) hue-rotate(-10deg);
+    }
+
+    #henro-map .leaflet-control-attribution {
+      background: rgba(230, 223, 207, 0.88) !important;
+      color: #524D46 !important;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      border-top: 1px solid rgba(28, 26, 23, 0.2);
+      border-left: 1px solid rgba(28, 26, 23, 0.2);
+    }
+
+    #henro-map .leaflet-control-attribution a {
+      color: #6E2B25 !important;
+    }
+
+    #henro-map .leaflet-control-zoom a {
+      background-color: #E6DFCF !important;
+      color: #1C1A17 !important;
+      border-color: rgba(28, 26, 23, 0.3) !important;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    #henro-map .leaflet-control-zoom a:hover {
+      background-color: #D8CEB8 !important;
+      color: #6E2B25 !important;
+    }
+
+    .henro-washi-popup .leaflet-popup-content-wrapper {
+      background-color: #E6DFCF;
+      color: #1C1A17;
+      border: 1px solid #6E2B25;
+      border-radius: 0;
+      box-shadow: 0 6px 20px rgba(28, 26, 23, 0.28);
+      padding: 2px;
+    }
+
+    .henro-washi-popup .leaflet-popup-tip {
+      background-color: #E6DFCF;
+      border: 1px solid #6E2B25;
+    }
+
+    .henro-washi-popup .leaflet-popup-close-button {
+      color: #524D46 !important;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 4px 6px 0 0 !important;
+    }
+
+    .henro-washi-popup .leaflet-popup-close-button:hover {
+      color: #6E2B25 !important;
+    }
+
+    .henro-stamp-marker {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 9999px;
+      background-color: #6E2B25;
+      color: #E6DFCF;
+      border: 2px solid #E6DFCF;
+      box-shadow: 0 0 0 1px #6E2B25, 0 2px 6px rgba(28, 26, 23, 0.45);
+      font-family: 'Shippori Mincho', serif;
+      font-size: 11px;
+      line-height: 1;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    .henro-stamp-marker:hover {
+      transform: scale(1.15);
+      background-color: #8C3B33;
+    }
+  </style>
+
+  <!-- Load Leaflet 1.9.4 JS from unpkg CDN and Initialize Map -->
+  <script
+    is:inline
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <script
+    is:inline
+    define:vars={{
+      plannedWaypoints,
+      checkpoints,
+    }}
+  >
+    (function () {
+      function initHenroMap() {
+        if (typeof window.L === 'undefined') {
+          setTimeout(initHenroMap, 50);
+          return;
+        }
+
+        const L = window.L;
+        const mapEl = document.getElementById('henro-map');
+        if (!mapEl) return;
+
+        const map = L.map(mapEl, {
+          scrollWheelZoom: false,
+          zoomControl: true,
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 18,
+          attribution: '&copy; OpenStreetMap contributors',
+        }).addTo(map);
+
+        // 1. Plot Planned Eurasia Corridor as a dashed #524D46 ink polyline
+        const plannedLatLngs = plannedWaypoints.map(function (wp) {
+          return [wp[0], wp[1]];
+        });
+
+        const plannedPolyline = L.polyline(plannedLatLngs, {
+          color: '#524D46',
+          weight: 2.5,
+          opacity: 0.85,
+          dashArray: '6, 8',
+        }).addTo(map);
+
+        // Add subtle ink waypoint dots along the macro corridor
+        plannedWaypoints.forEach(function (wp) {
+          L.circleMarker([wp[0], wp[1]], {
+            radius: 4,
+            color: '#1C1A17',
+            weight: 1.5,
+            fillColor: '#E6DFCF',
+            fillOpacity: 0.95,
+          })
+            .bindTooltip(wp[2], {
+              direction: 'top',
+              offset: [0, -4],
+            })
+            .addTo(map);
+        });
+
+        // 2. Plot Completed Checkpoints as a solid #6E2B25 Aged Bengala Crimson polyline
+        const walkedLatLngs = checkpoints.map(function (cp) {
+          return [cp.lat, cp.lng];
+        });
+
+        const walkedPolyline = L.polyline(walkedLatLngs, {
+          color: '#6E2B25',
+          weight: 4,
+          opacity: 0.95,
+        }).addTo(map);
+
+        // 3. Add Interactive Circular Crimson Stamp Markers for each walked checkpoint
+        const stampIcon = L.divIcon({
+          className: '',
+          html: '<div class="henro-stamp-marker" title="Checkpoint Stamp">印</div>',
+          iconSize: [24, 24],
+          iconAnchor: [12, 12],
+          popupAnchor: [0, -12],
+        });
+
+        const checkpointMarkers = [];
+
+        checkpoints.forEach(function (cp) {
+          const dispatchLinkHtml = cp.essaySlug
+            ? '<div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(28, 26, 23, 0.15);">' +
+              '<a href="/essays/' +
+              cp.essaySlug +
+              '" style="font-family: \\'JetBrains Mono\\', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #6E2B25; text-decoration: underline; font-weight: 600;">' +
+              'Read Dispatch Written Here →' +
+              '</a></div>'
+            : '';
+
+          const popupHtml =
+            '<div style="font-family: \\'EB Garamond\\', Georgia, serif; min-width: 210px; max-width: 260px; padding: 2px;">' +
+            '<div style="font-family: \\'JetBrains Mono\\', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #524D46; margin-bottom: 4px;">' +
+            '<span>' +
+            cp.date +
+            '</span> &middot; <span style="color: #6E2B25; font-weight: 600;">KM ' +
+            cp.kmMarker +
+            '</span>' +
+            '</div>' +
+            '<div style="font-family: \\'Cormorant Garamond\\', Georgia, serif; font-size: 18px; font-weight: 700; color: #1C1A17; line-height: 1.25; margin-bottom: 6px;">' +
+            cp.title +
+            '</div>' +
+            '<p style="font-size: 14px; line-height: 1.5; color: #1C1A17; margin: 0;">' +
+            cp.summary +
+            '</p>' +
+            dispatchLinkHtml +
+            '</div>';
+
+          const marker = L.marker([cp.lat, cp.lng], { icon: stampIcon })
+            .bindPopup(popupHtml, {
+              className: 'henro-washi-popup',
+              maxWidth: 280,
+            })
+            .addTo(map);
+
+          checkpointMarkers.push(marker);
+        });
+
+        // Initial camera view: show the full Eurasia corridor
+        if (plannedLatLngs.length > 0) {
+          map.fitBounds(plannedPolyline.getBounds(), {
+            padding: [30, 30],
+          });
+        }
+
+        // Camera-jump button handlers
+        const btnCorridor = document.getElementById('btn-zoom-corridor');
+        const btnWalked = document.getElementById('btn-zoom-walked');
+
+        function setActiveButton(activeBtn, inactiveBtn) {
+          if (!activeBtn || !inactiveBtn) return;
+          activeBtn.className =
+            'border border-[#6E2B25] bg-[#6E2B25] text-[#E6DFCF] hover:bg-[#8C3B33] px-3 py-2 uppercase tracking-wider transition-colors';
+          inactiveBtn.className =
+            'border border-[#1C1A17] bg-[#E6DFCF] hover:border-[#6E2B25] hover:text-[#6E2B25] text-[#1C1A17] px-3 py-2 uppercase tracking-wider transition-colors';
+        }
+
+        if (btnCorridor) {
+          btnCorridor.addEventListener('click', function () {
+            setActiveButton(btnCorridor, btnWalked);
+            if (plannedLatLngs.length > 0) {
+              map.fitBounds(plannedPolyline.getBounds(), {
+                padding: [30, 30],
+              });
+            }
+          });
+        }
+
+        if (btnWalked) {
+          btnWalked.addEventListener('click', function () {
+            setActiveButton(btnWalked, btnCorridor);
+            if (walkedLatLngs.length > 0) {
+              map.fitBounds(walkedPolyline.getBounds(), {
+                padding: [50, 50],
+                maxZoom: 10,
+              });
+            }
+          });
+        }
+
+        // Allow clicking a checkpoint title in the table below to focus & open its stamp popup
+        const focusButtons = document.querySelectorAll('.checkpoint-focus-btn');
+        focusButtons.forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            const idx = Number(btn.getAttribute('data-focus-index'));
+            const targetMarker = checkpointMarkers[idx];
+            const targetCp = checkpoints[idx];
+            if (targetMarker && targetCp) {
+              mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              map.setView([targetCp.lat, targetCp.lng], 11, { animate: true });
+              targetMarker.openPopup();
+            }
+          });
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initHenroMap);
+      } else {
+        initHenroMap();
+      }
+    })();
+  </script>
+</BaseLayout>
+`,
+};
+
+for (const [relativePath, content] of Object.entries(files)) {
+  const fullPath = path.resolve(process.cwd(), relativePath);
+  fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+  fs.writeFileSync(fullPath, content, 'utf8');
+  console.log(`Created/Updated: ${relativePath}`);
+}
+
+console.log('\nMilestone 3 (Interactive Eurasia Map) complete! Visit /map in your browser.');

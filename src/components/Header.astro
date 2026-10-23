@@ -1,0 +1,47 @@
+---
+import siteConfig from '../data/siteConfig.json';
+
+const pathname = Astro.url.pathname;
+
+const isActive = (href: string) => {
+  if (href === '/') return pathname === '/';
+  return pathname === href || pathname.startsWith(href + '/');
+};
+
+const navLinks = [
+  { label: 'Home', href: '/', show: true },
+  { label: 'Essays (Blog)', href: '/essays', show: true },
+  { label: 'Finances', href: '/finances', show: true },
+  { label: 'FAQ', href: '/faq', show: true },
+  { label: 'Credits', href: '/credits', show: true },
+  { label: 'Map', href: '/map', show: siteConfig.features?.enableMap === true },
+  { label: 'Inventory', href: '/inventory', show: siteConfig.features?.enableInventory === true },
+  { label: 'Forum', href: '/forum', show: siteConfig.features?.enableForum === true },
+].filter((item) => item.show);
+---
+
+<header class="site-header">
+  <a href="/" class="header-brand">
+    <div class="header-logo-badge">
+      <img src={siteConfig.crestImage} alt="Henro Stamp Crest" />
+    </div>
+    <div class="header-titles">
+      <span class="header-jp">{siteConfig.siteTitleJp} ・ 同行二人</span>
+      <span class="header-en">{siteConfig.siteTitleEn}</span>
+    </div>
+  </a>
+
+  <nav class="site-nav" aria-label="Primary Navigation">
+    {navLinks.map((link) => (
+      <a
+        href={link.href}
+        class={'nav-btn' + (isActive(link.href) ? ' active' : '')}
+      >
+        {link.label}
+      </a>
+    ))}
+    <a href="/donate" class="nav-btn donate-btn">
+      Donate 印
+    </a>
+  </nav>
+</header>

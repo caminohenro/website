@@ -1,0 +1,114 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const allEssays = await getCollection('essays', ({ data }) => !data.draft);
+const sortedEssays = allEssays.sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+
+const totalDispatches = sortedEssays.length;
+const totalKilometersLogged = sortedEssays.reduce((maxKm, essay) => {
+  const km = typeof essay.data.kilometersWalked === 'number' ? essay.data.kilometersWalked : 0;
+  return km > maxKm ? km : maxKm;
+}, 0);
+
+const formatDate = (date: Date) =>
+  date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+  });
+---
+
+<BaseLayout
+  title="Essays & Dispatches | CAMINO HENRO"
+  description="Chronological philosophical dispatches written on foot from Finisterra, Spain toward Shikoku, Japan."
+>
+  <!-- Archive Header -->
+  <header class="pt-2 pb-8 border-b border-[#6E2B25]">
+    <p class="font-jp text-sm sm:text-base tracking-[0.2em] text-[#6E2B25] mb-2">
+      随筆・思索の記録
+    </p>
+    <h1 class="font-heading text-3xl sm:text-5xl font-bold tracking-wider uppercase text-[#1C1A17] mb-3">
+      Dispatches from the Road
+    </h1>
+    <p class="font-body text-base sm:text-lg text-[#524D46] max-w-2xl leading-relaxed mb-6">
+      Long-form reflections on material security, reciprocity, and the quiet continuity between human society and Nature, inscribed along the overland path from the Atlantic coast to Japan.
+    </p>
+
+    <div class="flex flex-wrap items-center gap-6 pt-4 border-t border-[#1C1A17]/15 font-mono text-xs text-[#524D46]">
+      <div>
+        <span class="uppercase tracking-widest">Total Dispatches:</span>{' '}
+        <strong class="text-[#1C1A17] font-medium">{totalDispatches}</strong>
+      </div>
+      <div>
+        <span class="uppercase tracking-widest">Furthest Marker Logged:</span>{' '}
+        <strong class="text-[#6E2B25] font-medium">KM {totalKilometersLogged}</strong>
+      </div>
+      <div>
+        <span class="uppercase tracking-widest">Order:</span>{' '}
+        <span class="text-[#1C1A17]">Newest First</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Chronological Stream of Essays -->
+  <section class="divide-y divide-[#1C1A17]/15">
+    {sortedEssays.map((essay, index) => (
+      <article class="py-8">
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-[#524D46] mb-2">
+          <span class="text-[#6E2B25] font-medium">
+            #{String(totalDispatches - index).padStart(2, '0')}
+          </span>
+          <span aria-hidden="true">·</span>
+          <time datetime={essay.data.date.toISOString()}>
+            {formatDate(essay.data.date)}
+          </time>
+          <span aria-hidden="true">·</span>
+          <span>{essay.data.location}</span>
+          {typeof essay.data.kilometersWalked === 'number' && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span class="text-[#6E2B25] font-medium">
+                KM {essay.data.kilometersWalked}
+              </span>
+            </>
+          )}
+          {essay.data.readingTime && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>{essay.data.readingTime}</span>
+            </>
+          )}
+        </div>
+
+        <h2 class="font-heading text-2xl sm:text-3xl font-semibold text-[#1C1A17] mb-1 leading-snug">
+          <a
+            href={`/essays/${essay.slug}`}
+            class="hover:text-[#6E2B25] transition-colors"
+          >
+            {essay.data.title}
+          </a>
+        </h2>
+
+        {essay.data.subtitle && (
+          <p class="font-body italic text-base sm:text-lg text-[#524D46] mb-3">
+            {essay.data.subtitle}
+          </p>
+        )}
+
+        <p class="font-body text-[#1C1A17]/90 leading-relaxed mb-4">
+          {essay.data.excerpt}
+        </p>
+
+        <a
+          href={`/essays/${essay.slug}`}
+          class="inline-block font-mono text-xs uppercase tracking-widest text-[#6E2B25] hover:text-[#8C3B33] font-medium transition-colors"
+        >
+          Read Full Dispatch →
+        </a>
+      </article>
+    ))}
+  </section>
+</BaseLayout>

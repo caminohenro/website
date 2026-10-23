@@ -1,0 +1,55 @@
+{
+  "sections": [
+    {
+      "title": "Trail Hosts & Roadside Angels",
+      "entries": [
+        {
+          "name": "Doña Carmen",
+          "locationOrRole": "Cee, Galicia, Spain",
+          "date": "2026-10-12",
+          "note": "For two crisp apples, hot mint tea by the stone wall, and a warm blessing during an autumn downpour."
+        },
+        {
+          "name": "Hospitalero Mateo",
+          "locationOrRole": "Finisterra Municipal Albergue, Spain",
+          "date": "2026-10-10",
+          "note": "For keeping the drying room warm and sharing stories of winter walkers who turned back toward the east."
+        }
+      ]
+    },
+    {
+      "title": "Osettai Supporters & Patrons",
+      "entries": [
+        {
+          "name": "Supporter M.",
+          "locationOrRole": "Santiago de Compostela, Spain",
+          "date": "2026-10-10",
+          "note": "For offering the very first Osettai contribution at the beginning of the eastward road."
+        },
+        {
+          "name": "Anonymous Reader",
+          "locationOrRole": "Lisbon, Portugal",
+          "date": "2026-10-15",
+          "note": "For the kind words of encouragement and support for the pilgrimage archive."
+        }
+      ]
+    },
+    {
+      "title": "Technical & Creative Collaborators",
+      "entries": [
+        {
+          "name": "Architecture & Scroll Design",
+          "locationOrRole": "Astro & Washi Emakimono System",
+          "date": "2026-10-10",
+          "note": "Crafted to ensure dispatches can be written and published from any trailside phone or village library across Eurasia."
+        },
+        {
+          "name": "Open Source Cartography & Fonts",
+          "locationOrRole": "Shippori Mincho, Cormorant Garamond & EB Garamond",
+          "date": "2026-10-10",
+          "note": "For the typographic craft that brings traditional Japanese and European editorial print to the screen."
+        }
+      ]
+    }
+  ]
+}

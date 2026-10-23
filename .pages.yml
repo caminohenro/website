@@ -1,0 +1,270 @@
+media:
+  name: assets
+  label: Site & Essay Media
+  input: public/assets
+  output: /assets
+
+content:
+  - name: essays
+    label: Essays & Dispatches
+    type: collection
+    path: src/content/essays
+    filename: "{year}-{month}-{day}-{primary}.md"
+    view:
+      primary: title
+      fields: [title, location, date, draft]
+      sort: [date]
+      order: desc
+    fields:
+      - name: title
+        label: Essay Title
+        type: string
+        required: true
+      - name: subtitle
+        label: Subtitle
+        type: string
+      - name: date
+        label: Date
+        type: date
+        required: true
+      - name: location
+        label: Current Trail Location
+        type: string
+        required: true
+      - name: kilometersWalked
+        label: Total Kilometers Walked
+        type: number
+      - name: excerpt
+        label: Short Summary / Excerpt
+        type: text
+        required: true
+      - name: draft
+        label: Draft (Hide from live site)
+        type: boolean
+        default: false
+      - name: body
+        label: Essay Text (Markdown)
+        type: rich-text
+
+  - name: finances
+    label: Finances Ledger
+    type: file
+    path: src/data/finances.json
+    format: json
+    fields:
+      - name: currencySymbol
+        label: Currency Symbol
+        type: string
+        default: "€"
+      - name: startingReserve
+        label: Starting Reserve Amount
+        type: number
+      - name: lastUpdated
+        label: Last Updated Date
+        type: string
+      - name: note
+        label: Ledger Header Note
+        type: text
+      - name: entries
+        label: Ledger Entries (Osettai & Expenses)
+        type: object
+        list: true
+        fields:
+          - name: id
+            label: Entry ID
+            type: string
+          - name: date
+            label: Date (YYYY-MM-DD)
+            type: string
+          - name: type
+            label: Entry Type
+            type: select
+            options:
+              values:
+                - { label: "Osettai (Contribution)", value: "osettai" }
+                - { label: "Expense", value: "expense" }
+          - name: category
+            label: Category
+            type: string
+          - name: description
+            label: Description
+            type: string
+          - name: location
+            label: Location
+            type: string
+          - name: amount
+            label: Amount
+            type: number
+
+  - name: inventory
+    label: RPG Gear Inventory (Edition 2)
+    type: file
+    path: src/data/inventory.json
+    format: json
+    fields:
+      - name: items
+        label: Gear Items
+        type: object
+        list: true
+        fields:
+          - name: id
+            label: Item ID
+            type: string
+          - name: name
+            label: Item Name
+            type: string
+          - name: japaneseName
+            label: Japanese Name / Subtitle
+            type: string
+          - name: slot
+            label: Equipment Slot
+            type: select
+            options:
+              values: ["Equipped", "Main Pack", "Shelter & Sleep", "Electronics & Writing", "Consumables"]
+          - name: weightGrams
+            label: Weight (Grams)
+            type: number
+          - name: condition
+            label: Condition
+            type: select
+            options:
+              values: ["Pristine", "Seasoned", "Worn", "Need Replacement"]
+          - name: shortSummary
+            label: Short Summary
+            type: string
+          - name: lore
+            label: Philosophical / Field Lore
+            type: text
+
+  - name: route
+    label: Trail Map Checkpoints (Edition 2)
+    type: file
+    path: src/data/route.json
+    format: json
+    fields:
+      - name: stats
+        label: Overall Trail Statistics
+        type: object
+        fields:
+          - name: totalPlannedKm
+            label: Total Planned Kilometers
+            type: number
+          - name: completedKm
+            label: Completed Kilometers
+            type: number
+          - name: daysOnTrail
+            label: Days on Trail
+            type: number
+          - name: countriesCrossed
+            label: Countries Crossed
+            type: number
+      - name: checkpoints
+        label: Walked Checkpoints
+        type: object
+        list: true
+        fields:
+          - name: id
+            label: Checkpoint ID
+            type: string
+          - name: title
+            label: Town / Stage Name
+            type: string
+          - name: date
+            label: Date Reached
+            type: string
+          - name: lat
+            label: Latitude
+            type: number
+          - name: lng
+            label: Longitude
+            type: number
+          - name: kmMarker
+            label: Kilometer Marker
+            type: number
+          - name: summary
+            label: Stage Note
+            type: text
+          - name: essaySlug
+            label: Linked Essay Slug (Optional)
+            type: string
+
+  - name: faq
+    label: FAQ Items
+    type: file
+    path: src/data/faq.json
+    format: json
+    fields:
+      - name: categories
+        label: FAQ Categories
+        type: object
+        list: true
+        fields:
+          - name: categoryName
+            label: Category Name
+            type: string
+          - name: items
+            label: Questions & Answers
+            type: object
+            list: true
+            fields:
+              - name: question
+                label: Question
+                type: string
+              - name: answer
+                label: Answer
+                type: text
+
+  - name: credits
+    label: Credits & Gratitude
+    type: file
+    path: src/data/credits.json
+    format: json
+    fields:
+      - name: sections
+        label: Gratitude Sections
+        type: object
+        list: true
+        fields:
+          - name: title
+            label: Section Title
+            type: string
+          - name: entries
+            label: Supporters / Hosts
+            type: object
+            list: true
+            fields:
+              - name: name
+                label: Name or Alias
+                type: string
+              - name: locationOrRole
+                label: Location or Role
+                type: string
+              - name: note
+                label: Gratitude Note
+                type: string
+
+  - name: siteConfig
+    label: Site Settings & Edition 2 Toggles
+    type: file
+    path: src/data/siteConfig.json
+    format: json
+    fields:
+      - name: currentLocation
+        label: Current Trail Location Banner
+        type: string
+      - name: stripeDonationUrl
+        label: Stripe Osettai Payment Link
+        type: string
+      - name: features
+        label: Edition 2 Module Toggles
+        type: object
+        fields:
+          - name: enableInventory
+            label: Show RPG Inventory Page
+            type: boolean
+          - name: enableMap
+            label: Show Interactive Map Page
+            type: boolean
+          - name: enableForum
+            label: Show Community Forum Page
+            type: boolean

@@ -1,0 +1,75 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import siteConfig from '../data/siteConfig.json';
+import { getCollection } from 'astro:content';
+
+const allEssays = await getCollection('essays', ({ data }) => !data.draft);
+const sortedEssays = allEssays.sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+const recentEssays = sortedEssays.slice(0, 4);
+
+const formatDate = (date: Date) =>
+  date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+  });
+---
+
+<BaseLayout title={`${siteConfig.siteTitleJp} | ${siteConfig.siteTitleEn}`} description={siteConfig.tagline}>
+  <div class="scroll-title-block">
+    <img
+      src={siteConfig.crestImage}
+      style="width:76px; height:76px; mix-blend-mode:multiply; margin: 0 auto 10px; object-fit:contain;"
+      alt="Henro Stamp"
+    />
+    <div class="scroll-eyebrow">{siteConfig.routeSummary}</div>
+    <h1 class="page-heading">{siteConfig.siteTitleEn}</h1>
+    <div class="page-subtitle">{siteConfig.tagline}</div>
+  </div>
+
+  <div class="page-break">
+    <div class="line"></div>
+    <div class="kanji">哲学の道 • THE PILGRIM'S MANIFESTO</div>
+    <div class="line"></div>
+  </div>
+
+  <div class="essay-prose">
+    <blockquote>
+      "A boy and a hat set out on a journey to cross a continent and discover a world(view) where money, jobs and human society are simply another part of Nature.<br/>
+      We have never left Nature — we've merely forgotten that everything is, inevitably, Nature. ☯️<br/>
+      For the hat, a homecoming — its very own Odyssey.<br/>
+      For the boy, a rite of initiation, and the beginning of a journey into manhood."
+    </blockquote>
+
+    <p>
+      Modern life surrounds us with financial instruments, insurance policies, and digital vaults—yet anxiety over basic survival remains sharper than ever. <strong>Camino Henro</strong> is a cross-continental philosophical pilgrimage on foot from Finisterra, Spain to Shikoku, Japan, investigating a single foundational question: <em>What is the true philosophical foundation for building a sense of material security in life?</em>
+    </p>
+  </div>
+
+  <div class="page-break">
+    <div class="line"></div>
+    <div class="kanji">随筆 • LATEST PHILOSOPHICAL ESSAYS</div>
+    <div class="line"></div>
+  </div>
+
+  <div>
+    {recentEssays.map((essay, idx) => (
+      <a href={`/essays/${essay.slug}`} class="stream-item">
+        <div class="stream-meta">
+          Essay No. {String(sortedEssays.length - idx).padStart(2, '0')}  •  {essay.data.location}  •  {essay.data.readingTime || formatDate(essay.data.date)}
+        </div>
+        <div class="stream-title">{essay.data.title}</div>
+        <div class="stream-excerpt">{essay.data.excerpt}</div>
+        <span class="stream-read-link">Unroll Essay Scroll ➔</span>
+      </a>
+    ))}
+  </div>
+
+  <div style="text-align:center; margin-top:36px;">
+    <a href="/essays" class="ink-action-btn">
+      View Full Essay Archive (/essays) ➔
+    </a>
+  </div>
+</BaseLayout>

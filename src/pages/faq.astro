@@ -1,0 +1,80 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import faqData from '../data/faq.json';
+
+const categories = Array.isArray(faqData.categories) ? faqData.categories : [];
+---
+
+<BaseLayout
+  title="FAQ | CAMINO HENRO"
+  description="Frequently asked questions regarding the overland pilgrimage route from Spain to Japan, philosophical inquiry, and daily trail life."
+>
+  <!-- Editorial Header -->
+  <header class="pt-2 pb-8 border-b border-[#6E2B25]">
+    <p class="font-jp text-sm sm:text-base tracking-[0.2em] text-[#6E2B25] mb-2">
+      問答 / Frequently Asked Questions
+    </p>
+    <h1 class="font-heading text-3xl sm:text-5xl font-bold tracking-wider uppercase text-[#1C1A17] mb-3">
+      Dialogues Along the Way
+    </h1>
+    <p class="font-body text-base sm:text-lg text-[#524D46] max-w-2xl leading-relaxed">
+      Answers to recurring questions encountered on the road—concerning the continental path eastward, the philosophy of material security, and the practical rhythm of walking in sandals.
+    </p>
+  </header>
+
+  <!-- FAQ Categories & Accordion Items -->
+  <div class="py-6 space-y-12">
+    {categories.map((category, catIndex) => (
+      <section>
+        <div class="flex items-baseline justify-between pb-3 mb-2 border-b border-[#6E2B25]">
+          <h2 class="font-heading text-2xl sm:text-3xl font-semibold tracking-wider uppercase text-[#1C1A17]">
+            {category.categoryName}
+          </h2>
+          <span class="font-mono text-xs text-[#6E2B25]">
+            0{catIndex + 1}
+          </span>
+        </div>
+
+        <div class="divide-y divide-[#1C1A17]/15">
+          {Array.isArray(category.items) &&
+            category.items.map((item) => (
+              <details class="group border-b border-[#1C1A17]/15 py-4">
+                <summary class="flex items-center justify-between gap-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                  <span class="font-heading text-xl sm:text-2xl font-semibold text-[#1C1A17] group-hover:text-[#6E2B25] transition-colors">
+                    {item.question}
+                  </span>
+                  <span class="shrink-0 font-mono text-lg text-[#6E2B25] select-none">
+                    <span class="group-open:hidden">+</span>
+                    <span class="hidden group-open:inline">−</span>
+                  </span>
+                </summary>
+                <div class="mt-3 pr-6 font-body text-base sm:text-lg text-[#1C1A17]/90 leading-relaxed">
+                  <p>{item.answer}</p>
+                </div>
+              </details>
+            ))}
+        </div>
+      </section>
+    ))}
+  </div>
+
+  <!-- Bottom Prompt -->
+  <section class="mt-6 pt-8 border-t border-[#6E2B25]">
+    <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h3 class="font-heading text-xl font-semibold text-[#1C1A17] mb-1">
+          Walk Alongside the Dispatches
+        </h3>
+        <p class="font-body text-sm sm:text-base text-[#524D46]">
+          Explore the long-form philosophical essays written directly from the trail.
+        </p>
+      </div>
+      <a
+        href="/essays"
+        class="inline-block text-center bg-[#6E2B25] hover:bg-[#8C3B33] text-[#E6DFCF] font-mono text-xs uppercase tracking-widest px-5 py-3 transition-colors shrink-0"
+      >
+        Read Trail Dispatches →
+      </a>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,103 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import creditsData from '../data/credits.json';
+
+const sections = Array.isArray(creditsData.sections) ? creditsData.sections : [];
+---
+
+<BaseLayout
+  title="Credits & Gratitude | CAMINO HENRO"
+  description="Roll of Gratitude honoring the trail hosts, roadside angels, Osettai patrons, and collaborators walking alongside this pilgrimage."
+>
+  <!-- Editorial Header -->
+  <header class="pt-2 pb-8 border-b border-[#6E2B25]">
+    <p class="font-jp text-sm sm:text-base tracking-[0.2em] text-[#6E2B25] mb-2">
+      感謝芳名録 / Roll of Gratitude
+    </p>
+    <h1 class="font-heading text-3xl sm:text-5xl font-bold tracking-wider uppercase text-[#1C1A17] mb-4">
+      Dōgyō Ninin — Never Walking Alone
+    </h1>
+    <div class="essay-prose">
+      <p class="!mb-0 text-[#524D46]">
+        In the Shikoku Henro tradition, every pilgrim's sedge hat bears the four calligraphy characters <strong>同行二人</strong> (<em>Dōgyō Ninin</em>)—"two walking together." A solitary walker is sustained at every turn by unseen company: the stranger who points out a mountain spring, the host who opens a barn door in a storm, the patron who offers <em>Osettai</em> from afar, and the friends who helped weave this digital scroll. This ledger inscribes their names in gratitude.
+      </p>
+    </div>
+  </header>
+
+  <!-- Gratitude Sections -->
+  <div class="py-8 space-y-12">
+    {sections.map((section, idx) => (
+      <section>
+        <div class="flex items-baseline justify-between pb-3 mb-4 border-b border-[#6E2B25]">
+          <h2 class="font-heading text-2xl sm:text-3xl font-semibold tracking-wider uppercase text-[#1C1A17]">
+            {section.title}
+          </h2>
+          <span class="font-mono text-xs text-[#6E2B25] uppercase tracking-widest">
+             Book 0{idx + 1}
+          </span>
+        </div>
+
+        <div class="divide-y divide-[#1C1A17]/15 border-b border-[#1C1A17]/15">
+          {Array.isArray(section.entries) && section.entries.length > 0 ? (
+            section.entries.map((entry) => (
+              <div class="py-5 grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-6 items-baseline">
+                <!-- Left Column: Name, Role/Location, Optional Date -->
+                <div class="sm:col-span-5">
+                  <h3 class="font-heading text-xl font-bold text-[#1C1A17]">
+                    {entry.name}
+                  </h3>
+                  <div class="font-mono text-xs text-[#6E2B25] mt-0.5">
+                    <span>{entry.locationOrRole}</span>
+                    {entry.date && (
+                      <span class="text-[#524D46]"> · {entry.date}</span>
+                    )}
+                  </div>
+                </div>
+
+                <!-- Right Column: Gratitude Note -->
+                <div class="sm:col-span-7">
+                  <p class="font-body text-base text-[#1C1A17]/90 leading-relaxed">
+                    {entry.note}
+                  </p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p class="py-6 font-mono text-xs text-[#524D46]">
+              Entries for this section will be inscribed as the road unfolds.
+            </p>
+          )}
+        </div>
+      </section>
+    ))}
+  </div>
+
+  <!-- Bottom Callout -->
+  <section class="pt-4">
+    <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-6 sm:p-8 text-center">
+      <p class="font-jp text-sm text-[#6E2B25] tracking-widest mb-2">
+        お接待の記録
+      </p>
+      <h3 class="font-heading text-2xl font-semibold text-[#1C1A17] mb-2">
+        Walk With This Pilgrimage
+      </h3>
+      <p class="font-body text-base text-[#524D46] max-w-xl mx-auto mb-6">
+        Every offering of Osettai—whether a meal on the road or support from across the sea—is honored in this scroll and accounted for in the open financial ledger.
+      </p>
+      <div class="flex flex-wrap justify-center gap-4">
+        <a
+          href="/donate"
+          class="inline-block bg-[#6E2B25] hover:bg-[#8C3B33] text-[#E6DFCF] font-mono text-xs uppercase tracking-widest px-5 py-3 transition-colors"
+        >
+          Offer Osettai →
+        </a>
+        <a
+          href="/finances"
+          class="inline-block border border-[#1C1A17]/30 hover:border-[#6E2B25] text-[#1C1A17] hover:text-[#6E2B25] font-mono text-xs uppercase tracking-widest px-5 py-3 transition-colors"
+        >
+          View Financial Ledger
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

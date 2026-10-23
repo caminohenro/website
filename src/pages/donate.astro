@@ -1,0 +1,135 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import siteConfig from '../data/siteConfig.json';
+
+const tiers = [
+  {
+    title: 'A Hot Meal on a Rainy Day — €10',
+    amount: '€10',
+    jp: '一椀の糧',
+    description:
+      'Provides warm soup, bread, dried figs, and hot tea after a soaked day of walking through mountain passes.',
+  },
+  {
+    title: "A Night's Pilgrim Bunk — €20",
+    amount: '€20',
+    jp: '一夜の宿',
+    description:
+      'Covers a simple municipal albergue bunk, a warm shower, and an electrical outlet to write the week’s dispatch.',
+  },
+  {
+    title: 'A Pair of Trail Socks / Gear Repair — €35',
+    amount: '€35',
+    jp: '草鞋と修繕',
+    description:
+      'Replaces worn sandal straps, wool socks, or thread and wax to keep the pack intact across thousands of kilometers.',
+  },
+  {
+    title: 'Custom Osettai Offering — Any Amount',
+    amount: 'Open',
+    jp: '随意のお接待',
+    description:
+      'An open-handed blessing of any size toward trail provisions, border visas, or the preservation of this archive.',
+  },
+];
+---
+
+<BaseLayout
+  title="Offer Osettai (Donate) | CAMINO HENRO"
+  description="Support the Camino Henro pilgrimage from Spain to Japan in the traditional spirit of Shikoku Osettai and Camino donativo."
+>
+  <!-- Centered Crimson Stamp Header -->
+  <header class="pt-4 pb-8 text-center border-b border-[#6E2B25]">
+    <div class="inline-block border-2 border-[#6E2B25] px-4 py-1.5 mb-4 bg-[#D8CEB8]/30">
+      <span class="font-mono text-xs sm:text-sm tracking-[0.2em] text-[#6E2B25] font-semibold uppercase">
+        お接待 / OSETTAI — PILGRIMAGE ALMS
+      </span>
+    </div>
+
+    <h1 class="font-heading text-3xl sm:text-5xl font-bold tracking-wider uppercase text-[#1C1A17] mb-3">
+      The Gift of the Road
+    </h1>
+
+    <p class="font-body italic text-lg sm:text-xl text-[#524D46] max-w-xl mx-auto">
+      "When two strangers share bread along the way, neither walks alone."
+    </p>
+  </header>
+
+  <!-- Long-Form Cultural & Philosophical Explanation -->
+  <section class="py-8 border-b border-[#1C1A17]/15">
+    <div class="essay-prose">
+      <p>
+        On the island of Shikoku, where pilgrims in woven sedge hats walk the circular path linking eighty-eight sacred temples, there lives a centuries-old custom known as <strong><em>Osettai</em> (お接待)</strong>. Local villagers, farmers, and shopkeepers step out to press a tangerine, a cup of green tea, a rice ball, or a small paper envelope of coins into the hands of a passing walker. It is never a commercial transaction, nor is it charity given out of pity; in Buddhist understanding, the householder who cannot leave their fields shares directly in the spiritual merit and inquiry of the pilgrimage by sustaining the one who walks.
+      </p>
+
+      <p>
+        Sixteen thousand kilometers to the west, along the medieval tracks of the <em>Camino de Santiago</em> in Spain, the very same spirit endures under the name of <strong><em>donativo</em></strong>—hospitality offered freely so that the table remains full for the next traveler behind you. Both traditions rest upon a quiet, radical premise: that true material security is born not from hoarding behind high walls, but from living inside a web of mutual care.
+      </p>
+
+      <p>
+        If these dispatches have offered you quiet company, reflection, or a breath of open air, you are invited to participate in this walk through a gesture of digital <em>Osettai</em>. Every contribution goes directly toward sustaining the pilgrimage and its public archive, and every single euro is recorded openly in the project ledger.
+      </p>
+    </div>
+  </section>
+
+  <!-- 4 Suggested Contribution Tiers (2x2 Ink-Bordered Grid) -->
+  <section class="py-10 border-b border-[#6E2B25]">
+    <div class="flex items-baseline justify-between mb-6">
+      <h2 class="font-heading text-2xl sm:text-3xl font-semibold uppercase tracking-wider text-[#1C1A17]">
+        Suggested Osettai Offerings
+      </h2>
+      <span class="font-jp text-xs text-[#6E2B25] tracking-widest">喜捨の目安</span>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+      {tiers.map((tier) => (
+        <a
+          href={siteConfig.stripeDonationUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="group block border border-[#1C1A17]/25 hover:border-[#6E2B25] bg-[#D8CEB8]/35 hover:bg-[#D8CEB8]/65 p-6 transition-all"
+        >
+          <div class="flex items-center justify-between font-mono text-xs text-[#6E2B25] mb-2">
+            <span>{tier.jp}</span>
+            <span class="px-2 py-0.5 border border-[#6E2B25] group-hover:bg-[#6E2B25] group-hover:text-[#E6DFCF] transition-colors">
+              {tier.amount}
+            </span>
+          </div>
+
+          <h3 class="font-heading text-xl font-bold text-[#1C1A17] group-hover:text-[#6E2B25] transition-colors mb-2">
+            {tier.title}
+          </h3>
+
+          <p class="font-body text-sm sm:text-base text-[#524D46] leading-relaxed mb-4">
+            {tier.description}
+          </p>
+
+          <span class="font-mono text-[11px] uppercase tracking-widest text-[#6E2B25] group-hover:underline underline-offset-4">
+            Select Offering via Stripe →
+          </span>
+        </a>
+      ))}
+    </div>
+
+    <!-- Prominent Primary CTA & Transparent Ledger Link -->
+    <div class="border border-[#6E2B25] bg-[#D8CEB8]/50 p-6 sm:p-8 text-center">
+      <a
+        href={siteConfig.stripeDonationUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-block w-full sm:w-auto bg-[#6E2B25] hover:bg-[#8C3B33] text-[#E6DFCF] font-mono text-sm uppercase tracking-widest px-8 py-4 transition-colors mb-4"
+      >
+        Offer Osettai via Stripe →
+      </a>
+
+      <div class="pt-2">
+        <a
+          href="/finances"
+          class="font-mono text-xs text-[#1C1A17] hover:text-[#6E2B25] underline underline-offset-4 transition-colors"
+        >
+          Every euro received is logged openly in the Financial Ledger →
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
