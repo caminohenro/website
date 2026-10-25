@@ -18,5 +18,9 @@
     "enableInventory": true,
     "enableMap": true,
     "enableForum": true
+  },
+  "supabase": {
+    "url": "",
+    "anonKey": ""
   }
 }
