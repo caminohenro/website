@@ -20,7 +20,7 @@
     "enableForum": true
   },
   "supabase": {
-    "url": "",
-    "anonKey": ""
+    "url": "https://ojeztracxcevamopdveb.supabase.co/rest/v1/",
+    "anonKey": "sb_publishable_SLLN9WdEFQBeZsESqdcTmg_elNmtUm5"
   }
 }
