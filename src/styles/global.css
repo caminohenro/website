@@ -237,10 +237,8 @@ nav.site-nav {
     0 20px 70px rgba(0, 0, 0, 0.9),
     0 0 0 1px rgba(28, 26, 23, 0.25);
   padding: 52px 64px 64px;
-  min-height: 72vh;
   position: relative;
-  transform-origin: top center;
-  animation: scrollUnfurlDown 0.68s cubic-bezier(0.22, 1, 0.36, 1) both;
+  overflow: hidden;
 }
 
 @keyframes unfurl {
@@ -451,17 +449,63 @@ h1.page-heading {
    STEP 9: SCROLL UNFURL ANIMATION, ARTISAN JIKUGI ROLLERS & HEADER TYPOGRAPHY
    ========================================================================== */
 
+:root {
+  --fade-duration: 0.6s;
+  --pause-duration: 0.1s;
+  --unfurl-duration: 10s;
+  --unfurl-delay: calc(var(--fade-duration) + var(--pause-duration));
+  --unfurl-easing: cubic-bezier(0.33, 1, 0.62, 1);
+}
+
 .scroll-stage {
-  animation: stageFadeIn 0.22s ease-out both;
+  animation: stageFadeIn var(--fade-duration) ease-out both;
 }
 
 .washi-scroll {
   transform-origin: top center;
-  animation: scrollUnfurlDown 0.68s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: scrollUnfurlDown
+    var(--unfurl-duration)
+    var(--unfurl-easing)
+    var(--unfurl-delay)
+    both;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  overflow: hidden;
 }
 
+/* Recreate the vertical padding as static inner blocks so the text never shifts relative to the top */
+.washi-scroll::before {
+  content: "";
+  display: block;
+  height: 52px;
+  width: 100%;
+}
+
+.washi-scroll::after {
+  content: "";
+  display: block;
+  height: 64px;
+  width: 100%;
+}
+
+/* Recreate the mobile padding overrides using the same logic */
+@media (max-width: 680px) {
+  .washi-scroll {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  .washi-scroll::before { 
+    height: 36px; 
+  }
+  .washi-scroll::after { 
+    height: 48px; 
+  }
+}
+
+/* No separate transform animation needed on .scroll-roller-bottom; 
+   it now sits directly against .scroll-roller-top and rides the bottom edge of .washi-scroll */
 .scroll-roller-bottom {
-  animation: bottomRollerUnfurl 0.68s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: none;
 }
 
 @keyframes stageFadeIn {
@@ -471,39 +515,47 @@ h1.page-heading {
 
 @keyframes scrollUnfurlDown {
   0% {
+    max-height: 0;
+    min-height: 0;
     opacity: 0;
-    clip-path: inset(0 -90px 96% -90px);
-    transform: translateY(-10px);
   }
-  25% {
+  5% {
     opacity: 1;
   }
   100% {
+    max-height: 500vh;
+    min-height: 72vh;
     opacity: 1;
-    clip-path: inset(0 -90px -90px -90px);
-    transform: translateY(0);
   }
 }
 
-@keyframes bottomRollerUnfurl {
-  0% {
-    opacity: 0;
-    transform: translateY(-42vh);
-  }
-  30% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
+@media (max-width: 680px) {
+  @keyframes scrollUnfurlDown {
+    0% {
+      max-height: 0;
+      min-height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      opacity: 0;
+    }
+    5% {
+      opacity: 1;
+    }
+    100% {
+      max-height: 500vh;
+      min-height: 72vh;
+      padding-top: 36px;
+      padding-bottom: 48px;
+      opacity: 1;
+    }
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .scroll-stage, .washi-scroll, .scroll-roller-bottom {
     animation: none !important;
-    clip-path: none !important;
-    transform: none !important;
+    max-height: none !important;
+    min-height: 72vh !important;
   }
 }
 
