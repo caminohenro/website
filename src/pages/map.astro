@@ -39,22 +39,19 @@ const visualBarPct = Math.max(rawPct, 1.5);
   />
 
   <!-- Page Header -->
-  <header class="pt-2 pb-8 border-b border-[#6E2B25]">
-    <div class="flex items-center justify-between gap-4 mb-2">
-      <p class="font-jp text-sm sm:text-base tracking-[0.2em] text-[#6E2B25]">
-        行程図・ユーラシア遍路道
-      </p>
-      <span class="font-mono text-xs uppercase tracking-widest text-[#524D46]">
-        34°N–45°N Overland Corridor
-      </span>
-    </div>
-    <h1 class="font-heading text-3xl sm:text-5xl font-bold tracking-wider uppercase text-[#1C1A17] mb-3">
-      Eurasia Route Map
-    </h1>
-    <p class="font-body text-base sm:text-lg text-[#524D46] max-w-2xl leading-relaxed">
-      An ink-and-parchment cartographic ledger tracing the unbroken footpath from the zero-kilometer stone at Cape Finisterra across Europe and Asia to Temple 1 (Ryōzen-ji) in Shikoku, Japan.
-    </p>
-  </header>
+  <!-- STANDARDIZED_SCROLL_HEADER_START -->
+  <div class="scroll-title-block">
+    <div class="scroll-eyebrow">行程図 • 34°N–45°N Overland Corridor</div>
+    <h1 class="page-heading">Eurasia Route Map</h1>
+    <div class="page-subtitle">Tracing the unbroken footpath from Cape Finisterra across Europe and Asia to Temple 1 in Shikoku, Japan</div>
+  </div>
+
+  <div class="page-break">
+    <div class="line"></div>
+    <div class="kanji">道</div>
+    <div class="line"></div>
+  </div>
+  <!-- STANDARDIZED_SCROLL_HEADER_END -->
 
   <!-- 4-Column Expedition Telemetry Bar + Progress Bar -->
   <section class="py-6 border-b border-[#1C1A17]/15">

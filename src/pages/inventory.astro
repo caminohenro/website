@@ -145,24 +145,19 @@ const getConditionBadgeClasses = (condition: string) => {
   description="Tactile RPG gear inventory and build-time weight ledger documenting every item carried on foot from Finisterra, Spain to Shikoku, Japan."
 >
   <!-- Editorial Header -->
-  <header class="pt-2 pb-8 border-b border-[#6E2B25]">
-    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-      <p class="font-jp text-sm sm:text-base tracking-[0.2em] text-[#6E2B25]">
-        行脚装備録 / Pilgrim's Gear Inventory
-      </p>
-      <span class="font-mono text-xs text-[#524D46]">
-        STAGE: {siteConfig.currentLocation}
-      </span>
-    </div>
+  <!-- STANDARDIZED_SCROLL_HEADER_START -->
+  <div class="scroll-title-block">
+    <div class="scroll-eyebrow">行脚装備録 • Pilgrim's Gear Inventory</div>
+    <h1 class="page-heading">The Weight of Sufficiency</h1>
+    <div class="page-subtitle">Every object carried across Eurasia must justify its weight in grams through daily utility, durability, or quiet meaning</div>
+  </div>
 
-    <h1 class="font-heading text-3xl sm:text-5xl font-bold tracking-wider uppercase text-[#1C1A17] mb-3">
-      The Weight of Sufficiency
-    </h1>
-
-    <p class="font-body text-base sm:text-lg text-[#524D46] max-w-2xl leading-relaxed">
-      To walk across a continent is to negotiate daily with gravity. Every object in this loadout must justify its weight in grams through daily utility, durability, or quiet philosophical meaning. Select any equipment slot below to inspect its field lore and specifications.
-    </p>
-  </header>
+  <div class="page-break">
+    <div class="line"></div>
+    <div class="kanji">具</div>
+    <div class="line"></div>
+  </div>
+  <!-- STANDARDIZED_SCROLL_HEADER_END -->
 
   <!-- Automatic Build-Time Weight Summary Bar (4-Column RPG Stat Header) -->
   <section class="py-8 border-b border-[#6E2B25]" aria-label="Pack Weight Summary">

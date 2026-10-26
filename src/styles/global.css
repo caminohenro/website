@@ -1,263 +1,407 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+JP:wght@300;400;500&display=swap');
+@import "tailwindcss";
 
 :root {
-  --bg-outer-obsidian: #08090C;
-  --bg-header: rgba(10, 12, 16, 0.88);
-  --bg-washi-scroll: #E6DFCF;
-  --bg-washi-subtle: rgba(28, 26, 23, 0.04);
+  --bg-obsidian: #0C0C0E;
+  --bg-glass-bar: rgba(16, 16, 18, 0.88);
+  --paper-washi: #F4EFE6;
+  --paper-card: #FAF6F0;
+  --paper-Aged: #EAE2D3;
   --ink-sumi: #1C1A17;
-  --ink-muted: #5A534A;
-  --header-text: #E6DFCF;
-  --header-muted: #A09A8E;
-  --accent-indigo: #0A367E;
-  --accent-crimson: #6E2B25;
-  --border-ink: rgba(28, 26, 23, 0.15);
-  --color-washi: #E6DFCF;
-  --color-washi-dark: #D8CEB8;
-  --color-sumi: #1C1A17;
-  --color-sumi-muted: #5A534A;
-  --color-crimson: #6E2B25;
-  --color-crimson-light: #8C3B33;
+  --ink-body: #2C2925;
+  --ink-muted: #686259;
+  --accent-crimson: #8C2D19;
+  --accent-indigo: #263849;
+  --accent-gold: #A88242;
+  --border-hairline: #D8D0C2;
+  --border-scroll-edge: #C2B6A1;
 }
 
-html {
-  background-color: var(--bg-outer-obsidian);
-  color: var(--ink-sumi);
-  font-family: 'EB Garamond', Georgia, 'Yu Mincho', serif;
-  scroll-behavior: smooth;
-}
-
-body {
-  background-color: var(--bg-outer-obsidian);
-  color: var(--ink-sumi);
-  font-family: 'EB Garamond', Georgia, 'Yu Mincho', serif;
-  line-height: 1.85;
+* {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+}
+
+html, body {
+  background-color: var(--bg-obsidian);
+  background-image:
+    radial-gradient(circle at 50% 0%, #1F1E24 0%, #0C0C0E 72%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 24px);
+  background-attachment: fixed;
+  color: var(--ink-body);
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 18px;
+  line-height: 1.72;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
-/* ==========================================================================
-   LAYER 1: STATIC BACKGROUND (The Road & Hidden Apple)
-   ========================================================================== */
-.fixed-backdrop {
+/* ============================================================================
+   TOP & BOTTOM FIXED GLASS BARS
+   ============================================================================ */
+.top-glass-bar {
   position: fixed;
-  inset: 0;
-  z-index: 0;
-  background-size: cover;
-  background-position: center 84%;
-  background-repeat: no-repeat;
-  pointer-events: none;
-}
-
-.backdrop-dimmer {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  background: radial-gradient(
-    circle at 50% 72%,
-    rgba(8, 9, 12, var(--center-dim, 0.58)) 0%,
-    rgba(8, 9, 12, var(--edge-dim, 0.84)) 100%
-  );
-  transition: background 0.35s ease;
-  pointer-events: none;
-}
-
-/* ==========================================================================
-   PERSISTENT WEBSITE HEADER (Outside the Scroll)
-   ========================================================================== */
-header.site-header {
-  position: sticky;
   top: 0;
-  z-index: 100;
-  background: var(--bg-header);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(230, 223, 207, 0.16);
-  padding: 12px 32px;
+  left: 0;
+  right: 0;
+  height: 54px;
+  background: var(--bg-glass-bar);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 1000;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 0 24px;
+  color: #E6E1D6;
+}
+
+.brand-cluster {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: #F4EFE6;
+}
+
+.brand-crest-mini {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(216, 208, 194, 0.35);
+  object-fit: cover;
+}
+
+.brand-title-en {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.05rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #F4EFE6;
+}
+
+.brand-title-jp {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 0.72rem;
+  color: #9E9689;
+  letter-spacing: 0.12em;
+}
+
+.top-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.top-nav-links::-webkit-scrollbar {
+  display: none;
+}
+
+.nav-tab {
+  background: transparent;
+  border: none;
+  color: #A69F91;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  padding: 6px 11px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.nav-tab:hover {
+  color: #F4EFE6;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-tab.active {
+  color: #F4EFE6;
+  background: rgba(140, 45, 25, 0.32);
+  border-bottom: 2px solid #C84B31;
+}
+
+.lang-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  color: #B8B0A2;
+  border: 1px solid rgba(255,255,255,0.14);
+  padding: 3px 8px;
+  border-radius: 3px;
+  letter-spacing: 0.08em;
+  background: transparent;
+}
+
+.bottom-telemetry-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: var(--bg-glass-bar);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: #9E9689;
+  letter-spacing: 0.06em;
+}
+
+.telemetry-left, .telemetry-right {
+  display: flex;
+  align-items: center;
   gap: 16px;
 }
 
-.header-brand {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.header-logo-badge {
-  width: 48px;
-  height: 48px;
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  background-color: #C84B31;
   border-radius: 50%;
-  background: var(--bg-washi-scroll);
-  padding: 3px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
-  transition: all 0.25s ease;
+  display: inline-block;
+  box-shadow: 0 0 8px #C84B31;
+  animation: pulseGlow 2.4s infinite ease-in-out;
 }
 
-.header-logo-badge img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+@keyframes pulseGlow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.85); }
 }
 
-.header-titles {
+.telemetry-highlight {
+  color: #E6E1D6;
+}
+
+/* ============================================================================
+   WASHI SCROLL STAGE, UNFURL ANIMATION & ARTISAN WOODEN END-RODS (JIKUGI)
+   ============================================================================ */
+.scroll-stage {
+  padding-top: 78px;
+  padding-bottom: 72px;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-}
-
-.header-jp {
-  font-size: 0.72rem;
-  letter-spacing: 0.25em;
-  color: var(--header-muted);
-  line-height: 1.3;
-}
-
-.header-en {
-  font-size: 1.2rem;
-  letter-spacing: 0.14em;
-  color: var(--header-text);
-  font-weight: normal;
-  line-height: 1.2;
-}
-
-nav.site-nav {
-  display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
+  animation: stageFadeIn 0.22s ease-out both;
 }
 
-.nav-btn {
-  background: transparent;
-  border: none;
-  color: var(--header-muted);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 0.76rem;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  padding: 7px 11px;
-  cursor: pointer;
-  transition: all 0.2s;
-  border-bottom: 2px solid transparent;
-  text-decoration: none;
-}
-
-.nav-btn:hover {
-  color: var(--header-text);
-}
-
-.nav-btn.active {
-  color: var(--header-text);
-  border-bottom: 2px solid var(--accent-crimson);
-}
-
-.nav-btn.donate-btn {
-  background: var(--accent-crimson);
-  color: #F4F1EA;
-  padding: 7px 15px;
-  margin-left: 8px;
-  border-radius: 2px;
-  border-bottom: none;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-}
-
-.nav-btn.donate-btn:hover {
-  filter: brightness(1.12);
-  color: #F4F1EA;
-}
-
-/* ==========================================================================
-   LAYER 2: SEPARATE PAGE SCROLL & WOODEN ROLLERS
-   ========================================================================== */
-.scroll-stage {
-  position: relative;
-  z-index: 10;
-  width: 100%;
-  padding-top: 28px;
-  margin-bottom: 10vh;
-}
-
+/* Intricate Traditional Turned Rosewood/Ebony Scroll Rods (Jikugi) */
 .scroll-roller-top,
 .scroll-roller-bottom {
-  max-width: 776px;
   width: 96vw;
-  height: 20px;
+  max-width: 792px;
+  height: 22px;
   margin: 0 auto;
-  background: linear-gradient(180deg, #3A2618 0%, #1F130B 55%, #0F0905 100%);
-  border-radius: 10px;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.9);
   position: relative;
   z-index: 12;
+  border-radius: 11px;
+  background-image:
+    /* Subtle vertical mounting-silk & turned-wood ring grooves where Washi paper meets the wood */
+    linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 27px,
+      rgba(212, 175, 55, 0.55) 27px,
+      rgba(15, 8, 4, 0.92) 29px,
+      transparent 30px,
+      transparent calc(50% - 18px),
+      rgba(140, 45, 25, 0.38) calc(50% - 18px),
+      rgba(212, 175, 55, 0.35) calc(50% - 16px),
+      rgba(140, 45, 25, 0.48) 50%,
+      rgba(212, 175, 55, 0.35) calc(50% + 16px),
+      rgba(140, 45, 25, 0.38) calc(50% + 18px),
+      transparent calc(50% + 18px),
+      transparent calc(100% - 30px),
+      rgba(15, 8, 4, 0.92) calc(100% - 29px),
+      rgba(212, 175, 55, 0.55) calc(100% - 27px),
+      transparent calc(100% - 27px),
+      transparent 100%
+    ),
+    /* Cylindrical 3D Urushi rosewood/ebony wood-grain specular shading */
+    linear-gradient(
+      180deg,
+      #2C1B10 0%,
+      #5A3A23 22%,
+      #382214 50%,
+      #170D07 82%,
+      #2B190F 100%
+    );
+  border-top: 1px solid rgba(212, 175, 55, 0.22);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.85);
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, 0.92),
+    inset 0 1px 2px rgba(255, 235, 200, 0.18);
 }
 
+.scroll-roller-bottom {
+  animation: bottomRollerUnfurl 0.68s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Stepped Artisan Finial End-Caps (Jikubana) with Horn Tip, Gold Ring & Chased Brass Collar */
 .scroll-roller-top::before,
 .scroll-roller-top::after,
 .scroll-roller-bottom::before,
 .scroll-roller-bottom::after {
   content: "";
   position: absolute;
-  top: 2px;
-  bottom: 2px;
-  width: 14px;
-  background: linear-gradient(180deg, #9C7A44, #59411E);
-  border-radius: 3px;
+  top: -2px;
+  bottom: -2px;
+  width: 26px;
+  border-radius: 4px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.75);
+  border-top: 1px solid rgba(255, 232, 175, 0.32);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.9);
+  background-blend-mode: overlay, normal;
 }
 
 .scroll-roller-top::before,
 .scroll-roller-bottom::before {
-  left: 0;
+  left: -8px;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, transparent 45%, rgba(0, 0, 0, 0.55) 100%),
+    linear-gradient(
+      90deg,
+      #18110C 0px,
+      #2B1E16 5px,
+      #0E0805 6px,
+      #C59B57 6px,
+      #E8C882 7.5px,
+      #9A7432 9px,
+      #3D2516 9px,
+      #543420 13px,
+      #24140B 17px,
+      #A88242 17px,
+      #DFB96B 20.5px,
+      #7E5E28 24px,
+      #140C06 24px,
+      #140C06 26px
+    );
 }
 
 .scroll-roller-top::after,
 .scroll-roller-bottom::after {
-  right: 0;
-}
-
-.washi-scroll {
-  max-width: 740px;
-  width: 92vw;
-  margin: 0 auto;
-  background-color: var(--bg-washi-scroll);
+  right: -8px;
   background-image:
-    linear-gradient(90deg, rgba(160, 145, 118, 0.28) 0%, transparent 6%, transparent 94%, rgba(160, 145, 118, 0.28) 100%),
-    repeating-linear-gradient(0deg, rgba(28, 26, 23, 0.015) 0px, rgba(28, 26, 23, 0.015) 1px, transparent 1px, transparent 3px);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, transparent 45%, rgba(0, 0, 0, 0.55) 100%),
+    linear-gradient(
+      270deg,
+      #18110C 0px,
+      #2B1E16 5px,
+      #0E0805 6px,
+      #C59B57 6px,
+      #E8C882 7.5px,
+      #9A7432 9px,
+      #3D2516 9px,
+      #543420 13px,
+      #24140B 17px,
+      #A88242 17px,
+      #DFB96B 20.5px,
+      #7E5E28 24px,
+      #140C06 24px,
+      #140C06 26px
+    );
+}
+
+/* The Washi Paper Scroll Container */
+.washi-scroll {
+  width: 92vw;
+  max-width: 736px;
+  background-color: var(--paper-washi);
+  background-image:
+    radial-gradient(rgba(140, 118, 82, 0.05) 1px, transparent 0),
+    linear-gradient(90deg, rgba(180, 164, 138, 0.28) 0%, rgba(244, 239, 230, 0) 4%, rgba(244, 239, 230, 0) 96%, rgba(180, 164, 138, 0.28) 100%);
+  background-size: 24px 24px, 100% 100%;
+  border-left: 1px solid var(--border-scroll-edge);
+  border-right: 1px solid var(--border-scroll-edge);
   box-shadow:
-    0 20px 70px rgba(0, 0, 0, 0.9),
-    0 0 0 1px rgba(28, 26, 23, 0.25);
-  padding: 52px 64px 64px;
-  min-height: 72vh;
+    0 24px 70px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 0 42px rgba(166, 146, 114, 0.14);
+  padding: 56px 64px 68px 64px;
   position: relative;
-  animation: unfurl 0.28s ease-out;
+  transform-origin: top center;
+  animation: scrollUnfurlDown 0.68s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@keyframes unfurl {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes stageFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-@media (max-width: 680px) {
-  header.site-header { padding: 10px 16px; }
-  .washi-scroll { padding: 36px 24px 48px; }
+@keyframes scrollUnfurlDown {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 -90px 96% -90px);
+    transform: translateY(-10px);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    clip-path: inset(0 -90px -90px -90px);
+    transform: translateY(0);
+  }
 }
 
-/* ==========================================================================
-   TYPOGRAPHY & CONTAINERLESS DIVIDERS INSIDE EACH SCROLL
-   ========================================================================== */
+@keyframes bottomRollerUnfurl {
+  0% {
+    opacity: 0;
+    transform: translateY(-42vh);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-stage,
+  .washi-scroll,
+  .scroll-roller-bottom {
+    animation: none !important;
+    clip-path: none !important;
+    transform: none !important;
+  }
+}
+
+/* Silk Mounting Borders Inside Top & Bottom of Washi Paper */
+.washi-scroll::before,
+.washi-scroll::after {
+  content: "";
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-scroll-edge), transparent);
+}
+.washi-scroll::before { top: 18px; }
+.washi-scroll::after { bottom: 18px; }
+
+/* ============================================================================
+   TYPOGRAPHY & HANKO SEALS INSIDE THE SCROLL
+   ============================================================================ */
 .scroll-title-block {
   text-align: center;
   margin-bottom: 36px;
+  position: relative;
 }
 
 .scroll-eyebrow {
@@ -269,178 +413,309 @@ nav.site-nav {
   margin-bottom: 8px;
 }
 
+h1.scroll-main-title {
+  font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+  font-size: 2.55rem;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-sumi);
+  line-height: 1.18;
+  margin-bottom: 10px;
+}
+
 h1.page-heading {
-  font-size: 2rem;
-  font-weight: normal;
+  font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+  font-size: 2.15rem;
+  font-weight: 400;
   letter-spacing: 0.08em;
   color: var(--ink-sumi);
-  line-height: 1.3;
+  line-height: 1.25;
   margin-bottom: 8px;
 }
 
 .page-subtitle {
+  font-family: 'EB Garamond', Georgia, serif;
   font-style: italic;
-  font-size: 0.96rem;
+  font-size: 0.98rem;
   color: var(--ink-muted);
+  max-width: 36rem;
+  margin: 0 auto;
+}
+
+h2.section-heading {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.45rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--ink-sumi);
+  margin: 34px 0 14px 0;
+  border-bottom: 1px solid var(--border-hairline);
+  padding-bottom: 6px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+h2.section-heading span.jp-sub {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--ink-muted);
+  letter-spacing: 0.12em;
+}
+
+p.prose {
+  margin-bottom: 1.25rem;
+  text-align: justify;
+  color: var(--ink-body);
+}
+
+p.dropcap::first-letter {
+  float: left;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 3.5rem;
+  line-height: 0.82;
+  padding-top: 4px;
+  padding-right: 10px;
+  padding-bottom: 2px;
+  color: var(--accent-crimson);
+  font-weight: 600;
+}
+
+.hanko-seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 2px solid var(--accent-crimson);
+  color: var(--accent-crimson);
+  font-family: 'Noto Serif JP', serif;
+  font-size: 0.72rem;
+  line-height: 1.05;
+  font-weight: 600;
+  border-radius: 3px;
+  padding: 2px;
+  text-align: center;
+  opacity: 0.86;
+  transform: rotate(-3deg);
+  user-select: none;
+  box-shadow: inset 0 0 0 1px rgba(140, 45, 25, 0.25);
 }
 
 .page-break {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 18px;
-  margin: 44px 0;
+  gap: 16px;
+  margin: 32px 0;
+  color: var(--ink-muted);
 }
 
 .page-break .line {
   height: 1px;
   flex: 1;
-  background: linear-gradient(90deg, transparent, var(--accent-crimson), transparent);
-  opacity: 0.55;
+  background: var(--border-hairline);
 }
 
 .page-break .kanji {
+  font-family: 'Noto Serif JP', serif;
   font-size: 0.85rem;
-  letter-spacing: 0.26em;
   color: var(--accent-crimson);
-  text-transform: uppercase;
+  letter-spacing: 0.2em;
 }
 
-.stream-item {
-  display: block;
-  padding: 22px 12px;
-  border-bottom: 1px solid var(--border-ink);
-  text-decoration: none;
-  transition: background 0.2s;
+/* ============================================================================
+   CARDS, TABLES, DIARY ENTRIES & INTERACTIVE WIDGETS ON WASHI
+   ============================================================================ */
+.washi-card {
+  background: var(--paper-card);
+  border: 1px solid var(--border-hairline);
+  padding: 20px 24px;
+  border-radius: 2px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 6px rgba(28, 26, 23, 0.03);
 }
 
-.stream-item:hover {
-  background: var(--bg-washi-subtle);
-}
-
-.stream-item:last-child {
-  border-bottom: none;
-}
-
-.stream-meta {
-  font-family: 'JetBrains Mono', Consolas, monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.16em;
-  color: var(--accent-crimson);
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
-
-.stream-title {
-  font-size: 1.32rem;
+.quote-callout {
+  border-left: 3px solid var(--accent-crimson);
+  background: rgba(234, 226, 211, 0.45);
+  padding: 16px 22px;
+  margin: 24px 0;
+  font-style: italic;
   color: var(--ink-sumi);
-  margin-bottom: 6px;
-  font-weight: normal;
 }
 
-.stream-excerpt {
-  font-size: 0.98rem;
+.meta-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
   color: var(--ink-muted);
-  margin-bottom: 8px;
 }
 
-.stream-read-link {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 0.75rem;
+.badge-crimson {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: rgba(140, 45, 25, 0.1);
+  color: var(--accent-crimson);
+  border: 1px solid rgba(140, 45, 25, 0.3);
+  padding: 2px 8px;
+  border-radius: 2px;
+}
+
+.badge-indigo {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: rgba(38, 56, 73, 0.1);
+  color: var(--accent-indigo);
+  border: 1px solid rgba(38, 56, 73, 0.28);
+  padding: 2px 8px;
+  border-radius: 2px;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.stat-box {
+  background: var(--paper-card);
+  border: 1px solid var(--border-hairline);
+  padding: 14px 16px;
+  text-align: center;
+}
+
+.stat-box .value {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.65rem;
+  font-weight: 600;
+  color: var(--ink-sumi);
+  line-height: 1.2;
+}
+
+.stat-box .label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-muted);
+  margin-top: 4px;
+}
+
+.washi-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 18px 0 28px 0;
+  font-size: 0.94rem;
+}
+
+.washi-table th {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-muted);
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--border-scroll-edge);
+}
+
+.washi-table td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border-hairline);
+  color: var(--ink-body);
+}
+
+.washi-table tr:hover td {
+  background: rgba(234, 226, 211, 0.4);
+}
+
+.btn-ink {
+  display: inline-block;
+  background: var(--ink-sumi);
+  color: var(--paper-washi);
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 0.92rem;
+  font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--accent-crimson);
-  font-weight: 600;
+  padding: 9px 20px;
+  border: 1px solid var(--ink-sumi);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
 }
 
-.ink-action-btn {
+.btn-ink:hover {
+  background: var(--accent-crimson);
+  border-color: var(--accent-crimson);
+  color: #FFF;
+}
+
+.btn-outline {
   display: inline-block;
   background: transparent;
-  border: 1px solid var(--accent-crimson);
-  color: var(--accent-crimson);
-  padding: 10px 24px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 0.8rem;
-  letter-spacing: 0.15em;
+  color: var(--ink-sumi);
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  text-decoration: none;
+  padding: 8px 18px;
+  border: 1px solid var(--border-scroll-edge);
   cursor: pointer;
-  transition: all 0.2s;
+  text-decoration: none;
+  transition: all 0.2s ease;
 }
 
-.ink-action-btn:hover {
-  background: var(--accent-crimson);
-  color: #F4F1EA;
-}
-
-.scroll-foot-hint {
-  text-align: center;
-  margin-top: 48px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border-ink);
-  font-family: 'JetBrains Mono', Consolas, monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.18em;
-  color: var(--ink-muted);
-  text-transform: uppercase;
-}
-
-/* ==========================================================================
-   BOTTOM SURPRISE REVEAL CAPTION (Below the wooden roller on every page)
-   ========================================================================== */
-.apple-reveal-stage {
-  position: relative;
-  z-index: 5;
-  height: 82vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-  padding-bottom: 6vh;
-  pointer-events: none;
-}
-
-.apple-whisper {
-  font-family: 'EB Garamond', Georgia, serif;
-  color: #F4F1EA;
-  text-align: center;
-  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.95);
-  background: rgba(8, 9, 12, 0.6);
-  padding: 12px 28px;
-  border-top: 1px solid rgba(244, 241, 234, 0.25);
-  border-bottom: 1px solid rgba(244, 241, 234, 0.25);
-  letter-spacing: 0.14em;
-  font-size: 0.95rem;
-}
-
-/* Editorial Essay Typography */
-.essay-prose {
-  font-family: 'EB Garamond', Georgia, serif;
-  font-size: 1.1rem;
-  line-height: 1.85;
-  color: var(--ink-sumi);
-}
-
-.essay-prose p {
-  margin-top: 0;
-  margin-bottom: 22px;
-  text-align: justify;
-}
-
-.essay-prose > p:first-of-type::first-letter {
-  float: left;
-  font-size: 3.3rem;
-  line-height: 0.82;
-  padding-top: 4px;
-  padding-right: 12px;
+.btn-outline:hover {
+  border-color: var(--accent-crimson);
   color: var(--accent-crimson);
 }
 
-.essay-prose blockquote {
-  margin: 30px 0;
-  padding-left: 20px;
-  border-left: 2px solid var(--accent-crimson);
-  font-style: italic;
-  font-size: 1.12rem;
-  color: var(--ink-sumi);
+/* Seal-stamped Footer inside the bottom of every scroll */
+.scroll-colophon {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+}
+
+@media (max-width: 768px) {
+  .washi-scroll {
+    width: 95vw;
+    padding: 36px 24px 48px 24px;
+  }
+  .scroll-roller-top,
+  .scroll-roller-bottom {
+    width: 98vw;
+    height: 18px;
+  }
+  h1.scroll-main-title {
+    font-size: 1.85rem;
+  }
+  h1.page-heading {
+    font-size: 1.65rem;
+  }
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+  .brand-title-jp {
+    display: none;
+  }
+  .telemetry-right {
+    display: none;
+  }
 }
