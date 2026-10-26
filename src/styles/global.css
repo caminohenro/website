@@ -239,7 +239,8 @@ nav.site-nav {
   padding: 52px 64px 64px;
   min-height: 72vh;
   position: relative;
-  animation: unfurl 0.28s ease-out;
+  transform-origin: top center;
+  animation: scrollUnfurlDown 0.68s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes unfurl {
@@ -444,3 +445,252 @@ h1.page-heading {
   font-size: 1.12rem;
   color: var(--ink-sumi);
 }
+
+/* STEP9_SCROLL_AND_HEADERS_START */
+/* ==========================================================================
+   STEP 9: SCROLL UNFURL ANIMATION, ARTISAN JIKUGI ROLLERS & HEADER TYPOGRAPHY
+   ========================================================================== */
+
+.scroll-stage {
+  animation: stageFadeIn 0.22s ease-out both;
+}
+
+.washi-scroll {
+  transform-origin: top center;
+  animation: scrollUnfurlDown 0.68s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.scroll-roller-bottom {
+  animation: bottomRollerUnfurl 0.68s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes stageFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scrollUnfurlDown {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 -90px 96% -90px);
+    transform: translateY(-10px);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    clip-path: inset(0 -90px -90px -90px);
+    transform: translateY(0);
+  }
+}
+
+@keyframes bottomRollerUnfurl {
+  0% {
+    opacity: 0;
+    transform: translateY(-42vh);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-stage, .washi-scroll, .scroll-roller-bottom {
+    animation: none !important;
+    clip-path: none !important;
+    transform: none !important;
+  }
+}
+
+/* Intricate Traditional Scroll End-Rods / Staves (Jikugi & Jikubana) */
+.scroll-roller-top,
+.scroll-roller-bottom {
+  max-width: 792px;
+  width: 96vw;
+  height: 22px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 12;
+  border-radius: 11px;
+  background-image:
+    linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 27px,
+      rgba(10, 5, 2, 0.85) 27px,
+      rgba(212, 175, 55, 0.42) 28px,
+      rgba(10, 5, 2, 0.85) 29px,
+      transparent 29px,
+      transparent calc(100% - 29px),
+      rgba(10, 5, 2, 0.85) calc(100% - 29px),
+      rgba(212, 175, 55, 0.42) calc(100% - 28px),
+      rgba(10, 5, 2, 0.85) calc(100% - 27px),
+      transparent calc(100% - 27px),
+      transparent 100%
+    ),
+    linear-gradient(
+      180deg,
+      #2C1B10 0%,
+      #5A3A23 22%,
+      #382214 50%,
+      #170D07 82%,
+      #2B190F 100%
+    );
+  border-top: 1px solid rgba(212, 175, 55, 0.22);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.85);
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, 0.92),
+    inset 0 1px 2px rgba(255, 235, 200, 0.18);
+}
+
+/* Top Roller Center Crimson Braided Silk Tie Accent + Washi Mounting Grooves */
+.scroll-roller-top {
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.16) 0%,
+      transparent 42%,
+      rgba(0, 0, 0, 0.52) 100%
+    ),
+    linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 27px,
+      rgba(10, 5, 2, 0.85) 27px,
+      rgba(212, 175, 55, 0.42) 28px,
+      rgba(10, 5, 2, 0.85) 29px,
+      transparent 29px,
+      transparent calc(50% - 7px),
+      rgba(15, 8, 5, 0.88) calc(50% - 7px),
+      rgba(197, 155, 87, 0.65) calc(50% - 5px),
+      #6E1915 calc(50% - 4px),
+      #9E2A25 50%,
+      #6E1915 calc(50% + 4px),
+      rgba(197, 155, 87, 0.65) calc(50% + 5px),
+      rgba(15, 8, 5, 0.88) calc(50% + 7px),
+      transparent calc(50% + 7px),
+      transparent calc(100% - 29px),
+      rgba(10, 5, 2, 0.85) calc(100% - 29px),
+      rgba(212, 175, 55, 0.42) calc(100% - 28px),
+      rgba(10, 5, 2, 0.85) calc(100% - 27px),
+      transparent calc(100% - 27px),
+      transparent 100%
+    ),
+    linear-gradient(
+      180deg,
+      #2C1B10 0%,
+      #5A3A23 22%,
+      #382214 50%,
+      #170D07 82%,
+      #2B190F 100%
+    );
+}
+
+/* Stepped Finial End-Caps (Jikubana) with Recessed Brass Collars (Kanagu) */
+.scroll-roller-top::before,
+.scroll-roller-top::after,
+.scroll-roller-bottom::before,
+.scroll-roller-bottom::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 26px;
+  border-radius: 4px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.75);
+  background-blend-mode: overlay, normal;
+  pointer-events: none;
+}
+
+.scroll-roller-top::before,
+.scroll-roller-bottom::before {
+  left: 0;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.28) 0%,
+      transparent 45%,
+      rgba(0, 0, 0, 0.55) 100%
+    ),
+    linear-gradient(
+      90deg,
+      #18110C 0px,
+      #18110C 6px,
+      #C59B57 6px,
+      #C59B57 9px,
+      #3D2516 9px,
+      #3D2516 17px,
+      #A88242 17px,
+      #A88242 24px,
+      #140C06 24px,
+      #140C06 26px
+    );
+}
+
+.scroll-roller-top::after,
+.scroll-roller-bottom::after {
+  right: 0;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.28) 0%,
+      transparent 45%,
+      rgba(0, 0, 0, 0.55) 100%
+    ),
+    linear-gradient(
+      270deg,
+      #18110C 0px,
+      #18110C 6px,
+      #C59B57 6px,
+      #C59B57 9px,
+      #3D2516 9px,
+      #3D2516 17px,
+      #A88242 17px,
+      #A88242 24px,
+      #140C06 24px,
+      #140C06 26px
+    );
+}
+
+/* Standardized Forum Title Block Typography Rules */
+.scroll-title-block {
+  text-align: center;
+  margin-bottom: 1.35rem;
+}
+
+.scroll-title-block .scroll-eyebrow,
+.scroll-eyebrow {
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.73rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent-crimson);
+  margin-bottom: 8px;
+}
+
+.scroll-title-block h1.page-heading,
+h1.page-heading {
+  font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+  font-size: 2.15rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: var(--ink-sumi);
+  line-height: 1.25;
+  margin-bottom: 8px;
+}
+
+.scroll-title-block .page-subtitle,
+.page-subtitle {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 0.98rem;
+  color: var(--ink-muted);
+  max-width: 36rem;
+  margin: 0 auto;
+}
+/* STEP9_SCROLL_AND_HEADERS_END */
