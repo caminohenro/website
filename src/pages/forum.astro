@@ -71,8 +71,8 @@ const categories = [
       <div class="forum-status-bar">
         <span id="forum-status-indicator" class="forum-status-text">
           {supabaseUrl && supabaseAnonKey
-            ? "● Connected to the Open Courtyard Ledger (Alias Protection Active)"
-            : "○ Local Preview Mode (Demo Alias Protection: Henro passcode is 'henro')"}
+            ? "● Connected to the Open Courtyard Ledger"
+            : "○ Local Preview Mode (3 Starter Threads Loaded)"}
         </span>
         <span id="forum-count-indicator" class="forum-count-text">
           Showing All Topics
@@ -103,7 +103,7 @@ const categories = [
       </div>
 
       <p class="forum-form-note">
-        No account wall is required. Post immediately as a guest, or enter an optional passcode in one step to claim and protect your pilgrim alias from impersonation.
+        No account or login screen is required. Post immediately as a guest, or enter an optional passcode to claim and protect your pilgrim alias with a verified badge (✓).
       </p>
 
       <form id="new-topic-form" class="washi-form" novalidate>
@@ -412,7 +412,7 @@ const categories = [
           </h2>
 
           <p class="supabase-setup-intro">
-            The forum above is currently running in <strong>Interactive Local Preview Mode</strong> so you can test browsing categories, unrolling threads, and testing the new <strong>Anti-Impersonation Alias Passcode</strong> right now (try posting as <code>Henro</code> without a passcode to see the protection block, or enter demo passcode <code>henro</code> to unlock it). Follow these three quick steps to connect your live cloud database:
+            The forum above is currently running in <strong>Interactive Local Preview Mode</strong> so you can test browsing categories, unrolling threads, creating new topics, and testing Admin (★) and Verified (✓) badges right now. Follow these three quick steps to connect your live, 100% free cloud database:
           </p>
 
           <ol class="supabase-steps-list">
@@ -424,9 +424,9 @@ const categories = [
             </li>
 
             <li class="supabase-step-card">
-              <div class="supabase-step-num">STEP 02 // RUN supabase-setup.sql &amp; supabase-auth-upgrade.sql</div>
+              <div class="supabase-step-num">STEP 02 // RUN SQL SCRIPTS IN SUPABASE SQL EDITOR</div>
               <p>
-                In your Supabase left sidebar, click <strong>SQL Editor</strong> → <strong>New query</strong>. Run <code>supabase-setup.sql</code> first (if you haven't already), then paste the contents of <code>supabase-auth-upgrade.sql</code>, edit your secret Henro passcode at the top, and click <strong>Run</strong>.
+                In your Supabase left sidebar, click <strong>SQL Editor</strong> → <strong>New query</strong>. Run <code>supabase-setup.sql</code>, <code>supabase-auth-upgrade.sql</code>, and <code>supabase-badges-upgrade.sql</code> to enable threads, replies, passcode protection, and automatic role badges.
               </p>
             </li>
 
@@ -456,6 +456,7 @@ const categories = [
     --accent-crimson: #6E2B25;
     --accent-crimson-light: #8C3B33;
     --parchment-light: #F4F1EA;
+    --admin-gold: #D4AF37;
   }
 
   /* Scroll Header & Dividers (matching Camino_Henro_Apple_Scroll_Preview-v2.html) */
@@ -574,6 +575,81 @@ const categories = [
   .ink-action-btn:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+  }
+
+  /* ========================================================================== */
+  /* FEATURE 3: EYE-CATCHING ADMIN STAR & VERIFIED PILGRIM ROLE BADGES          */
+  /* ========================================================================== */
+  .author-badge-admin {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.42rem;
+    background-color: #6E2B25;
+    color: #F4F1EA;
+    border: 1px solid #D4AF37;
+    padding: 0.14rem 0.55rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: none;
+    box-shadow: 0 1px 3px rgba(28, 26, 23, 0.22), inset 0 0 0 1px rgba(212, 175, 55, 0.22);
+    line-height: 1.3;
+    vertical-align: middle;
+  }
+
+  .author-badge-admin::first-letter {
+    color: #D4AF37;
+  }
+
+  .admin-seal-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', 'Shippori Mincho', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    color: #D4AF37;
+    background-color: rgba(28, 26, 23, 0.32);
+    border-left: 1px solid rgba(212, 175, 55, 0.55);
+    padding: 0.05rem 0.35rem 0.05rem 0.42rem;
+    margin-left: 0.1rem;
+    text-transform: uppercase;
+  }
+
+  .author-badge-verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #1C1A17;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0.04em;
+    vertical-align: middle;
+  }
+
+  .verified-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.05rem;
+    height: 1.05rem;
+    font-size: 0.64rem;
+    font-weight: 700;
+    color: #6E2B25;
+    background-color: rgba(110, 43, 37, 0.12);
+    border: 1px solid rgba(110, 43, 37, 0.45);
+    line-height: 1;
+    cursor: help;
+  }
+
+  .author-badge-guest {
+    color: var(--ink-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-transform: none;
   }
 
   /* Forum Toolbar & Filter Bar */
@@ -785,7 +861,7 @@ const categories = [
 
   .form-grid-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
   }
 
@@ -837,26 +913,22 @@ const categories = [
     font-size: 0.88rem;
     line-height: 1.35;
     color: var(--ink-muted);
-    margin-top: 0.1rem;
   }
 
   .remember-identity-row {
     display: flex;
     align-items: center;
-    padding: 0.5rem 0.75rem;
-    background-color: rgba(230, 223, 207, 0.6);
-    border: 1px dashed rgba(110, 43, 37, 0.35);
+    padding: 0.25rem 0;
   }
 
   .remember-checkbox-label {
     display: inline-flex;
     align-items: center;
-    gap: 0.55rem;
-    cursor: pointer;
+    gap: 0.5rem;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     color: var(--ink-sumi);
-    letter-spacing: 0.04em;
+    cursor: pointer;
     user-select: none;
   }
 
@@ -870,16 +942,13 @@ const categories = [
   .form-feedback {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.75rem;
-    line-height: 1.5;
+    line-height: 1.4;
     min-height: 1.2rem;
   }
 
   .form-feedback.is-error {
     color: #8B1E1E;
     font-weight: 600;
-    background-color: rgba(139, 30, 30, 0.08);
-    border-left: 3px solid #8B1E1E;
-    padding: 0.55rem 0.75rem;
   }
 
   .form-feedback.is-success {
@@ -976,6 +1045,13 @@ const categories = [
     border: 1px solid rgba(28, 26, 23, 0.18);
     background-color: rgba(230, 223, 207, 0.75);
     padding: 1.25rem 1.4rem;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .reply-card.is-admin-reply {
+    border-left: 3px solid #6E2B25;
+    background-color: rgba(244, 241, 234, 0.9);
+    box-shadow: 0 2px 6px rgba(110, 43, 37, 0.08);
   }
 
   .reply-card-meta {
@@ -990,11 +1066,6 @@ const categories = [
     margin-bottom: 0.65rem;
     padding-bottom: 0.45rem;
     border-bottom: 1px dashed rgba(28, 26, 23, 0.15);
-  }
-
-  .reply-author-name {
-    color: var(--accent-crimson);
-    font-weight: 600;
   }
 
   .reply-card-body {
@@ -1157,9 +1228,9 @@ const categories = [
     const supabaseAnonKey = (rootEl.getAttribute('data-supabase-key') || '').trim();
     const isLiveSupabase = Boolean(supabaseUrl && supabaseAnonKey);
 
-    const STORAGE_KEY = 'camino_henro_forum_identity';
+    const STORAGE_KEY_IDENTITY = 'camino_henro_forum_identity';
 
-    // Starter Philosophical Threads for Local Preview / Demo Mode
+    // Starter Philosophical Threads for Local Preview / Demo Mode (with author_role)
     const demoStarterThreads = [
       {
         id: 'demo-thread-1',
@@ -1202,20 +1273,16 @@ const categories = [
           id: 'demo-reply-101',
           thread_id: 'demo-thread-1',
           author_name: 'Mateo (Galicia)',
-          author_role: 'guest',
+          author_role: 'verified',
           body: 'Buen Camino from Finisterra. For me, the realization came during a winter storm in O Cebreiro: security was never the weight of my wallet, but the warmth of a shared stove and a stranger handing over a bowl of caldo gallego without asking my name.',
           created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
         },
       ],
     };
 
-    // Simulated users registry for Local Preview / Demo Mode
-    const demoUsersRegistry = {
-      henro: {
-        display_name: 'Henro (Pilgrim)',
-        passcode: 'henro',
-        role: 'admin',
-      },
+    // Local Demo Mode Passcode Registry (simulates public.forum_users in local preview)
+    const demoClaimedUsers = {
+      'mateo (galicia)': { passcode: 'mateo', role: 'verified' },
     };
 
     // State
@@ -1233,11 +1300,6 @@ const categories = [
     const newTopicFeedback = document.getElementById('new-topic-feedback');
     const submitNewTopicBtn = document.getElementById('submit-new-topic-btn');
 
-    const topicAuthorInput = document.getElementById('topic-author');
-    const topicEmailInput = document.getElementById('topic-email');
-    const topicPasscodeInput = document.getElementById('topic-passcode');
-    const topicRememberCheckbox = document.getElementById('topic-remember-identity');
-
     const countIndicator = document.getElementById('forum-count-indicator');
     const listView = document.getElementById('forum-list-view');
     const threadsStreamContainer = document.getElementById('threads-stream-container');
@@ -1254,6 +1316,11 @@ const categories = [
     const newReplyFeedback = document.getElementById('new-reply-feedback');
     const submitNewReplyBtn = document.getElementById('submit-new-reply-btn');
 
+    const topicAuthorInput = document.getElementById('topic-author');
+    const topicEmailInput = document.getElementById('topic-email');
+    const topicPasscodeInput = document.getElementById('topic-passcode');
+    const topicRememberCheckbox = document.getElementById('topic-remember-identity');
+
     const replyAuthorInput = document.getElementById('reply-author');
     const replyEmailInput = document.getElementById('reply-email');
     const replyPasscodeInput = document.getElementById('reply-passcode');
@@ -1267,6 +1334,17 @@ const categories = [
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+    }
+
+    function renderAuthorBadge(authorName, authorRole) {
+      const normalizedRole = String(authorRole || 'guest').toLowerCase().trim();
+      if (normalizedRole === 'admin') {
+        return `<span class="author-badge-admin">★ ${escapeHtml(authorName)} <span class="admin-seal-tag">PILGRIM ADMIN 印</span></span>`;
+      }
+      if (normalizedRole === 'verified') {
+        return `<span class="author-badge-verified">${escapeHtml(authorName)} <span class="verified-check" title="Protected Pilgrim Alias">✓</span></span>`;
+      }
+      return `<span class="author-badge-guest">${escapeHtml(authorName)}</span>`;
     }
 
     function formatDate(isoString) {
@@ -1301,145 +1379,122 @@ const categories = [
         .join('');
     }
 
-    // Load & Save Identity in localStorage
+    // Load & Save Pilgrim Identity in localStorage (Step 8A)
     function loadSavedIdentity() {
       try {
-        const raw = window.localStorage.getItem(STORAGE_KEY);
+        const raw = localStorage.getItem(STORAGE_KEY_IDENTITY);
         if (!raw) return;
         const parsed = JSON.parse(raw);
         if (!parsed || typeof parsed !== 'object') return;
 
-        const savedName = parsed.author_name || '';
-        const savedEmail = parsed.author_email || '';
-        const savedPasscode = parsed.author_passcode || '';
-        const remember = parsed.remember !== false;
+        if (topicAuthorInput && parsed.author_name) topicAuthorInput.value = parsed.author_name;
+        if (topicEmailInput && parsed.author_email) topicEmailInput.value = parsed.author_email;
+        if (topicPasscodeInput && parsed.author_passcode) topicPasscodeInput.value = parsed.author_passcode;
 
-        if (topicRememberCheckbox) topicRememberCheckbox.checked = remember;
-        if (replyRememberCheckbox) replyRememberCheckbox.checked = remember;
-
-        if (remember) {
-          if (topicAuthorInput && !topicAuthorInput.value) topicAuthorInput.value = savedName;
-          if (topicEmailInput && !topicEmailInput.value) topicEmailInput.value = savedEmail;
-          if (topicPasscodeInput && !topicPasscodeInput.value) topicPasscodeInput.value = savedPasscode;
-
-          if (replyAuthorInput && !replyAuthorInput.value) replyAuthorInput.value = savedName;
-          if (replyEmailInput && !replyEmailInput.value) replyEmailInput.value = savedEmail;
-          if (replyPasscodeInput && !replyPasscodeInput.value) replyPasscodeInput.value = savedPasscode;
-        }
+        if (replyAuthorInput && parsed.author_name) replyAuthorInput.value = parsed.author_name;
+        if (replyEmailInput && parsed.author_email) replyEmailInput.value = parsed.author_email;
+        if (replyPasscodeInput && parsed.author_passcode) replyPasscodeInput.value = parsed.author_passcode;
       } catch (err) {
-        // Ignore storage errors in private browsing modes
+        console.warn('Could not read saved forum identity from localStorage:', err);
       }
     }
 
     function handleIdentityPersistence(author_name, author_email, author_passcode, shouldRemember) {
       try {
-        if (topicRememberCheckbox) topicRememberCheckbox.checked = Boolean(shouldRemember);
-        if (replyRememberCheckbox) replyRememberCheckbox.checked = Boolean(shouldRemember);
-
         if (shouldRemember) {
-          const payload = {
-            author_name: author_name || '',
-            author_email: author_email || '',
-            author_passcode: author_passcode || '',
-            remember: true,
-          };
-          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-
-          if (topicAuthorInput) topicAuthorInput.value = payload.author_name;
-          if (topicEmailInput) topicEmailInput.value = payload.author_email;
-          if (topicPasscodeInput) topicPasscodeInput.value = payload.author_passcode;
-
-          if (replyAuthorInput) replyAuthorInput.value = payload.author_name;
-          if (replyEmailInput) replyEmailInput.value = payload.author_email;
-          if (replyPasscodeInput) replyPasscodeInput.value = payload.author_passcode;
+          localStorage.setItem(
+            STORAGE_KEY_IDENTITY,
+            JSON.stringify({
+              author_name: author_name || '',
+              author_email: author_email || '',
+              author_passcode: author_passcode || '',
+            })
+          );
+          if (topicAuthorInput) topicAuthorInput.value = author_name || '';
+          if (topicEmailInput) topicEmailInput.value = author_email || '';
+          if (topicPasscodeInput) topicPasscodeInput.value = author_passcode || '';
+          if (replyAuthorInput) replyAuthorInput.value = author_name || '';
+          if (replyEmailInput) replyEmailInput.value = author_email || '';
+          if (replyPasscodeInput) replyPasscodeInput.value = author_passcode || '';
         } else {
-          window.localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(STORAGE_KEY_IDENTITY);
         }
       } catch (err) {
-        // Ignore storage errors
+        console.warn('Could not persist forum identity to localStorage:', err);
       }
     }
 
-    // Keep both "Remember me" checkboxes synchronized
+    // Sync the two "Remember me" checkboxes so toggling one updates the other
     if (topicRememberCheckbox && replyRememberCheckbox) {
       topicRememberCheckbox.addEventListener('change', function () {
         replyRememberCheckbox.checked = topicRememberCheckbox.checked;
-        if (!topicRememberCheckbox.checked) {
-          try {
-            window.localStorage.removeItem(STORAGE_KEY);
-          } catch (e) {}
-        }
       });
       replyRememberCheckbox.addEventListener('change', function () {
         topicRememberCheckbox.checked = replyRememberCheckbox.checked;
-        if (!replyRememberCheckbox.checked) {
-          try {
-            window.localStorage.removeItem(STORAGE_KEY);
-          } catch (e) {}
-        }
       });
     }
 
-    // Extract friendly error message when Supabase raises ALIAS_PROTECTED
-    function extractFriendlyErrorMessage(rawError, fallbackMessage) {
-      const text = String(rawError?.message || rawError || '');
-      if (text.includes('ALIAS_PROTECTED')) {
+    // Extract friendly ALIAS_PROTECTED error message from Supabase response
+    function extractProtectionErrorMessage(errText) {
+      const raw = String(errText || '');
+      if (raw.includes('ALIAS_PROTECTED:')) {
         try {
-          const parsed = JSON.parse(text);
-          if (parsed && parsed.message && parsed.message.includes('ALIAS_PROTECTED')) {
-            return '🔒 ' + parsed.message;
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.message) {
+            return parsed.message.replace(/^.*ALIAS_PROTECTED:\s*/i, '');
           }
-        } catch (e) {
-          // Not JSON, extract directly from string
+        } catch (_e) {
+          // Fallback regex extraction if not JSON
         }
-        const idx = text.indexOf('ALIAS_PROTECTED');
-        return '🔒 ' + text.slice(idx).replace(/["}]+$/, '');
+        const match = raw.match(/ALIAS_PROTECTED:\s*([^"\\]+)/i);
+        if (match && match[1]) {
+          return match[1].trim();
+        }
+        return 'This pilgrim alias is protected. Please enter the correct passcode for this name, or choose another alias.';
       }
-      return fallbackMessage;
+      return null;
     }
 
-    // Simulate PostgreSQL verify_and_claim_forum_alias() in Local Preview / Demo Mode
-    function verifyDemoAlias(author_name, author_passcode) {
-      const aliasKey = String(author_name || '').trim().toLowerCase();
-      const pass = String(author_passcode || '').trim();
+    // Simulate alias verification & role assignment in Local Preview / Demo Mode
+    function verifyDemoAliasAndRole(authorName, authorPasscode) {
+      const aliasKey = String(authorName || '').toLowerCase().trim();
+      const passcode = String(authorPasscode || '').trim();
 
+      // Anti-Impersonation rule for Henro / Admin
       if (
         aliasKey.includes('henro') ||
         aliasKey.includes('admin') ||
         aliasKey.includes('カミノ遍路')
       ) {
-        if (pass !== demoUsersRegistry.henro.passcode) {
-          throw new Error(
-            "ALIAS_PROTECTED: The name Henro is reserved. Please enter Henro's secret passcode to post under this name. (In Local Demo Mode, use passcode: henro)"
-          );
+        if (passcode !== 'henro') {
+          return {
+            ok: false,
+            error:
+              "The name Henro is reserved. In Local Demo Mode, enter passcode 'henro' to test posting with the ★ PILGRIM ADMIN badge, or choose another alias.",
+          };
         }
-        return 'admin';
+        return { ok: true, role: 'admin' };
       }
 
-      if (demoUsersRegistry[aliasKey]) {
-        if (!pass || pass !== demoUsersRegistry[aliasKey].passcode) {
-          throw new Error(
-            'ALIAS_PROTECTED: This pilgrim alias is already claimed and protected. Please enter its passcode to post, or choose a different alias.'
-          );
+      // Check existing claimed demo alias
+      if (demoClaimedUsers[aliasKey]) {
+        if (passcode !== demoClaimedUsers[aliasKey].passcode) {
+          return {
+            ok: false,
+            error:
+              'This pilgrim alias is already claimed and protected. Please enter its passcode to post, or choose a different alias.',
+          };
         }
-        return demoUsersRegistry[aliasKey].role;
+        return { ok: true, role: demoClaimedUsers[aliasKey].role };
       }
 
-      if (pass.length > 0) {
-        if (pass.length < 3) {
-          throw new Error(
-            'ALIAS_PROTECTED: To claim and protect a new pilgrim alias, please enter a passcode of at least 3 characters (or leave the passcode blank to post as a guest).'
-          );
-        }
-        demoUsersRegistry[aliasKey] = {
-          display_name: String(author_name).trim(),
-          passcode: pass,
-          role: 'verified',
-        };
-        return 'verified';
+      // New alias with a passcode (3+ chars) claims 'verified' status
+      if (passcode.length >= 3) {
+        demoClaimedUsers[aliasKey] = { passcode: passcode, role: 'verified' };
+        return { ok: true, role: 'verified' };
       }
 
-      return 'guest';
+      return { ok: true, role: 'guest' };
     }
 
     // Drawer Toggle
@@ -1482,7 +1537,7 @@ const categories = [
       });
     }
 
-    // Fetch Threads from Supabase or Demo Mode
+    // Fetch Threads from Supabase (including author_role) or Demo Mode
     async function loadThreads() {
       if (!isLiveSupabase) {
         allThreads = demoStarterThreads.slice();
@@ -1491,11 +1546,12 @@ const categories = [
       }
 
       try {
-        const endpoint = `${supabaseUrl}/rest/v1/forum_threads?select=id,category,title,author_name,body,is_pinned,reply_count,created_at&order=is_pinned.desc,created_at.desc`;
+        const endpoint = `${supabaseUrl}/rest/v1/forum_threads?select=id,category,title,author_name,author_role,body,is_pinned,reply_count,created_at&order=is_pinned.desc,created_at.desc`;
         const response = await fetch(endpoint, {
           method: 'GET',
           headers: {
             apikey: supabaseAnonKey,
+            Authorization: `Bearer ${supabaseAnonKey}`,
           },
         });
 
@@ -1513,7 +1569,7 @@ const categories = [
       }
     }
 
-    // Render Thread List View (#forum-list-view)
+    // Render Thread List View (#forum-list-view) using renderAuthorBadge()
     function renderThreadList() {
       if (!threadsStreamContainer) return;
 
@@ -1548,6 +1604,7 @@ const categories = [
           const replyCount = Number(thread.reply_count || 0);
           const replyLabel = replyCount === 1 ? '1 Reply' : `${replyCount} Replies`;
           const excerpt = makeExcerpt(thread.body, 180);
+          const authorBadgeHtml = renderAuthorBadge(thread.author_name, thread.author_role);
 
           return `
             <article
@@ -1560,7 +1617,7 @@ const categories = [
               <div class="stream-meta">
                 ${pinnedBadge}
                 <span class="category-tag">${escapeHtml(thread.category)}</span>
-                <span>BY ${escapeHtml(thread.author_name)}</span>
+                <span>BY ${authorBadgeHtml}</span>
                 <span>•</span>
                 <time datetime="${escapeHtml(thread.created_at)}">${escapeHtml(formatDate(thread.created_at))}</time>
                 <span class="reply-count-tag">💬 ${escapeHtml(replyLabel)}</span>
@@ -1602,6 +1659,7 @@ const categories = [
           b.setAttribute('aria-selected', isMatch ? 'true' : 'false');
         });
 
+        // If user is currently inside a single thread, return to list view
         if (activeThreadId !== null) {
           closeThreadView();
         }
@@ -1616,12 +1674,14 @@ const categories = [
 
       activeThreadId = thread.id;
 
+      // Populate thread details using renderAuthorBadge()
       if (activeThreadMeta) {
         const pinnedHtml = thread.is_pinned ? '<span class="pinned-stamp">[PINNED 印]</span>' : '';
+        const authorBadgeHtml = renderAuthorBadge(thread.author_name, thread.author_role);
         activeThreadMeta.innerHTML = `
           ${pinnedHtml}
           <span class="category-tag">${escapeHtml(thread.category)}</span>
-          <span>INSCRIBED BY <strong>${escapeHtml(thread.author_name)}</strong></span>
+          <span>INSCRIBED BY ${authorBadgeHtml}</span>
           <span>•</span>
           <time datetime="${escapeHtml(thread.created_at)}">${escapeHtml(formatDate(thread.created_at))}</time>
         `;
@@ -1633,15 +1693,17 @@ const categories = [
         activeThreadBody.innerHTML = renderParagraphs(thread.body);
       }
 
+      // Switch views
       if (listView) listView.classList.add('hidden-view');
       if (threadView) threadView.classList.remove('hidden-view');
+
+      loadSavedIdentity();
 
       if (newReplyFeedback) {
         newReplyFeedback.textContent = '';
         newReplyFeedback.className = 'form-feedback';
       }
 
-      loadSavedIdentity();
       await loadRepliesForThread(thread.id);
     }
 
@@ -1658,7 +1720,7 @@ const categories = [
       });
     }
 
-    // Fetch Replies for a Thread
+    // Fetch Replies for a Thread (including author_role)
     async function loadRepliesForThread(threadId) {
       if (!repliesListContainer) return;
 
@@ -1673,11 +1735,12 @@ const categories = [
       }
 
       try {
-        const endpoint = `${supabaseUrl}/rest/v1/forum_replies?thread_id=eq.${encodeURIComponent(threadId)}&select=id,author_name,body,created_at&order=created_at.asc`;
+        const endpoint = `${supabaseUrl}/rest/v1/forum_replies?thread_id=eq.${encodeURIComponent(threadId)}&select=id,author_name,author_role,body,created_at&order=created_at.asc`;
         const response = await fetch(endpoint, {
           method: 'GET',
           headers: {
             apikey: supabaseAnonKey,
+            Authorization: `Bearer ${supabaseAnonKey}`,
           },
         });
 
@@ -1694,6 +1757,7 @@ const categories = [
       }
     }
 
+    // Render Replies List using renderAuthorBadge() and .is-admin-reply
     function renderRepliesList(replies) {
       if (!repliesListContainer) return;
 
@@ -1713,10 +1777,14 @@ const categories = [
 
       repliesListContainer.innerHTML = replies
         .map((reply) => {
+          const role = String(reply.author_role || 'guest').toLowerCase().trim();
+          const isAdminClass = role === 'admin' ? 'is-admin-reply' : '';
+          const authorBadgeHtml = renderAuthorBadge(reply.author_name, role);
+
           return `
-            <div class="reply-card">
+            <div class="reply-card ${isAdminClass}">
               <div class="reply-card-meta">
-                <span class="reply-author-name">印 ${escapeHtml(reply.author_name)}</span>
+                ${authorBadgeHtml}
                 <time datetime="${escapeHtml(reply.created_at)}">${escapeHtml(formatDate(reply.created_at))}</time>
               </div>
               <div class="reply-card-body">
@@ -1726,29 +1794,6 @@ const categories = [
           `;
         })
         .join('');
-    }
-
-    // Reset only message fields while keeping saved identity pre-filled
-    function clearTopicMessageFieldsOnly() {
-      const titleEl = document.getElementById('topic-title');
-      const bodyEl = document.getElementById('topic-body');
-      if (titleEl) titleEl.value = '';
-      if (bodyEl) bodyEl.value = '';
-      if (topicRememberCheckbox && !topicRememberCheckbox.checked) {
-        if (topicAuthorInput) topicAuthorInput.value = '';
-        if (topicEmailInput) topicEmailInput.value = '';
-        if (topicPasscodeInput) topicPasscodeInput.value = '';
-      }
-    }
-
-    function clearReplyMessageFieldOnly() {
-      const bodyEl = document.getElementById('reply-body');
-      if (bodyEl) bodyEl.value = '';
-      if (replyRememberCheckbox && !replyRememberCheckbox.checked) {
-        if (replyAuthorInput) replyAuthorInput.value = '';
-        if (replyEmailInput) replyEmailInput.value = '';
-        if (replyPasscodeInput) replyPasscodeInput.value = '';
-      }
     }
 
     // Handle "New Discussion Topic" Form Submission
@@ -1771,7 +1816,7 @@ const categories = [
         const author_name = topicAuthorInput ? topicAuthorInput.value.trim() : '';
         const author_email = topicEmailInput ? topicEmailInput.value.trim() : '';
         const author_passcode = topicPasscodeInput ? topicPasscodeInput.value.trim() : '';
-        const rememberIdentity = topicRememberCheckbox ? topicRememberCheckbox.checked : true;
+        const shouldRemember = topicRememberCheckbox ? topicRememberCheckbox.checked : true;
         const title = titleEl ? titleEl.value.trim() : '';
         const body = bodyEl ? bodyEl.value.trim() : '';
 
@@ -1792,47 +1837,50 @@ const categories = [
         }
 
         submitNewTopicBtn.disabled = true;
-        submitNewTopicBtn.textContent = 'Verifying & Inscribing...';
+        submitNewTopicBtn.textContent = 'Inscribing...';
         newTopicFeedback.textContent = '';
         newTopicFeedback.className = 'form-feedback';
 
         if (!isLiveSupabase) {
-          try {
-            const verifiedRole = verifyDemoAlias(author_name, author_passcode);
-            handleIdentityPersistence(author_name, author_email, author_passcode, rememberIdentity);
-
-            const createdDemoThread = {
-              id: 'demo-thread-' + Date.now(),
-              category: category,
-              title: title,
-              author_name: author_name,
-              author_role: verifiedRole,
-              body: body,
-              is_pinned: false,
-              reply_count: 0,
-              created_at: new Date().toISOString(),
-            };
-            allThreads.unshift(createdDemoThread);
-            demoStarterReplies[createdDemoThread.id] = [];
-            clearTopicMessageFieldsOnly();
-            setNewTopicDrawerOpen(false);
-            renderThreadList();
-            openThreadView(createdDemoThread.id);
-          } catch (demoErr) {
-            newTopicFeedback.textContent = extractFriendlyErrorMessage(
-              demoErr,
-              'Could not inscribe topic.'
-            );
+          const demoCheck = verifyDemoAliasAndRole(author_name, author_passcode);
+          if (!demoCheck.ok) {
+            newTopicFeedback.textContent = demoCheck.error;
             newTopicFeedback.className = 'form-feedback is-error';
-          } finally {
             submitNewTopicBtn.disabled = false;
             submitNewTopicBtn.textContent = 'Inscribe Topic into Scroll 印';
+            return;
           }
+
+          handleIdentityPersistence(author_name, author_email, author_passcode, shouldRemember);
+
+          const createdDemoThread = {
+            id: 'demo-thread-' + Date.now(),
+            category: category,
+            title: title,
+            author_name: author_name,
+            author_role: demoCheck.role,
+            body: body,
+            is_pinned: false,
+            reply_count: 0,
+            created_at: new Date().toISOString(),
+          };
+          allThreads.unshift(createdDemoThread);
+          demoStarterReplies[createdDemoThread.id] = [];
+
+          if (titleEl) titleEl.value = '';
+          if (bodyEl) bodyEl.value = '';
+          loadSavedIdentity();
+
+          submitNewTopicBtn.disabled = false;
+          submitNewTopicBtn.textContent = 'Inscribe Topic into Scroll 印';
+          setNewTopicDrawerOpen(false);
+          renderThreadList();
+          openThreadView(createdDemoThread.id);
           return;
         }
 
         try {
-          const endpoint = `${supabaseUrl}/rest/v1/forum_threads?select=id,category,title,author_name,body,is_pinned,reply_count,created_at`;
+          const endpoint = `${supabaseUrl}/rest/v1/forum_threads?select=id,category,title,author_name,author_role,body,is_pinned,reply_count,created_at`;
           const payload = {
             category: category,
             title: title,
@@ -1846,6 +1894,7 @@ const categories = [
             method: 'POST',
             headers: {
               apikey: supabaseAnonKey,
+              Authorization: `Bearer ${supabaseAnonKey}`,
               'Content-Type': 'application/json',
               Prefer: 'return=representation',
             },
@@ -1854,15 +1903,23 @@ const categories = [
 
           if (!response.ok) {
             const errText = await response.text();
+            const friendlyProtectionError = extractProtectionErrorMessage(errText);
+            if (friendlyProtectionError) {
+              newTopicFeedback.textContent = friendlyProtectionError;
+              newTopicFeedback.className = 'form-feedback is-error';
+              return;
+            }
             throw new Error(errText || `HTTP ${response.status}`);
           }
 
-          handleIdentityPersistence(author_name, author_email, author_passcode, rememberIdentity);
+          handleIdentityPersistence(author_name, author_email, author_passcode, shouldRemember);
 
           const inserted = await response.json();
           const newThread = Array.isArray(inserted) && inserted[0] ? inserted[0] : null;
 
-          clearTopicMessageFieldsOnly();
+          if (titleEl) titleEl.value = '';
+          if (bodyEl) bodyEl.value = '';
+          loadSavedIdentity();
           setNewTopicDrawerOpen(false);
 
           await loadThreads();
@@ -1871,10 +1928,8 @@ const categories = [
           }
         } catch (err) {
           console.error('Failed to post new topic:', err);
-          newTopicFeedback.textContent = extractFriendlyErrorMessage(
-            err,
-            'Could not inscribe topic. Please verify your Supabase connection or try again.'
-          );
+          newTopicFeedback.textContent =
+            'Could not inscribe topic. Please verify your Supabase connection or try again.';
           newTopicFeedback.className = 'form-feedback is-error';
         } finally {
           submitNewTopicBtn.disabled = false;
@@ -1900,7 +1955,7 @@ const categories = [
         const author_name = replyAuthorInput ? replyAuthorInput.value.trim() : '';
         const author_email = replyEmailInput ? replyEmailInput.value.trim() : '';
         const author_passcode = replyPasscodeInput ? replyPasscodeInput.value.trim() : '';
-        const rememberIdentity = replyRememberCheckbox ? replyRememberCheckbox.checked : true;
+        const shouldRemember = replyRememberCheckbox ? replyRememberCheckbox.checked : true;
         const body = bodyEl ? bodyEl.value.trim() : '';
 
         if (author_name.length < 1 || author_name.length > 60) {
@@ -1915,52 +1970,53 @@ const categories = [
         }
 
         submitNewReplyBtn.disabled = true;
-        submitNewReplyBtn.textContent = 'Verifying & Inscribing...';
+        submitNewReplyBtn.textContent = 'Inscribing Reply...';
         newReplyFeedback.textContent = '';
         newReplyFeedback.className = 'form-feedback';
 
         if (!isLiveSupabase) {
-          try {
-            const verifiedRole = verifyDemoAlias(author_name, author_passcode);
-            handleIdentityPersistence(author_name, author_email, author_passcode, rememberIdentity);
-
-            const demoReply = {
-              id: 'demo-reply-' + Date.now(),
-              thread_id: activeThreadId,
-              author_name: author_name,
-              author_role: verifiedRole,
-              body: body,
-              created_at: new Date().toISOString(),
-            };
-            if (!demoStarterReplies[activeThreadId]) {
-              demoStarterReplies[activeThreadId] = [];
-            }
-            demoStarterReplies[activeThreadId].push(demoReply);
-
-            const parentThread = allThreads.find((t) => String(t.id) === String(activeThreadId));
-            if (parentThread) {
-              parentThread.reply_count = Number(parentThread.reply_count || 0) + 1;
-            }
-
-            renderRepliesList(demoStarterReplies[activeThreadId]);
-            clearReplyMessageFieldOnly();
-            newReplyFeedback.textContent = '✓ Reply inscribed into the thread.';
-            newReplyFeedback.className = 'form-feedback is-success';
-          } catch (demoErr) {
-            newReplyFeedback.textContent = extractFriendlyErrorMessage(
-              demoErr,
-              'Could not post reply.'
-            );
+          const demoCheck = verifyDemoAliasAndRole(author_name, author_passcode);
+          if (!demoCheck.ok) {
+            newReplyFeedback.textContent = demoCheck.error;
             newReplyFeedback.className = 'form-feedback is-error';
-          } finally {
             submitNewReplyBtn.disabled = false;
             submitNewReplyBtn.textContent = 'Inscribe Reply 印';
+            return;
           }
+
+          handleIdentityPersistence(author_name, author_email, author_passcode, shouldRemember);
+
+          const demoReply = {
+            id: 'demo-reply-' + Date.now(),
+            thread_id: activeThreadId,
+            author_name: author_name,
+            author_role: demoCheck.role,
+            body: body,
+            created_at: new Date().toISOString(),
+          };
+          if (!demoStarterReplies[activeThreadId]) {
+            demoStarterReplies[activeThreadId] = [];
+          }
+          demoStarterReplies[activeThreadId].push(demoReply);
+
+          const parentThread = allThreads.find((t) => String(t.id) === String(activeThreadId));
+          if (parentThread) {
+            parentThread.reply_count = Number(parentThread.reply_count || 0) + 1;
+          }
+
+          renderRepliesList(demoStarterReplies[activeThreadId]);
+          if (bodyEl) bodyEl.value = '';
+          loadSavedIdentity();
+
+          newReplyFeedback.textContent = '✓ Reply inscribed into the thread.';
+          newReplyFeedback.className = 'form-feedback is-success';
+          submitNewReplyBtn.disabled = false;
+          submitNewReplyBtn.textContent = 'Inscribe Reply 印';
           return;
         }
 
         try {
-          const endpoint = `${supabaseUrl}/rest/v1/forum_replies?select=id,author_name,body,created_at`;
+          const endpoint = `${supabaseUrl}/rest/v1/forum_replies?select=id,author_name,author_role,body,created_at`;
           const payload = {
             thread_id: activeThreadId,
             author_name: author_name,
@@ -1973,6 +2029,7 @@ const categories = [
             method: 'POST',
             headers: {
               apikey: supabaseAnonKey,
+              Authorization: `Bearer ${supabaseAnonKey}`,
               'Content-Type': 'application/json',
               Prefer: 'return=representation',
             },
@@ -1981,26 +2038,32 @@ const categories = [
 
           if (!response.ok) {
             const errText = await response.text();
+            const friendlyProtectionError = extractProtectionErrorMessage(errText);
+            if (friendlyProtectionError) {
+              newReplyFeedback.textContent = friendlyProtectionError;
+              newReplyFeedback.className = 'form-feedback is-error';
+              return;
+            }
             throw new Error(errText || `HTTP ${response.status}`);
           }
 
-          handleIdentityPersistence(author_name, author_email, author_passcode, rememberIdentity);
+          handleIdentityPersistence(author_name, author_email, author_passcode, shouldRemember);
 
+          // Increment local thread reply_count and re-fetch replies chronologically
           const parentThread = allThreads.find((t) => String(t.id) === String(activeThreadId));
           if (parentThread) {
             parentThread.reply_count = Number(parentThread.reply_count || 0) + 1;
           }
 
-          clearReplyMessageFieldOnly();
+          if (bodyEl) bodyEl.value = '';
+          loadSavedIdentity();
           await loadRepliesForThread(activeThreadId);
           newReplyFeedback.textContent = '✓ Your reply has been inscribed into the thread.';
           newReplyFeedback.className = 'form-feedback is-success';
         } catch (err) {
           console.error('Failed to post reply:', err);
-          newReplyFeedback.textContent = extractFriendlyErrorMessage(
-            err,
-            'Could not post reply. Please verify your connection and try again.'
-          );
+          newReplyFeedback.textContent =
+            'Could not post reply. Please verify your connection and try again.';
           newReplyFeedback.className = 'form-feedback is-error';
         } finally {
           submitNewReplyBtn.disabled = false;
@@ -2009,7 +2072,7 @@ const categories = [
       });
     }
 
-    // Initialize saved identity and load forum threads on page load
+    // Pre-fill saved identity and initialize Forum on Page Load
     loadSavedIdentity();
     loadThreads();
   })();
