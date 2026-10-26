@@ -71,8 +71,8 @@ const categories = [
       <div class="forum-status-bar">
         <span id="forum-status-indicator" class="forum-status-text">
           {supabaseUrl && supabaseAnonKey
-            ? "● Connected to the Open Courtyard Ledger"
-            : "○ Local Preview Mode (3 Starter Threads Loaded)"}
+            ? "● Connected to the Open Courtyard Ledger (Alias Protection Active)"
+            : "○ Local Preview Mode (Demo Alias Protection: Henro passcode is 'henro')"}
         </span>
         <span id="forum-count-indicator" class="forum-count-text">
           Showing All Topics
@@ -103,7 +103,7 @@ const categories = [
       </div>
 
       <p class="forum-form-note">
-        No account or login is required. Simply sign with your name or pilgrim alias. If you include an email address, it is stored privately and never displayed publicly.
+        No account wall is required. Post immediately as a guest, or enter an optional passcode in one step to claim and protect your pilgrim alias from impersonation.
       </p>
 
       <form id="new-topic-form" class="washi-form" novalidate>
@@ -153,6 +153,33 @@ const categories = [
               placeholder="Private — never shown on the site"
             />
           </div>
+
+          <div class="form-field">
+            <label for="topic-passcode">Optional Alias Passcode (Claim or Unlock Name)</label>
+            <input
+              type="password"
+              id="topic-passcode"
+              name="author_passcode"
+              maxlength="120"
+              autocomplete="current-password"
+              placeholder="Set or enter passcode to protect your name"
+            />
+            <span class="field-helper-caption">
+              First time using a name with a passcode claims it. Next time, enter the same passcode to post under your name.
+            </span>
+          </div>
+        </div>
+
+        <div class="remember-identity-row">
+          <label class="remember-checkbox-label" for="topic-remember-identity">
+            <input
+              type="checkbox"
+              id="topic-remember-identity"
+              name="remember_identity"
+              checked
+            />
+            <span>Remember my alias, email &amp; passcode on this device</span>
+          </label>
         </div>
 
         <div class="form-field">
@@ -263,7 +290,7 @@ const categories = [
       <div class="reply-form-box">
         <div class="forum-form-header">
           <div>
-            <span class="forum-form-eyebrow">返답 • ADD YOUR VOICE</span>
+            <span class="forum-form-eyebrow">返答 • ADD YOUR VOICE</span>
             <h3 class="forum-form-title">Post a Reply to This Thread</h3>
           </div>
           <span class="kanji-seal">印</span>
@@ -282,7 +309,7 @@ const categories = [
             />
           </div>
 
-          <div class="form-grid-two">
+          <div class="form-grid-row">
             <div class="form-field">
               <label for="reply-author">Your Name or Pilgrim Alias *</label>
               <input
@@ -306,6 +333,33 @@ const categories = [
                 placeholder="Never displayed publicly"
               />
             </div>
+
+            <div class="form-field">
+              <label for="reply-passcode">Optional Alias Passcode (Claim or Unlock Name)</label>
+              <input
+                type="password"
+                id="reply-passcode"
+                name="author_passcode"
+                maxlength="120"
+                autocomplete="current-password"
+                placeholder="Set or enter passcode to protect your name"
+              />
+              <span class="field-helper-caption">
+                First time using a name with a passcode claims it. Next time, enter the same passcode to post under your name.
+              </span>
+            </div>
+          </div>
+
+          <div class="remember-identity-row">
+            <label class="remember-checkbox-label" for="reply-remember-identity">
+              <input
+                type="checkbox"
+                id="reply-remember-identity"
+                name="remember_identity"
+                checked
+              />
+              <span>Remember my alias, email &amp; passcode on this device</span>
+            </label>
           </div>
 
           <div class="form-field">
@@ -358,7 +412,7 @@ const categories = [
           </h2>
 
           <p class="supabase-setup-intro">
-            The forum above is currently running in <strong>Interactive Local Preview Mode</strong> so you can test browsing categories, unrolling threads, creating new topics, and posting replies right now. Follow these three quick steps to connect your live, 100% free cloud database:
+            The forum above is currently running in <strong>Interactive Local Preview Mode</strong> so you can test browsing categories, unrolling threads, and testing the new <strong>Anti-Impersonation Alias Passcode</strong> right now (try posting as <code>Henro</code> without a passcode to see the protection block, or enter demo passcode <code>henro</code> to unlock it). Follow these three quick steps to connect your live cloud database:
           </p>
 
           <ol class="supabase-steps-list">
@@ -370,9 +424,9 @@ const categories = [
             </li>
 
             <li class="supabase-step-card">
-              <div class="supabase-step-num">STEP 02 // RUN supabase-setup.sql IN ONE CLICK</div>
+              <div class="supabase-step-num">STEP 02 // RUN supabase-setup.sql &amp; supabase-auth-upgrade.sql</div>
               <p>
-                In your Supabase left sidebar, click <strong>SQL Editor</strong> → <strong>New query</strong>. Open the file named <code>supabase-setup.sql</code> (already generated for you in your main <code>camino-henro</code> project folder), copy and paste its entire contents into the SQL Editor, and click <strong>Run</strong>.
+                In your Supabase left sidebar, click <strong>SQL Editor</strong> → <strong>New query</strong>. Run <code>supabase-setup.sql</code> first (if you haven't already), then paste the contents of <code>supabase-auth-upgrade.sql</code>, edit your secret Henro passcode at the top, and click <strong>Run</strong>.
               </p>
             </li>
 
@@ -731,7 +785,7 @@ const categories = [
 
   .form-grid-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
     gap: 1rem;
   }
 
@@ -777,16 +831,55 @@ const categories = [
     box-shadow: 0 0 0 1px var(--accent-crimson);
   }
 
+  .field-helper-caption {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 0.88rem;
+    line-height: 1.35;
+    color: var(--ink-muted);
+    margin-top: 0.1rem;
+  }
+
+  .remember-identity-row {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background-color: rgba(230, 223, 207, 0.6);
+    border: 1px dashed rgba(110, 43, 37, 0.35);
+  }
+
+  .remember-checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--ink-sumi);
+    letter-spacing: 0.04em;
+    user-select: none;
+  }
+
+  .remember-checkbox-label input[type="checkbox"] {
+    accent-color: var(--accent-crimson);
+    width: 0.95rem;
+    height: 0.95rem;
+    cursor: pointer;
+  }
+
   .form-feedback {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.75rem;
-    line-height: 1.4;
+    line-height: 1.5;
     min-height: 1.2rem;
   }
 
   .form-feedback.is-error {
     color: #8B1E1E;
     font-weight: 600;
+    background-color: rgba(139, 30, 30, 0.08);
+    border-left: 3px solid #8B1E1E;
+    padding: 0.55rem 0.75rem;
   }
 
   .form-feedback.is-success {
@@ -1064,6 +1157,8 @@ const categories = [
     const supabaseAnonKey = (rootEl.getAttribute('data-supabase-key') || '').trim();
     const isLiveSupabase = Boolean(supabaseUrl && supabaseAnonKey);
 
+    const STORAGE_KEY = 'camino_henro_forum_identity';
+
     // Starter Philosophical Threads for Local Preview / Demo Mode
     const demoStarterThreads = [
       {
@@ -1071,6 +1166,7 @@ const categories = [
         category: 'Philosophy & Sufficiency',
         title: 'On Sufficiency vs. Surplus: What Does It Require to Feel Secure?',
         author_name: 'Henro (Pilgrim)',
+        author_role: 'admin',
         body: 'Where do we draw the boundary between what is genuinely required to feel safe in the world and what we accumulate merely out of habit or fear?\n\nWalking eastward from the Atlantic cliffs with only what fits inside a small pack strips the question down to bone and breath: water, bread, dry shelter at nightfall, and the quiet trust that human society is not separate from Nature, but one of its living expressions.\n\nHave you experienced a moment in your own life when carrying or owning less unexpectedly deepened your sense of material security? Share your reflections below.',
         is_pinned: true,
         reply_count: 1,
@@ -1081,6 +1177,7 @@ const categories = [
         category: 'Osettai & Hospitality',
         title: 'Traditions of Hospitality: Bridging Osettai (お接待) and Donativo',
         author_name: 'Henro (Pilgrim)',
+        author_role: 'admin',
         body: 'Both the European Camino de Santiago and the Shikoku Henro pilgrimage rest upon an ancient economy of trust. In Spain, hospitaleros welcome foot-weary strangers under the spirit of donativo; in Shikoku, locals offer green tea, citrus, or lodging as Osettai (お接待)—freely given alms offered in good faith so that giver and walker travel forward together in spirit (Dōgyō Ninin / 同行二人).\n\nHow can we preserve and practice uncalculated hospitality inside a modern commercial world that prices every interaction? Have you encountered or offered Osettai in unexpected places?',
         is_pinned: true,
         reply_count: 0,
@@ -1091,6 +1188,7 @@ const categories = [
         category: 'Community & Book Initiatives',
         title: 'Deliberating Future Works & Community Initiatives for the Archive',
         author_name: 'Henro (Pilgrim)',
+        author_role: 'admin',
         body: 'While daily subsistence on the trail comes solely from the road itself, Osettai contributions made through this digital scroll are dedicated to sustaining the archive, preparing a future printed edition of these philosophical dispatches, and supporting community-aligned initiatives.\n\nAs this courtyard grows, how would you like to see our shared platform evolve? Are there specific philosophical inquiries, translations, or physical book formats you feel we should prioritize when the time comes?',
         is_pinned: true,
         reply_count: 0,
@@ -1104,10 +1202,20 @@ const categories = [
           id: 'demo-reply-101',
           thread_id: 'demo-thread-1',
           author_name: 'Mateo (Galicia)',
+          author_role: 'guest',
           body: 'Buen Camino from Finisterra. For me, the realization came during a winter storm in O Cebreiro: security was never the weight of my wallet, but the warmth of a shared stove and a stranger handing over a bowl of caldo gallego without asking my name.',
           created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
         },
       ],
+    };
+
+    // Simulated users registry for Local Preview / Demo Mode
+    const demoUsersRegistry = {
+      henro: {
+        display_name: 'Henro (Pilgrim)',
+        passcode: 'henro',
+        role: 'admin',
+      },
     };
 
     // State
@@ -1125,6 +1233,11 @@ const categories = [
     const newTopicFeedback = document.getElementById('new-topic-feedback');
     const submitNewTopicBtn = document.getElementById('submit-new-topic-btn');
 
+    const topicAuthorInput = document.getElementById('topic-author');
+    const topicEmailInput = document.getElementById('topic-email');
+    const topicPasscodeInput = document.getElementById('topic-passcode');
+    const topicRememberCheckbox = document.getElementById('topic-remember-identity');
+
     const countIndicator = document.getElementById('forum-count-indicator');
     const listView = document.getElementById('forum-list-view');
     const threadsStreamContainer = document.getElementById('threads-stream-container');
@@ -1140,6 +1253,11 @@ const categories = [
     const newReplyForm = document.getElementById('new-reply-form');
     const newReplyFeedback = document.getElementById('new-reply-feedback');
     const submitNewReplyBtn = document.getElementById('submit-new-reply-btn');
+
+    const replyAuthorInput = document.getElementById('reply-author');
+    const replyEmailInput = document.getElementById('reply-email');
+    const replyPasscodeInput = document.getElementById('reply-passcode');
+    const replyRememberCheckbox = document.getElementById('reply-remember-identity');
 
     // Helpers
     function escapeHtml(str) {
@@ -1183,14 +1301,160 @@ const categories = [
         .join('');
     }
 
+    // Load & Save Identity in localStorage
+    function loadSavedIdentity() {
+      try {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') return;
+
+        const savedName = parsed.author_name || '';
+        const savedEmail = parsed.author_email || '';
+        const savedPasscode = parsed.author_passcode || '';
+        const remember = parsed.remember !== false;
+
+        if (topicRememberCheckbox) topicRememberCheckbox.checked = remember;
+        if (replyRememberCheckbox) replyRememberCheckbox.checked = remember;
+
+        if (remember) {
+          if (topicAuthorInput && !topicAuthorInput.value) topicAuthorInput.value = savedName;
+          if (topicEmailInput && !topicEmailInput.value) topicEmailInput.value = savedEmail;
+          if (topicPasscodeInput && !topicPasscodeInput.value) topicPasscodeInput.value = savedPasscode;
+
+          if (replyAuthorInput && !replyAuthorInput.value) replyAuthorInput.value = savedName;
+          if (replyEmailInput && !replyEmailInput.value) replyEmailInput.value = savedEmail;
+          if (replyPasscodeInput && !replyPasscodeInput.value) replyPasscodeInput.value = savedPasscode;
+        }
+      } catch (err) {
+        // Ignore storage errors in private browsing modes
+      }
+    }
+
+    function handleIdentityPersistence(author_name, author_email, author_passcode, shouldRemember) {
+      try {
+        if (topicRememberCheckbox) topicRememberCheckbox.checked = Boolean(shouldRemember);
+        if (replyRememberCheckbox) replyRememberCheckbox.checked = Boolean(shouldRemember);
+
+        if (shouldRemember) {
+          const payload = {
+            author_name: author_name || '',
+            author_email: author_email || '',
+            author_passcode: author_passcode || '',
+            remember: true,
+          };
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+
+          if (topicAuthorInput) topicAuthorInput.value = payload.author_name;
+          if (topicEmailInput) topicEmailInput.value = payload.author_email;
+          if (topicPasscodeInput) topicPasscodeInput.value = payload.author_passcode;
+
+          if (replyAuthorInput) replyAuthorInput.value = payload.author_name;
+          if (replyEmailInput) replyEmailInput.value = payload.author_email;
+          if (replyPasscodeInput) replyPasscodeInput.value = payload.author_passcode;
+        } else {
+          window.localStorage.removeItem(STORAGE_KEY);
+        }
+      } catch (err) {
+        // Ignore storage errors
+      }
+    }
+
+    // Keep both "Remember me" checkboxes synchronized
+    if (topicRememberCheckbox && replyRememberCheckbox) {
+      topicRememberCheckbox.addEventListener('change', function () {
+        replyRememberCheckbox.checked = topicRememberCheckbox.checked;
+        if (!topicRememberCheckbox.checked) {
+          try {
+            window.localStorage.removeItem(STORAGE_KEY);
+          } catch (e) {}
+        }
+      });
+      replyRememberCheckbox.addEventListener('change', function () {
+        topicRememberCheckbox.checked = replyRememberCheckbox.checked;
+        if (!replyRememberCheckbox.checked) {
+          try {
+            window.localStorage.removeItem(STORAGE_KEY);
+          } catch (e) {}
+        }
+      });
+    }
+
+    // Extract friendly error message when Supabase raises ALIAS_PROTECTED
+    function extractFriendlyErrorMessage(rawError, fallbackMessage) {
+      const text = String(rawError?.message || rawError || '');
+      if (text.includes('ALIAS_PROTECTED')) {
+        try {
+          const parsed = JSON.parse(text);
+          if (parsed && parsed.message && parsed.message.includes('ALIAS_PROTECTED')) {
+            return '🔒 ' + parsed.message;
+          }
+        } catch (e) {
+          // Not JSON, extract directly from string
+        }
+        const idx = text.indexOf('ALIAS_PROTECTED');
+        return '🔒 ' + text.slice(idx).replace(/["}]+$/, '');
+      }
+      return fallbackMessage;
+    }
+
+    // Simulate PostgreSQL verify_and_claim_forum_alias() in Local Preview / Demo Mode
+    function verifyDemoAlias(author_name, author_passcode) {
+      const aliasKey = String(author_name || '').trim().toLowerCase();
+      const pass = String(author_passcode || '').trim();
+
+      if (
+        aliasKey.includes('henro') ||
+        aliasKey.includes('admin') ||
+        aliasKey.includes('カミノ遍路')
+      ) {
+        if (pass !== demoUsersRegistry.henro.passcode) {
+          throw new Error(
+            "ALIAS_PROTECTED: The name Henro is reserved. Please enter Henro's secret passcode to post under this name. (In Local Demo Mode, use passcode: henro)"
+          );
+        }
+        return 'admin';
+      }
+
+      if (demoUsersRegistry[aliasKey]) {
+        if (!pass || pass !== demoUsersRegistry[aliasKey].passcode) {
+          throw new Error(
+            'ALIAS_PROTECTED: This pilgrim alias is already claimed and protected. Please enter its passcode to post, or choose a different alias.'
+          );
+        }
+        return demoUsersRegistry[aliasKey].role;
+      }
+
+      if (pass.length > 0) {
+        if (pass.length < 3) {
+          throw new Error(
+            'ALIAS_PROTECTED: To claim and protect a new pilgrim alias, please enter a passcode of at least 3 characters (or leave the passcode blank to post as a guest).'
+          );
+        }
+        demoUsersRegistry[aliasKey] = {
+          display_name: String(author_name).trim(),
+          passcode: pass,
+          role: 'verified',
+        };
+        return 'verified';
+      }
+
+      return 'guest';
+    }
+
     // Drawer Toggle
     function setNewTopicDrawerOpen(isOpen) {
       if (!newTopicDrawer || !toggleNewTopicBtn) return;
       if (isOpen) {
         newTopicDrawer.classList.remove('hidden-view');
         toggleNewTopicBtn.setAttribute('aria-expanded', 'true');
-        const authorInput = document.getElementById('topic-author');
-        if (authorInput) authorInput.focus();
+        loadSavedIdentity();
+        if (topicAuthorInput && !topicAuthorInput.value) {
+          topicAuthorInput.focus();
+        } else {
+          const titleInput = document.getElementById('topic-title');
+          if (titleInput) titleInput.focus();
+        }
       } else {
         newTopicDrawer.classList.add('hidden-view');
         toggleNewTopicBtn.setAttribute('aria-expanded', 'false');
@@ -1232,6 +1496,7 @@ const categories = [
           method: 'GET',
           headers: {
             apikey: supabaseAnonKey,
+            Authorization: `Bearer ${supabaseAnonKey}`,
           },
         });
 
@@ -1338,7 +1603,6 @@ const categories = [
           b.setAttribute('aria-selected', isMatch ? 'true' : 'false');
         });
 
-        // If user is currently inside a single thread, return to list view
         if (activeThreadId !== null) {
           closeThreadView();
         }
@@ -1353,7 +1617,6 @@ const categories = [
 
       activeThreadId = thread.id;
 
-      // Populate thread details
       if (activeThreadMeta) {
         const pinnedHtml = thread.is_pinned ? '<span class="pinned-stamp">[PINNED 印]</span>' : '';
         activeThreadMeta.innerHTML = `
@@ -1371,7 +1634,6 @@ const categories = [
         activeThreadBody.innerHTML = renderParagraphs(thread.body);
       }
 
-      // Switch views
       if (listView) listView.classList.add('hidden-view');
       if (threadView) threadView.classList.remove('hidden-view');
 
@@ -1380,6 +1642,7 @@ const categories = [
         newReplyFeedback.className = 'form-feedback';
       }
 
+      loadSavedIdentity();
       await loadRepliesForThread(thread.id);
     }
 
@@ -1416,6 +1679,7 @@ const categories = [
           method: 'GET',
           headers: {
             apikey: supabaseAnonKey,
+            Authorization: `Bearer ${supabaseAnonKey}`,
           },
         });
 
@@ -1466,6 +1730,29 @@ const categories = [
         .join('');
     }
 
+    // Reset only message fields while keeping saved identity pre-filled
+    function clearTopicMessageFieldsOnly() {
+      const titleEl = document.getElementById('topic-title');
+      const bodyEl = document.getElementById('topic-body');
+      if (titleEl) titleEl.value = '';
+      if (bodyEl) bodyEl.value = '';
+      if (topicRememberCheckbox && !topicRememberCheckbox.checked) {
+        if (topicAuthorInput) topicAuthorInput.value = '';
+        if (topicEmailInput) topicEmailInput.value = '';
+        if (topicPasscodeInput) topicPasscodeInput.value = '';
+      }
+    }
+
+    function clearReplyMessageFieldOnly() {
+      const bodyEl = document.getElementById('reply-body');
+      if (bodyEl) bodyEl.value = '';
+      if (replyRememberCheckbox && !replyRememberCheckbox.checked) {
+        if (replyAuthorInput) replyAuthorInput.value = '';
+        if (replyEmailInput) replyEmailInput.value = '';
+        if (replyPasscodeInput) replyPasscodeInput.value = '';
+      }
+    }
+
     // Handle "New Discussion Topic" Form Submission
     if (newTopicForm) {
       newTopicForm.addEventListener('submit', async function (e) {
@@ -1473,21 +1760,20 @@ const categories = [
 
         const honeypot = document.getElementById('topic-website-url');
         if (honeypot && honeypot.value.trim() !== '') {
-          // Silently reject bot submission
           newTopicForm.reset();
           setNewTopicDrawerOpen(false);
           return;
         }
 
         const categoryEl = document.getElementById('topic-category');
-        const authorEl = document.getElementById('topic-author');
-        const emailEl = document.getElementById('topic-email');
         const titleEl = document.getElementById('topic-title');
         const bodyEl = document.getElementById('topic-body');
 
         const category = categoryEl ? categoryEl.value.trim() : 'Philosophy & Sufficiency';
-        const author_name = authorEl ? authorEl.value.trim() : '';
-        const author_email = emailEl ? emailEl.value.trim() : '';
+        const author_name = topicAuthorInput ? topicAuthorInput.value.trim() : '';
+        const author_email = topicEmailInput ? topicEmailInput.value.trim() : '';
+        const author_passcode = topicPasscodeInput ? topicPasscodeInput.value.trim() : '';
+        const rememberIdentity = topicRememberCheckbox ? topicRememberCheckbox.checked : true;
         const title = titleEl ? titleEl.value.trim() : '';
         const body = bodyEl ? bodyEl.value.trim() : '';
 
@@ -1508,29 +1794,42 @@ const categories = [
         }
 
         submitNewTopicBtn.disabled = true;
-        submitNewTopicBtn.textContent = 'Inscribing...';
+        submitNewTopicBtn.textContent = 'Verifying & Inscribing...';
         newTopicFeedback.textContent = '';
         newTopicFeedback.className = 'form-feedback';
 
         if (!isLiveSupabase) {
-          const createdDemoThread = {
-            id: 'demo-thread-' + Date.now(),
-            category: category,
-            title: title,
-            author_name: author_name,
-            body: body,
-            is_pinned: false,
-            reply_count: 0,
-            created_at: new Date().toISOString(),
-          };
-          allThreads.unshift(createdDemoThread);
-          demoStarterReplies[createdDemoThread.id] = [];
-          newTopicForm.reset();
-          submitNewTopicBtn.disabled = false;
-          submitNewTopicBtn.textContent = 'Inscribe Topic into Scroll 印';
-          setNewTopicDrawerOpen(false);
-          renderThreadList();
-          openThreadView(createdDemoThread.id);
+          try {
+            const verifiedRole = verifyDemoAlias(author_name, author_passcode);
+            handleIdentityPersistence(author_name, author_email, author_passcode, rememberIdentity);
+
+            const createdDemoThread = {
+              id: 'demo-thread-' + Date.now(),
+              category: category,
+              title: title,
+              author_name: author_name,
+              author_role: verifiedRole,
+              body: body,
+              is_pinned: false,
+              reply_count: 0,
+              created_at: new Date().toISOString(),
+            };
+            allThreads.unshift(createdDemoThread);
+            demoStarterReplies[createdDemoThread.id] = [];
+            clearTopicMessageFieldsOnly();
+            setNewTopicDrawerOpen(false);
+            renderThreadList();
+            openThreadView(createdDemoThread.id);
+          } catch (demoErr) {
+            newTopicFeedback.textContent = extractFriendlyErrorMessage(
+              demoErr,
+              'Could not inscribe topic.'
+            );
+            newTopicFeedback.className = 'form-feedback is-error';
+          } finally {
+            submitNewTopicBtn.disabled = false;
+            submitNewTopicBtn.textContent = 'Inscribe Topic into Scroll 印';
+          }
           return;
         }
 
@@ -1541,6 +1840,7 @@ const categories = [
             title: title,
             author_name: author_name,
             author_email: author_email || null,
+            author_passcode: author_passcode || null,
             body: body,
           };
 
@@ -1548,6 +1848,7 @@ const categories = [
             method: 'POST',
             headers: {
               apikey: supabaseAnonKey,
+              Authorization: `Bearer ${supabaseAnonKey}`,
               'Content-Type': 'application/json',
               Prefer: 'return=representation',
             },
@@ -1559,10 +1860,12 @@ const categories = [
             throw new Error(errText || `HTTP ${response.status}`);
           }
 
+          handleIdentityPersistence(author_name, author_email, author_passcode, rememberIdentity);
+
           const inserted = await response.json();
           const newThread = Array.isArray(inserted) && inserted[0] ? inserted[0] : null;
 
-          newTopicForm.reset();
+          clearTopicMessageFieldsOnly();
           setNewTopicDrawerOpen(false);
 
           await loadThreads();
@@ -1571,8 +1874,10 @@ const categories = [
           }
         } catch (err) {
           console.error('Failed to post new topic:', err);
-          newTopicFeedback.textContent =
-            'Could not inscribe topic. Please verify your Supabase connection or try again.';
+          newTopicFeedback.textContent = extractFriendlyErrorMessage(
+            err,
+            'Could not inscribe topic. Please verify your Supabase connection or try again.'
+          );
           newTopicFeedback.className = 'form-feedback is-error';
         } finally {
           submitNewTopicBtn.disabled = false;
@@ -1593,12 +1898,12 @@ const categories = [
           return;
         }
 
-        const authorEl = document.getElementById('reply-author');
-        const emailEl = document.getElementById('reply-email');
         const bodyEl = document.getElementById('reply-body');
 
-        const author_name = authorEl ? authorEl.value.trim() : '';
-        const author_email = emailEl ? emailEl.value.trim() : '';
+        const author_name = replyAuthorInput ? replyAuthorInput.value.trim() : '';
+        const author_email = replyEmailInput ? replyEmailInput.value.trim() : '';
+        const author_passcode = replyPasscodeInput ? replyPasscodeInput.value.trim() : '';
+        const rememberIdentity = replyRememberCheckbox ? replyRememberCheckbox.checked : true;
         const body = bodyEl ? bodyEl.value.trim() : '';
 
         if (author_name.length < 1 || author_name.length > 60) {
@@ -1613,34 +1918,47 @@ const categories = [
         }
 
         submitNewReplyBtn.disabled = true;
-        submitNewReplyBtn.textContent = 'Inscribing Reply...';
+        submitNewReplyBtn.textContent = 'Verifying & Inscribing...';
         newReplyFeedback.textContent = '';
         newReplyFeedback.className = 'form-feedback';
 
         if (!isLiveSupabase) {
-          const demoReply = {
-            id: 'demo-reply-' + Date.now(),
-            thread_id: activeThreadId,
-            author_name: author_name,
-            body: body,
-            created_at: new Date().toISOString(),
-          };
-          if (!demoStarterReplies[activeThreadId]) {
-            demoStarterReplies[activeThreadId] = [];
-          }
-          demoStarterReplies[activeThreadId].push(demoReply);
+          try {
+            const verifiedRole = verifyDemoAlias(author_name, author_passcode);
+            handleIdentityPersistence(author_name, author_email, author_passcode, rememberIdentity);
 
-          const parentThread = allThreads.find((t) => String(t.id) === String(activeThreadId));
-          if (parentThread) {
-            parentThread.reply_count = Number(parentThread.reply_count || 0) + 1;
-          }
+            const demoReply = {
+              id: 'demo-reply-' + Date.now(),
+              thread_id: activeThreadId,
+              author_name: author_name,
+              author_role: verifiedRole,
+              body: body,
+              created_at: new Date().toISOString(),
+            };
+            if (!demoStarterReplies[activeThreadId]) {
+              demoStarterReplies[activeThreadId] = [];
+            }
+            demoStarterReplies[activeThreadId].push(demoReply);
 
-          renderRepliesList(demoStarterReplies[activeThreadId]);
-          newReplyForm.reset();
-          newReplyFeedback.textContent = '✓ Reply inscribed into the thread.';
-          newReplyFeedback.className = 'form-feedback is-success';
-          submitNewReplyBtn.disabled = false;
-          submitNewReplyBtn.textContent = 'Inscribe Reply 印';
+            const parentThread = allThreads.find((t) => String(t.id) === String(activeThreadId));
+            if (parentThread) {
+              parentThread.reply_count = Number(parentThread.reply_count || 0) + 1;
+            }
+
+            renderRepliesList(demoStarterReplies[activeThreadId]);
+            clearReplyMessageFieldOnly();
+            newReplyFeedback.textContent = '✓ Reply inscribed into the thread.';
+            newReplyFeedback.className = 'form-feedback is-success';
+          } catch (demoErr) {
+            newReplyFeedback.textContent = extractFriendlyErrorMessage(
+              demoErr,
+              'Could not post reply.'
+            );
+            newReplyFeedback.className = 'form-feedback is-error';
+          } finally {
+            submitNewReplyBtn.disabled = false;
+            submitNewReplyBtn.textContent = 'Inscribe Reply 印';
+          }
           return;
         }
 
@@ -1650,6 +1968,7 @@ const categories = [
             thread_id: activeThreadId,
             author_name: author_name,
             author_email: author_email || null,
+            author_passcode: author_passcode || null,
             body: body,
           };
 
@@ -1657,6 +1976,7 @@ const categories = [
             method: 'POST',
             headers: {
               apikey: supabaseAnonKey,
+              Authorization: `Bearer ${supabaseAnonKey}`,
               'Content-Type': 'application/json',
               Prefer: 'return=representation',
             },
@@ -1668,20 +1988,23 @@ const categories = [
             throw new Error(errText || `HTTP ${response.status}`);
           }
 
-          // Increment local thread reply_count and re-fetch replies chronologically
+          handleIdentityPersistence(author_name, author_email, author_passcode, rememberIdentity);
+
           const parentThread = allThreads.find((t) => String(t.id) === String(activeThreadId));
           if (parentThread) {
             parentThread.reply_count = Number(parentThread.reply_count || 0) + 1;
           }
 
-          newReplyForm.reset();
+          clearReplyMessageFieldOnly();
           await loadRepliesForThread(activeThreadId);
           newReplyFeedback.textContent = '✓ Your reply has been inscribed into the thread.';
           newReplyFeedback.className = 'form-feedback is-success';
         } catch (err) {
           console.error('Failed to post reply:', err);
-          newReplyFeedback.textContent =
-            'Could not post reply. Please verify your connection and try again.';
+          newReplyFeedback.textContent = extractFriendlyErrorMessage(
+            err,
+            'Could not post reply. Please verify your connection and try again.'
+          );
           newReplyFeedback.className = 'form-feedback is-error';
         } finally {
           submitNewReplyBtn.disabled = false;
@@ -1690,7 +2013,8 @@ const categories = [
       });
     }
 
-    // Initialize Forum on Page Load
+    // Initialize saved identity and load forum threads on page load
+    loadSavedIdentity();
     loadThreads();
   })();
 </script>
