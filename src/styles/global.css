@@ -884,8 +884,8 @@ header.site-header {
 
 /* STEP17_MOBILE_SCROLL_PHYSICS_START */
 /*
- * Only the main page parchment is affected. Forum composer scrolls keep
- * their existing animations, size constraints, and independent scrolling.
+ * Desktop declarations and keyframes remain untouched.
+ * Direct-child selectors exclude the independent Forum composer scroll.
  */
 @media (max-width: 680px) {
   body > .scroll-stage {
@@ -895,10 +895,9 @@ header.site-header {
     min-height: 100vh !important;
     min-height: 100dvh !important;
     max-height: none !important;
-    height: auto !important;
     margin-bottom: 0 !important;
     padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
-    overflow: visible !important;
+    box-sizing: border-box;
   }
 
   body > .scroll-stage > main.washi-scroll {
@@ -915,7 +914,6 @@ header.site-header {
     -webkit-clip-path: none;
   }
 
-  /* Preserve the existing pseudo-element padding architecture. */
   body > .scroll-stage > main.washi-scroll::after {
     height: calc(48px + env(safe-area-inset-bottom, 0px));
   }
@@ -923,15 +921,42 @@ header.site-header {
   body > .scroll-stage > .scroll-roller-bottom {
     animation: none !important;
     transition: none !important;
-    touch-action: auto;
+  }
+
+  body > .scroll-stage[data-step17-physics="true"] {
+    /*
+     * Clipping this outer stage removes hidden paper from scroll overflow.
+     * Its measured height always includes the roller and safe bottom area.
+     */
+    height: var(--step17-stage-height, 100dvh) !important;
+    overflow: hidden !important;
+    overflow: clip !important;
+    overflow-anchor: none;
+  }
+
+  body > .scroll-stage[data-step17-physics="true"][data-step17-open="true"] {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body > .scroll-stage[data-step17-physics="true"] > .scroll-roller-bottom {
+    /* Keep direct manipulation enabled even at 100% open. */
+    touch-action: none !important;
     -webkit-user-select: none;
     user-select: none;
     -webkit-touch-callout: none;
+    cursor: grab;
   }
 
-  body > .scroll-stage > .scroll-roller-bottom:focus-visible {
+  body > .scroll-stage[data-step17-physics="true"] > .scroll-roller-bottom:focus-visible {
     outline: 2px solid #fff;
     outline-offset: 6px;
+  }
+
+  html[data-step17-header-hidden="true"] header.site-header {
+    transform: translateY(-100%) !important;
+    transition: none !important;
+    pointer-events: none;
   }
 
   .step17-unfurl-tooltip {
@@ -956,7 +981,9 @@ header.site-header {
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
     opacity: 0;
     transform: translate(-50%, -5px);
-    transition: opacity 320ms ease, transform 400ms ease;
+    transition:
+      opacity 320ms ease,
+      transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
     pointer-events: none;
     user-select: none;
   }
@@ -991,7 +1018,7 @@ header.site-header {
 
 @media (max-width: 680px) and (prefers-reduced-motion: reduce) {
   .step17-unfurl-tooltip {
-    transition: opacity 150ms linear;
+    transition: opacity 150ms ease;
   }
 
   .step17-unfurl-arrow {

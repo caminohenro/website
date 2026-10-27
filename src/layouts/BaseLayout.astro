@@ -78,43 +78,45 @@ const {
 (function mobileScrollPhysics() {
   'use strict';
 
-  const globalKey = '__step17MobileScrollPhysics';
+  const key = '__step17MobileScrollPhysics';
 
-  if (typeof window[globalKey] === 'function') {
-    window[globalKey]();
-  }
+  if (typeof window[key] === 'function') window[key]();
 
+  const lifetime = new AbortController();
   const mobile = window.matchMedia('(max-width: 680px)');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const lifecycle = new AbortController();
 
-  let disposeCurrent = null;
-  let tooltipDismissed = false;
+  let cleanupCurrent = null;
+  let hintDismissed = false;
 
   function initialize() {
-    if (disposeCurrent) {
-      disposeCurrent();
-      disposeCurrent = null;
-    }
+    if (cleanupCurrent) cleanupCurrent();
+    cleanupCurrent = null;
 
     if (!mobile.matches || window.innerWidth > 680) return;
 
-    // Direct-child selectors deliberately exclude the Forum composer scroll.
     const stage = document.querySelector('body > .scroll-stage');
     if (!stage) return;
 
     const paper = stage.querySelector(':scope > main.washi-scroll');
     const roller = stage.querySelector(':scope > .scroll-roller-bottom');
-    if (!paper || !roller) return;
+    const topRoller = stage.querySelector(':scope > .scroll-roller-top');
+
+    if (!paper || !roller || !topRoller) return;
 
     const controller = new AbortController();
     const signal = controller.signal;
-    const savedStyles = new Map();
-    const savedAttributes = new Map();
+    const html = document.documentElement;
 
-    function rememberStyle(element, property) {
-      if (!savedStyles.has(element)) savedStyles.set(element, new Map());
-      const properties = savedStyles.get(element);
+    const styleSnapshots = new Map();
+    const attributeSnapshots = new Map();
+
+    function setStyle(element, property, value) {
+      if (!styleSnapshots.has(element)) {
+        styleSnapshots.set(element, new Map());
+      }
+
+      const properties = styleSnapshots.get(element);
 
       if (!properties.has(property)) {
         properties.set(property, {
@@ -122,449 +124,493 @@ const {
           priority: element.style.getPropertyPriority(property),
         });
       }
-    }
 
-    function setStyle(element, property, value) {
-      rememberStyle(element, property);
       element.style.setProperty(property, value);
     }
 
-    function rememberAttribute(element, name) {
-      if (!savedAttributes.has(element)) {
-        savedAttributes.set(element, new Map());
+    function setAttribute(element, name, value) {
+      if (!attributeSnapshots.has(element)) {
+        attributeSnapshots.set(element, new Map());
       }
 
-      const attributes = savedAttributes.get(element);
+      const attributes = attributeSnapshots.get(element);
+
       if (!attributes.has(name)) {
         attributes.set(name, element.getAttribute(name));
       }
+
+      if (value === null) element.removeAttribute(name);
+      else element.setAttribute(name, value);
     }
 
-    function setAttribute(element, name, value) {
-      rememberAttribute(element, name);
-      element.setAttribute(name, value);
-    }
-
-    function restoreAttributes() {
-      savedAttributes.forEach(function (attributes, element) {
-        attributes.forEach(function (value, name) {
-          if (value === null) element.removeAttribute(name);
-          else element.setAttribute(name, value);
-        });
-      });
-    }
-
-    let disposed = false;
-    let height = 0;
-    let maximumHidden = 0;
-    let hidden = 0;
-    let full = false;
-    let dragging = false;
-    let identifier = null;
-    let startY = 0;
-    let startHidden = 0;
-    let lastY = 0;
-    let lastTime = 0;
-    let velocity = 0;
-    let moved = false;
-    let momentumFrame = 0;
-    let measurementFrame = 0;
-    let tooltipTimer = 0;
-    let samples = [];
-
-    const tooltip = document.createElement('div');
-    tooltip.className = 'step17-unfurl-tooltip';
-    tooltip.setAttribute('aria-hidden', 'true');
+    const hint = document.createElement('div');
+    hint.className = 'step17-unfurl-tooltip';
+    hint.setAttribute('aria-hidden', 'true');
 
     const arrow = document.createElement('span');
     arrow.className = 'step17-unfurl-arrow';
     arrow.textContent = '\u2193';
 
-    const caption = document.createElement('span');
-    caption.textContent = 'Drag to unfurl';
+    const label = document.createElement('span');
+    label.textContent = 'Drag to unfurl';
 
-    tooltip.append(arrow, caption);
-    stage.appendChild(tooltip);
+    hint.append(arrow, label);
+    stage.appendChild(hint);
+
+    let disposed = false;
+    let height = 0;
+    let revealed = 0;
+    let paperTop = 0;
+    let bottomHeight = 0;
+    let stagePaddingBottom = 0;
+    let dragging = false;
+    let touchId = null;
+    let lastClientY = 0;
+    let lastDocumentY = 0;
+    let lastInputTime = 0;
+    let samples = [];
+    let velocity = 0;
+    let frameId = 0;
+    let measurementId = 0;
+    let hintTimer = 0;
+    let previousFrameTime = 0;
+    let gestureMoved = false;
+    let fullyOpen = false;
+    let initialHeaderHidden = true;
 
     function clamp(value, minimum, maximum) {
-      return Math.min(maximum, Math.max(minimum, value));
+      return Math.max(minimum, Math.min(maximum, value));
     }
 
-    function dismissTooltip() {
-      tooltipDismissed = true;
-      window.clearTimeout(tooltipTimer);
-      tooltip.classList.remove('is-visible');
+    function viewport() {
+      const visual = window.visualViewport;
+
+      return {
+        top: visual ? visual.offsetTop : 0,
+        height: visual ? visual.height : window.innerHeight,
+      };
     }
 
-    function stopMomentum() {
-      window.cancelAnimationFrame(momentumFrame);
-      momentumFrame = 0;
+    function dismissHint() {
+      hintDismissed = true;
+      window.clearTimeout(hintTimer);
+      hint.classList.remove('is-visible');
+    }
+
+    function releaseInitialHeader() {
+      if (!initialHeaderHidden) return;
+      initialHeaderHidden = false;
+      setAttribute(html, 'data-step17-header-hidden', null);
     }
 
     function render() {
-      hidden = clamp(hidden, 0, maximumHidden);
-      full = hidden <= 0.5;
+      revealed = clamp(revealed, 0, height);
 
-      if (full) {
-        hidden = 0;
+      const hidden = Math.max(0, height - revealed);
+      fullyOpen = hidden < 0.01;
 
-        // Remove clipping completely at the endpoint. The paper remains
-        // naturally sized, including asynchronously loaded Forum replies.
+      setAttribute(stage, 'data-step17-open', fullyOpen ? 'true' : 'false');
+
+      if (fullyOpen) {
+        revealed = height;
         setStyle(paper, 'clip-path', 'none');
         setStyle(paper, '-webkit-clip-path', 'none');
-        setStyle(roller, 'transform', 'none');
-        setStyle(roller, 'touch-action', 'auto');
-        setStyle(paper, 'will-change', 'auto');
-        setStyle(roller, 'will-change', 'auto');
-
-        restoreAttributes();
-        tooltip.classList.remove('is-visible');
       } else {
-        const inset = 'inset(0 -90px ' + hidden.toFixed(3) + 'px -90px)';
-
-        setStyle(paper, 'clip-path', inset);
-        setStyle(paper, '-webkit-clip-path', inset);
-
-        // The roller's natural position is below the entire paper.
-        // A negative translation raises it to the exposed paper edge.
-        // Dragging down reduces hidden pixels and moves it toward zero.
-        setStyle(
-          roller,
-          'transform',
-          'translateY(' + (-hidden).toFixed(3) + 'px)'
-        );
-
-        setStyle(roller, 'touch-action', 'none');
-        setStyle(paper, 'will-change', 'clip-path');
-        setStyle(roller, 'will-change', 'transform');
-
-        setAttribute(roller, 'role', 'button');
-        setAttribute(roller, 'tabindex', '0');
-        setAttribute(
-          roller,
-          'aria-label',
-          'Drag down to unfurl, or press Enter to reveal the entire page'
-        );
-
-        // offsetTop is independent of the roller's transform.
-        const edge = roller.offsetTop - hidden + roller.offsetHeight + 15;
-        tooltip.style.top = edge.toFixed(3) + 'px';
+        const clip = 'inset(0 -90px ' + hidden.toFixed(3) + 'px -90px)';
+        setStyle(paper, 'clip-path', clip);
+        setStyle(paper, '-webkit-clip-path', clip);
       }
-    }
 
-    function measure(firstMeasurement) {
-      if (disposed) return;
-
-      const previousHeight = height;
-      const previousVisible = height - hidden;
-      const wasFull = full;
-
-      height = paper.getBoundingClientRect().height;
-
-      const viewportHeight = window.visualViewport
-        ? window.visualViewport.height
-        : window.innerHeight;
-
-      const paperTop = paper.getBoundingClientRect().top;
-      const viewportTop = window.visualViewport
-        ? window.visualViewport.offsetTop
-        : 0;
-
-      // Start approximately 70% open on short pages. On long pages, cap
-      // the exposed area so the roller and its hint remain reachable.
-      const available = Math.max(
-        64,
-        viewportTop + viewportHeight - paperTop - roller.offsetHeight - 100
+      setStyle(
+        roller,
+        'transform',
+        'translateY(' + (-hidden).toFixed(3) + 'px)'
       );
 
-      const minimumVisible = Math.min(height * 0.7, available);
-      maximumHidden = Math.max(0, height - minimumVisible);
+      // The paper retains its natural, unlimited height. The stage clips
+      // only the intentionally furled portion and does not leave a long,
+      // invisible document region below the raised roller.
+      //
+      // At 100% open, CSS restores automatic stage height and visible
+      // overflow, removing any outer clipping from the readable page.
+      const visibleStageHeight =
+        paperTop + revealed + bottomHeight + stagePaddingBottom;
 
-      if (firstMeasurement) {
-        hidden = maximumHidden;
-      } else if (wasFull) {
-        hidden = 0;
+      setStyle(
+        stage,
+        '--step17-stage-height',
+        visibleStageHeight.toFixed(3) + 'px'
+      );
+
+      hint.style.top =
+        (paperTop + revealed + bottomHeight + 15).toFixed(3) + 'px';
+
+      setAttribute(
+        roller,
+        'aria-label',
+        fullyOpen
+          ? 'Scroll roller. Drag up to furl the page.'
+          : 'Scroll roller. Drag down to unfurl or up to furl.'
+      );
+    }
+
+    function measure(first) {
+      if (disposed) return;
+
+      const previouslyOpen = fullyOpen;
+      const previousHeight = height;
+
+      height = paper.getBoundingClientRect().height;
+      paperTop = paper.offsetTop;
+      bottomHeight = roller.offsetHeight;
+      stagePaddingBottom =
+        parseFloat(window.getComputedStyle(stage).paddingBottom) || 112;
+
+      if (first) {
+        // Exactly closed: the entire paper is initially clipped away.
+        revealed = 0;
+      } else if (previouslyOpen && !dragging) {
+        // Loaded replies and other dynamic content remain fully readable.
+        revealed = height;
       } else {
-        // Preserve the visible paper edge when fonts, replies, images,
-        // composer forms, or viewport dimensions change.
-        hidden = clamp(height - previousVisible, 0, maximumHidden);
+        // Preserve the exposed length while the Forum changes underneath.
+        revealed = clamp(revealed, 0, height);
       }
 
-      if (dragging && Math.abs(height - previousHeight) > 0.5) {
-        startY = lastY;
-        startHidden = hidden;
-        samples = [{ y: lastY, time: performance.now() }];
+      if (dragging && Math.abs(previousHeight - height) > 0.5) {
+        lastDocumentY = lastClientY + window.scrollY;
+        samples = [{
+          y: lastClientY,
+          time: performance.now(),
+        }];
       }
 
       render();
     }
 
     function scheduleMeasurement() {
-      if (disposed || measurementFrame) return;
+      if (disposed || measurementId) return;
 
-      measurementFrame = window.requestAnimationFrame(function () {
-        measurementFrame = 0;
+      measurementId = window.requestAnimationFrame(function () {
+        measurementId = 0;
         measure(false);
       });
     }
 
-    function touchByIdentifier(list, id) {
+    function stopFrame() {
+      window.cancelAnimationFrame(frameId);
+      frameId = 0;
+    }
+
+    function findTouch(list) {
       for (let index = 0; index < list.length; index += 1) {
-        if (list[index].identifier === id) return list[index];
+        if (list[index].identifier === touchId) return list[index];
       }
+
       return null;
     }
 
-    function recordSample(y, time) {
-      samples.push({ y: y, time: time });
+    function recordVelocity(clientY, now) {
+      samples.push({ y: clientY, time: now });
 
-      // Estimate release speed from the last 100 ms rather than from
-      // the whole gesture. This allows a reversal before release.
-      while (samples.length > 2 && samples[0].time < time - 100) {
+      while (
+        samples.length > 2 &&
+        samples[0].time < now - 90
+      ) {
         samples.shift();
       }
 
       const first = samples[0];
-      const elapsed = time - first.time;
-      velocity = elapsed > 0 ? clamp((y - first.y) / elapsed, -4, 4) : 0;
+      const elapsed = now - first.time;
+
+      // CSS pixels per millisecond. Positive means dragging downward.
+      velocity = elapsed > 0
+        ? clamp((clientY - first.y) / elapsed, -3.5, 3.5)
+        : 0;
     }
 
-    function animateTo(target, releaseVelocity) {
-      stopMomentum();
+    function scrollDuringDrag(elapsed) {
+      if (!dragging) return;
 
-      if (reducedMotion.matches) {
-        hidden = target;
+      const view = viewport();
+      const edgeZone = Math.min(90, view.height * 0.15);
+      const upperEdge = view.top + edgeZone;
+      const lowerEdge = view.top + view.height - edgeZone;
+
+      let speed = 0;
+
+      if (lastClientY > lowerEdge && revealed < height) {
+        speed = clamp((lastClientY - lowerEdge) / edgeZone, 0, 1) * 0.65;
+      } else if (lastClientY < upperEdge && revealed > 0) {
+        speed = -clamp((upperEdge - lastClientY) / edgeZone, 0, 1) * 0.65;
+      }
+
+      if (speed === 0) return;
+
+      const previousScroll = window.scrollY;
+
+      window.scrollTo({
+        top: previousScroll + speed * elapsed,
+        behavior: 'instant',
+      });
+
+      const actualScroll = window.scrollY - previousScroll;
+
+      if (actualScroll !== 0) {
+        // Auto-scrolling moves the document under a stationary finger.
+        // Add the actual scroll distance to keep the roller under it.
+        revealed = clamp(revealed + actualScroll, 0, height);
+        lastDocumentY += actualScroll;
         render();
+      }
+    }
+
+    function tick(now) {
+      if (disposed) return;
+
+      frameId = 0;
+
+      const elapsed = clamp(now - previousFrameTime, 0, 32);
+      previousFrameTime = now;
+
+      if (dragging) {
+        scrollDuringDrag(elapsed);
+        frameId = window.requestAnimationFrame(tick);
         return;
       }
 
-      // Work in revealed pixels: positive velocity means unrolling.
-      let position = maximumHidden - hidden;
-      const destination = maximumHidden - target;
-      let speed = releaseVelocity * 1000;
-      let previousTime = performance.now();
-      const startedAt = previousTime;
-
-      // Critically damped spring: a = w²(target - x) - 2wv.
-      // x is pixels, v is pixels/second, and time is seconds.
-      const angularFrequency = 12;
-
-      function frame(now) {
-        if (disposed) return;
-
-        const elapsed = clamp((now - previousTime) / 1000, 0, 0.032);
-        previousTime = now;
-
-        // Small integration steps keep the spring stable after slow frames.
-        const steps = Math.max(1, Math.ceil(elapsed / 0.008));
-        const step = elapsed / steps;
-
-        for (let index = 0; index < steps; index += 1) {
-          const acceleration =
-            angularFrequency * angularFrequency * (destination - position) -
-            2 * angularFrequency * speed;
-
-          speed += acceleration * step;
-          position += speed * step;
-
-          if (position <= 0) {
-            position = 0;
-            speed = Math.max(0, speed);
-          }
-
-          if (position >= maximumHidden) {
-            position = maximumHidden;
-            speed = Math.min(0, speed);
-          }
-        }
-
-        hidden = maximumHidden - position;
-
-        const arrived =
-          Math.abs(destination - position) < 0.5 &&
-          Math.abs(speed) < 8;
-
-        if (arrived || now - startedAt >= 1800) {
-          hidden = target;
-          momentumFrame = 0;
-          render();
-          return;
-        }
-
-        render();
-        momentumFrame = window.requestAnimationFrame(frame);
+      if (Math.abs(velocity) < 0.012) {
+        velocity = 0;
+        return;
       }
 
-      momentumFrame = window.requestAnimationFrame(frame);
+      // Pure inertial motion with exponential friction:
+      //
+      // v(t + dt) = v(t) * exp(-friction * dt)
+      // dx = v(t) * (1 - exp(-friction * dt)) / friction
+      //
+      // There is no spring and no endpoint chosen from swipe direction.
+      // Small movements stop nearby; stronger flicks coast farther.
+      const friction = 0.0045;
+      const decay = Math.exp(-friction * elapsed);
+      const displacement = velocity * (1 - decay) / friction;
+      const proposed = revealed + displacement;
+
+      revealed = clamp(proposed, 0, height);
+      velocity *= decay;
+
+      if (proposed <= 0 || proposed >= height) {
+        velocity = 0;
+      }
+
+      render();
+
+      if (Math.abs(velocity) >= 0.012) {
+        frameId = window.requestAnimationFrame(tick);
+      }
+    }
+
+    function beginFrame() {
+      stopFrame();
+      previousFrameTime = performance.now();
+      frameId = window.requestAnimationFrame(tick);
     }
 
     function onTouchStart(event) {
-      // Once fully open, these listeners never cancel browser scrolling.
-      if (full || event.touches.length !== 1) return;
+      if (event.touches.length !== 1) return;
 
-      stopMomentum();
+      stopFrame();
 
       const touch = event.touches[0];
       const now = performance.now();
 
       dragging = true;
-      moved = false;
-      identifier = touch.identifier;
-      startY = touch.pageY;
-      lastY = touch.pageY;
-      startHidden = hidden;
-      lastTime = now;
+      touchId = touch.identifier;
+      lastClientY = touch.clientY;
+      lastDocumentY = touch.clientY + window.scrollY;
+      lastInputTime = now;
+      gestureMoved = false;
       velocity = 0;
-      samples = [{ y: touch.pageY, time: now }];
+      samples = [{ y: touch.clientY, time: now }];
+
+      beginFrame();
     }
 
     function onTouchMove(event) {
       if (!dragging) return;
 
       if (event.touches.length !== 1) {
-        dragging = false;
-        identifier = null;
-        animateTo(0, 0);
+        onTouchCancel();
         return;
       }
 
-      const touch = touchByIdentifier(event.touches, identifier);
+      const touch = findTouch(event.touches);
       if (!touch) return;
 
       if (!event.cancelable) {
-        dragging = false;
-        identifier = null;
-        animateTo(0, 0);
+        onTouchCancel();
         return;
       }
 
       event.preventDefault();
 
       const now = performance.now();
-      const displacement = touch.pageY - startY;
+      const documentY = touch.clientY + window.scrollY;
+      const displacement = documentY - lastDocumentY;
 
-      if (Math.abs(displacement) > 0.5) {
-        moved = true;
-        dismissTooltip();
+      if (Math.abs(displacement) > 0) {
+        gestureMoved = true;
+        dismissHint();
+        releaseInitialHeader();
       }
 
-      hidden = clamp(startHidden - displacement, 0, maximumHidden);
-      lastY = touch.pageY;
-      lastTime = now;
-      recordSample(touch.pageY, now);
+      // A one-pixel finger movement exposes or hides one pixel of paper.
+      // The same formula works at 0%, 100%, and every point in between.
+      revealed = clamp(revealed + displacement, 0, height);
+
+      lastDocumentY = documentY;
+      lastClientY = touch.clientY;
+      lastInputTime = now;
+
+      recordVelocity(touch.clientY, now);
       render();
     }
 
     function onTouchEnd(event) {
       if (!dragging) return;
 
-      const touch = touchByIdentifier(event.changedTouches, identifier);
+      const touch = findTouch(event.changedTouches);
       if (!touch) return;
 
-      dragging = false;
-      identifier = null;
-
-      if (!moved) return;
-
       const now = performance.now();
-      if (now - lastTime > 100) velocity = 0;
 
-      // A downward flick opens fully; an upward flick returns to the
-      // reachable initial furl. A slow release snaps to the nearer end.
-      let target;
+      dragging = false;
+      touchId = null;
+      stopFrame();
 
-      if (velocity > 0.08) target = 0;
-      else if (velocity < -0.08) target = maximumHidden;
-      else target = hidden < maximumHidden * 0.5 ? 0 : maximumHidden;
+      if (!gestureMoved || now - lastInputTime > 100) {
+        velocity = 0;
+      }
 
-      animateTo(target, velocity);
+      // Reduced motion preserves direct manipulation but omits coasting.
+      if (reducedMotion.matches) velocity = 0;
+
+      if (Math.abs(velocity) >= 0.012) beginFrame();
     }
 
     function onTouchCancel() {
-      if (!dragging) return;
       dragging = false;
-      identifier = null;
-      dismissTooltip();
-      animateTo(0, 0);
-    }
-
-    function revealImmediately() {
-      if (full) return;
-      stopMomentum();
-      dragging = false;
-      identifier = null;
-      dismissTooltip();
-      hidden = 0;
-      render();
+      touchId = null;
+      velocity = 0;
+      stopFrame();
     }
 
     function onKeyDown(event) {
-      if (full) return;
+      const increment = Math.max(40, viewport().height * 0.15);
+      let next = revealed;
 
-      if (
-        event.key === 'Enter' ||
-        event.key === ' ' ||
-        event.key === 'ArrowDown' ||
-        event.key === 'End'
-      ) {
-        event.preventDefault();
-        dismissTooltip();
-        animateTo(0, 0);
+      if (event.key === 'ArrowDown') next += increment;
+      else if (event.key === 'ArrowUp') next -= increment;
+      else if (event.key === 'PageDown') next += viewport().height * 0.8;
+      else if (event.key === 'PageUp') next -= viewport().height * 0.8;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = height;
+      else if (event.key === 'Enter' || event.key === ' ') {
+        next = fullyOpen ? 0 : height;
+      } else {
+        return;
+      }
+
+      event.preventDefault();
+      onTouchCancel();
+      dismissHint();
+      releaseInitialHeader();
+
+      revealed = clamp(next, 0, height);
+      render();
+    }
+
+    function onFocusIn(event) {
+      if (!paper.contains(event.target) || fullyOpen) return;
+
+      // Keyboard navigation must not focus invisible clipped controls.
+      onTouchCancel();
+      dismissHint();
+      releaseInitialHeader();
+      revealed = height;
+      render();
+    }
+
+    function onVisibilityChange() {
+      if (document.hidden) onTouchCancel();
+    }
+
+    function onNativeScroll() {
+      // Roller gestures retain their own direct manipulation. Ordinary
+      // scrolling outside the roller returns the header to its old rules.
+      if (!dragging && window.scrollY > 12) {
+        releaseInitialHeader();
       }
     }
 
+    setAttribute(stage, 'data-step17-physics', 'true');
+    setAttribute(html, 'data-step17-header-hidden', 'true');
+    setAttribute(roller, 'role', 'button');
+    setAttribute(roller, 'tabindex', '0');
+
     roller.addEventListener('touchstart', onTouchStart, {
       passive: true,
-      signal: signal,
+      signal,
     });
 
     roller.addEventListener('touchmove', onTouchMove, {
       passive: false,
-      signal: signal,
+      signal,
     });
 
     roller.addEventListener('touchend', onTouchEnd, {
       passive: true,
-      signal: signal,
+      signal,
     });
 
     roller.addEventListener('touchcancel', onTouchCancel, {
       passive: true,
-      signal: signal,
+      signal,
     });
 
-    roller.addEventListener('keydown', onKeyDown, { signal: signal });
-
-    // A keyboard user reaching content inside the clipped region must
-    // never end up focused on an invisible control.
-    paper.addEventListener('focusin', revealImmediately, { signal: signal });
+    roller.addEventListener('keydown', onKeyDown, { signal });
+    paper.addEventListener('focusin', onFocusIn, { signal });
 
     window.addEventListener('resize', scheduleMeasurement, {
       passive: true,
-      signal: signal,
+      signal,
     });
 
-    window.addEventListener('pageshow', function (event) {
-      if (event.persisted) revealImmediately();
-      scheduleMeasurement();
-    }, { signal: signal });
+    window.addEventListener('scroll', onNativeScroll, {
+      passive: true,
+      signal,
+    });
+
+    document.addEventListener('visibilitychange', onVisibilityChange, {
+      signal,
+    });
 
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', scheduleMeasurement, {
         passive: true,
-        signal: signal,
+        signal,
       });
     }
 
-    const resizeObserver = typeof ResizeObserver === 'function'
+    const observer = typeof ResizeObserver === 'function'
       ? new ResizeObserver(scheduleMeasurement)
       : null;
 
-    if (resizeObserver) resizeObserver.observe(paper);
+    if (observer) observer.observe(paper);
 
     paper.addEventListener('load', scheduleMeasurement, {
       capture: true,
-      signal: signal,
+      signal,
     });
 
     if (document.fonts && document.fonts.ready) {
@@ -575,30 +621,31 @@ const {
 
     measure(true);
 
-    // Preserve restored scroll positions and direct links to deep content.
-    if (window.scrollY > 20 || window.location.hash) {
-      revealImmediately();
-    }
-
-    tooltipTimer = window.setTimeout(function () {
-      if (!disposed && !tooltipDismissed && !full) {
-        tooltip.classList.add('is-visible');
+    hintTimer = window.setTimeout(function () {
+      if (!disposed && !hintDismissed) {
+        hint.classList.add('is-visible');
       }
     }, 500);
 
-    disposeCurrent = function () {
+    cleanupCurrent = function () {
       disposed = true;
       controller.abort();
-      stopMomentum();
-      window.cancelAnimationFrame(measurementFrame);
-      window.clearTimeout(tooltipTimer);
+      stopFrame();
+      window.cancelAnimationFrame(measurementId);
+      window.clearTimeout(hintTimer);
 
-      if (resizeObserver) resizeObserver.disconnect();
+      if (observer) observer.disconnect();
 
-      tooltip.remove();
-      restoreAttributes();
+      hint.remove();
 
-      savedStyles.forEach(function (properties, element) {
+      attributeSnapshots.forEach(function (attributes, element) {
+        attributes.forEach(function (value, name) {
+          if (value === null) element.removeAttribute(name);
+          else element.setAttribute(name, value);
+        });
+      });
+
+      styleSnapshots.forEach(function (properties, element) {
         properties.forEach(function (saved, property) {
           if (saved.value) {
             element.style.setProperty(property, saved.value, saved.priority);
@@ -611,35 +658,30 @@ const {
   }
 
   function destroy() {
-    lifecycle.abort();
-
-    if (disposeCurrent) {
-      disposeCurrent();
-      disposeCurrent = null;
-    }
+    lifetime.abort();
+    if (cleanupCurrent) cleanupCurrent();
+    cleanupCurrent = null;
   }
 
-  window[globalKey] = destroy;
+  window[key] = destroy;
 
   mobile.addEventListener('change', initialize, {
-    signal: lifecycle.signal,
+    signal: lifetime.signal,
   });
 
   document.addEventListener('astro:before-swap', function () {
-    if (disposeCurrent) {
-      disposeCurrent();
-      disposeCurrent = null;
-    }
-  }, { signal: lifecycle.signal });
+    if (cleanupCurrent) cleanupCurrent();
+    cleanupCurrent = null;
+  }, { signal: lifetime.signal });
 
   document.addEventListener('astro:page-load', initialize, {
-    signal: lifecycle.signal,
+    signal: lifetime.signal,
   });
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initialize, {
       once: true,
-      signal: lifecycle.signal,
+      signal: lifetime.signal,
     });
   } else {
     initialize();
