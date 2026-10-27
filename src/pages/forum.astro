@@ -103,14 +103,20 @@ const categories = [
       </div>
 
       <p class="forum-form-note">
-        If you secure your alias with a passcode, it belongs to you. Enter the same passcode next time to post securely.
+        No account or login screen is required. Post immediately as a guest, or enter an optional passcode to claim and protect your pilgrim alias with a verified badge (✓).
       </p>
 
       <form id="new-topic-form" class="washi-form" novalidate>
-        <!-- Honeypot field -->
+        <!-- Honeypot field to silently block automated spam bots -->
         <div class="honeypot-field" aria-hidden="true">
           <label for="topic-website-url">Website URL (Leave empty)</label>
-          <input type="text" id="topic-website-url" name="website_url" tabindex="-1" autocomplete="off" />
+          <input
+            type="text"
+            id="topic-website-url"
+            name="website_url"
+            tabindex="-1"
+            autocomplete="off"
+          />
         </div>
 
         <div class="form-grid-row">
@@ -133,40 +139,46 @@ const categories = [
               required
               minlength="1"
               maxlength="60"
-              placeholder="e.g. Clara (Porto)"
+              placeholder="e.g. Clara (Porto) or A Fellow Walker"
             />
           </div>
 
           <div class="form-field">
-            <label for="topic-passcode">Optional Alias Passcode (Claim or Unlock)</label>
+            <label for="topic-email">Optional Email (Kept Private)</label>
+            <input
+              type="email"
+              id="topic-email"
+              name="author_email"
+              maxlength="120"
+              placeholder="Private — never shown on the site"
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="topic-passcode">Optional Alias Passcode (Claim or Unlock Name)</label>
             <input
               type="password"
               id="topic-passcode"
               name="author_passcode"
-              placeholder="Set passcode to protect name"
+              maxlength="120"
+              autocomplete="current-password"
+              placeholder="Set or enter passcode to protect your name"
             />
-            <span class="field-helper">First time using a name with a passcode claims it.</span>
+            <span class="field-helper-caption">
+              First time using a name with a passcode claims it. Next time, enter the same passcode to post under your name.
+            </span>
           </div>
         </div>
 
-        <div class="form-field">
-          <label for="topic-email">Optional Email (For Reply Notifications)</label>
-          <input
-            type="email"
-            id="topic-email"
-            name="author_email"
-            placeholder="Get notified when someone replies (kept 100% private)"
-          />
-        </div>
-
-        <div class="form-options">
-          <label class="checkbox-label">
-            <input type="checkbox" id="topic-remember-identity" checked />
-            Remember my alias, email & passcode on this device
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" id="topic-notify-replies" name="notify_replies" checked />
-            Notify me by email when someone replies to this thread
+        <div class="remember-identity-row">
+          <label class="remember-checkbox-label" for="topic-remember-identity">
+            <input
+              type="checkbox"
+              id="topic-remember-identity"
+              name="remember_identity"
+              checked
+            />
+            <span>Remember my alias, email &amp; passcode on this device</span>
           </label>
         </div>
 
@@ -192,15 +204,25 @@ const categories = [
             required
             minlength="5"
             maxlength="5000"
-            placeholder="Write your thoughts in full..."
+            placeholder="Write your thoughts in full. Paragraph breaks are preserved..."
           ></textarea>
         </div>
 
         <div id="new-topic-feedback" class="form-feedback" role="status" aria-live="polite"></div>
 
         <div class="form-actions">
-          <button type="button" id="cancel-new-topic-btn" class="ink-action-btn">Cancel</button>
-          <button type="submit" id="submit-new-topic-btn" class="ink-action-btn crimson-filled-btn">
+          <button
+            type="button"
+            id="cancel-new-topic-btn"
+            class="ink-action-btn"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            id="submit-new-topic-btn"
+            class="ink-action-btn crimson-filled-btn"
+          >
             Inscribe Topic into Scroll 印
           </button>
         </div>
@@ -215,7 +237,9 @@ const categories = [
         <div class="stream-item loading-placeholder">
           <div class="stream-meta">UNROLLING COURTYARD LEDGER...</div>
           <h3 class="stream-title">Gathering community dialogues...</h3>
-          <p class="stream-excerpt">Please wait a moment.</p>
+          <p class="stream-excerpt">
+            Please wait a moment while the latest reflections are retrieved.
+          </p>
         </div>
       </div>
     </section>
@@ -229,7 +253,11 @@ const categories = [
       aria-label="Selected Discussion Thread and Replies"
     >
       <div class="thread-nav-bar">
-        <button type="button" id="back-to-list-btn" class="ink-action-btn">
+        <button
+          type="button"
+          id="back-to-list-btn"
+          class="ink-action-btn"
+        >
           ← Back to All Forum Topics
         </button>
       </div>
@@ -241,6 +269,7 @@ const categories = [
         <div id="active-thread-body" class="active-thread-prose"></div>
       </article>
 
+      <!-- Divider between OP and Replies -->
       <div class="page-break" aria-hidden="true">
         <div class="line"></div>
         <div class="kanji">響</div>
@@ -253,6 +282,7 @@ const categories = [
           <h3 class="replies-heading">Voices in Response</h3>
           <span id="active-thread-reply-count" class="replies-badge">0 Replies</span>
         </div>
+
         <div id="replies-list-container" class="replies-list"></div>
       </div>
 
@@ -260,54 +290,99 @@ const categories = [
       <div class="reply-form-box">
         <div class="forum-form-header">
           <div>
-            <span class="forum-form-eyebrow">返답 • ADD YOUR VOICE</span>
+            <span class="forum-form-eyebrow">返答 • ADD YOUR VOICE</span>
             <h3 class="forum-form-title">Post a Reply to This Thread</h3>
           </div>
           <span class="kanji-seal">印</span>
         </div>
 
         <form id="new-reply-form" class="washi-form" novalidate>
+          <!-- Honeypot field -->
           <div class="honeypot-field" aria-hidden="true">
             <label for="reply-website-url">Website URL (Leave empty)</label>
-            <input type="text" id="reply-website-url" name="website_url" tabindex="-1" autocomplete="off" />
+            <input
+              type="text"
+              id="reply-website-url"
+              name="website_url"
+              tabindex="-1"
+              autocomplete="off"
+            />
           </div>
 
           <div class="form-grid-row">
             <div class="form-field">
               <label for="reply-author">Your Name or Pilgrim Alias *</label>
-              <input type="text" id="reply-author" name="author_name" required minlength="1" maxlength="60" />
+              <input
+                type="text"
+                id="reply-author"
+                name="author_name"
+                required
+                minlength="1"
+                maxlength="60"
+                placeholder="e.g. Kenji (Matsuyama)"
+              />
             </div>
+
             <div class="form-field">
-              <label for="reply-passcode">Optional Alias Passcode</label>
-              <input type="password" id="reply-passcode" name="author_passcode" placeholder="Protect your name" />
+              <label for="reply-email">Optional Email (Kept Private)</label>
+              <input
+                type="email"
+                id="reply-email"
+                name="author_email"
+                maxlength="120"
+                placeholder="Never displayed publicly"
+              />
+            </div>
+
+            <div class="form-field">
+              <label for="reply-passcode">Optional Alias Passcode (Claim or Unlock Name)</label>
+              <input
+                type="password"
+                id="reply-passcode"
+                name="author_passcode"
+                maxlength="120"
+                autocomplete="current-password"
+                placeholder="Set or enter passcode to protect your name"
+              />
+              <span class="field-helper-caption">
+                First time using a name with a passcode claims it. Next time, enter the same passcode to post under your name.
+              </span>
             </div>
           </div>
 
-          <div class="form-field">
-            <label for="reply-email">Optional Email (For Reply Notifications)</label>
-            <input type="email" id="reply-email" name="author_email" placeholder="Get notified when someone replies" />
-          </div>
-
-          <div class="form-options">
-            <label class="checkbox-label">
-              <input type="checkbox" id="reply-remember-identity" checked />
-              Remember my alias, email & passcode on this device
-            </label>
-            <label class="checkbox-label">
-              <input type="checkbox" id="reply-notify-replies" name="notify_replies" checked />
-              Notify me by email when someone replies to this thread
+          <div class="remember-identity-row">
+            <label class="remember-checkbox-label" for="reply-remember-identity">
+              <input
+                type="checkbox"
+                id="reply-remember-identity"
+                name="remember_identity"
+                checked
+              />
+              <span>Remember my alias, email &amp; passcode on this device</span>
             </label>
           </div>
 
           <div class="form-field">
             <label for="reply-body">Reply Message *</label>
-            <textarea id="reply-body" name="body" rows="4" required minlength="2" maxlength="3000" placeholder="Offer your reflection..."></textarea>
+            <textarea
+              id="reply-body"
+              name="body"
+              rows="4"
+              required
+              minlength="2"
+              maxlength="3000"
+              placeholder="Offer your reflection, answer, or roadside encouragement..."
+            ></textarea>
           </div>
 
           <div id="new-reply-feedback" class="form-feedback" role="status" aria-live="polite"></div>
 
           <div class="form-actions">
-            <button type="submit" id="submit-new-reply-btn" class="ink-action-btn crimson-filled-btn">
+            <button
+              type="submit"
+              id="submit-new-reply-btn"
+              class="ink-action-btn crimson-filled-btn"
+            >
               Inscribe Reply 印
             </button>
           </div>
@@ -315,7 +390,9 @@ const categories = [
       </div>
     </section>
 
-    <!-- 3-STEP SUPABASE ACTIVATION GUIDE -->
+    <!-- ================================================================== -->
+    <!-- 3-STEP SUPABASE ACTIVATION GUIDE (Shown when supabaseUrl is empty) -->
+    <!-- ================================================================== -->
     {(!supabaseUrl || !supabaseAnonKey) && (
       <>
         <div class="page-break" aria-hidden="true">
@@ -329,24 +406,39 @@ const categories = [
             <span class="supabase-setup-eyebrow">開門の手引き • COURTYARD DATABASE ACTIVATION</span>
             <span class="supabase-setup-badge">LOCAL DEMO MODE ACTIVE</span>
           </div>
+
           <h2 id="supabase-setup-heading" class="supabase-setup-title">
-            Database & Email Notification Setup
+            3-Step Supabase Activation Guide
           </h2>
+
           <p class="supabase-setup-intro">
-            You are currently in Preview Mode. To enable real database saving, Anti-Impersonation auth, Admin Badges, and Email notifications:
+            The forum above is currently running in <strong>Interactive Local Preview Mode</strong> so you can test browsing categories, unrolling threads, creating new topics, and testing Admin (★) and Verified (✓) badges right now. Follow these three quick steps to connect your live, 100% free cloud database:
           </p>
+
           <ol class="supabase-steps-list">
             <li class="supabase-step-card">
-              <div class="supabase-step-num">STEP 01 // SUPABASE & RESEND SETUP</div>
-              <p>Run all 3 generated SQL files in your Supabase SQL Editor. Register a free account at resend.com for email notifications.</p>
+              <div class="supabase-step-num">STEP 01 // CREATE FREE SUPABASE PROJECT</div>
+              <p>
+                Visit <a href="https://supabase.com" target="_blank" rel="noopener noreferrer">https://supabase.com</a>, sign in, and click <strong>New Project</strong>. Give your project a name (such as <code>camino-henro</code>), set any database password, and wait ~60 seconds for it to initialize.
+              </p>
             </li>
+
             <li class="supabase-step-card">
-              <div class="supabase-step-num">STEP 02 // CONFIGURE siteConfig.json</div>
-              <p>Paste your Supabase URL and anon public key into <code>src/data/siteConfig.json</code>.</p>
+              <div class="supabase-step-num">STEP 02 // RUN SQL SCRIPTS IN SUPABASE SQL EDITOR</div>
+              <p>
+                In your Supabase left sidebar, click <strong>SQL Editor</strong> → <strong>New query</strong>. Run <code>supabase-setup.sql</code>, <code>supabase-auth-upgrade.sql</code>, and <code>supabase-badges-upgrade.sql</code> to enable threads, replies, passcode protection, and automatic role badges.
+              </p>
             </li>
+
             <li class="supabase-step-card">
-              <div class="supabase-step-num">STEP 03 // INSERT RESEND API KEY</div>
-              <p>In Supabase Table Editor, open <code>forum_secrets</code> and replace the <code>RESEND_API_KEY</code> value with your real Resend API key.</p>
+              <div class="supabase-step-num">STEP 03 // PASTE URL &amp; ANON KEY INTO siteConfig.json</div>
+              <p>
+                In Supabase, go to <strong>Project Settings (gear icon) → API</strong>. Copy your <strong>Project URL</strong> and your <strong>anon / public</strong> key, and paste them into <code>src/data/siteConfig.json</code> under the <code>"supabase"</code> block:
+              </p>
+              <pre class="supabase-code-snippet"><code>"supabase": &#123;
+  "url": "https://YOUR_PROJECT_ID.supabase.co",
+  "anonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+&#125;</code></pre>
             </li>
           </ol>
         </aside>
@@ -356,7 +448,6 @@ const categories = [
 </BaseLayout>
 
 <style is:global>
-  /* Base Colors & Forms (Preserved from Step 8) */
   :root {
     --washi-bg: #E6DFCF;
     --washi-dark: #D8CEB8;
@@ -365,101 +456,766 @@ const categories = [
     --accent-crimson: #6E2B25;
     --accent-crimson-light: #8C3B33;
     --parchment-light: #F4F1EA;
+    --admin-gold: #D4AF37;
   }
 
-  .scroll-title-block { text-align: center; padding: 0.5rem 0 1.25rem; }
-  .scroll-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--accent-crimson); margin-bottom: 0.65rem; }
-  .page-heading { font-family: 'Cormorant Garamond', Georgia, serif; font-size: clamp(2.15rem, 4.5vw, 3.1rem); font-weight: 700; color: var(--ink-sumi); line-height: 1.15; margin: 0 0 0.6rem; }
-  .page-subtitle { font-family: 'EB Garamond', Georgia, serif; font-style: italic; font-size: 1.15rem; color: var(--ink-muted); max-width: 38rem; margin: 0 auto; line-height: 1.6; }
-  .page-break { display: flex; align-items: center; justify-content: center; gap: 1rem; margin: 2rem 0; user-select: none; }
-  .page-break .line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(110, 43, 37, 0.45) 20%, rgba(110, 43, 37, 0.45) 80%, transparent 100%); }
-  .page-break .kanji { font-family: 'Shippori Mincho', serif; font-size: 0.95rem; color: var(--accent-crimson); padding: 0.2rem 0.5rem; border: 1px solid rgba(110, 43, 37, 0.35); background-color: rgba(216, 206, 184, 0.45); line-height: 1; }
+  /* Scroll Header & Dividers (matching Camino_Henro_Apple_Scroll_Preview-v2.html) */
+  .scroll-title-block {
+    text-align: center;
+    padding: 0.5rem 0 1.25rem;
+  }
 
-  /* Buttons */
-  .ink-action-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; padding: 0.55rem 0.95rem; border: 1px solid rgba(28, 26, 23, 0.35); background-color: rgba(216, 206, 184, 0.35); color: var(--ink-sumi); cursor: pointer; transition: all 0.2s ease; }
-  .ink-action-btn:hover { border-color: var(--accent-crimson); color: var(--accent-crimson); background-color: rgba(216, 206, 184, 0.75); }
-  .ink-action-btn.is-active { border-color: var(--accent-crimson); background-color: var(--washi-dark); color: var(--accent-crimson); font-weight: 600; box-shadow: inset 0 -2px 0 var(--accent-crimson); }
-  .ink-action-btn.crimson-filled-btn { background: var(--accent-crimson); color: #F4F1EA; border-color: var(--accent-crimson); font-weight: 500; }
-  .ink-action-btn.crimson-filled-btn:hover { background: var(--accent-crimson-light); border-color: var(--accent-crimson-light); }
-  .ink-action-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+  .scroll-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--accent-crimson);
+    margin-bottom: 0.65rem;
+  }
 
-  /* Forms */
-  .hidden-view { display: none !important; }
-  .honeypot-field { position: absolute; left: -9999px; opacity: 0; pointer-events: none; }
-  .forum-form-panel, .reply-form-box { border: 1px solid var(--accent-crimson); background-color: rgba(216, 206, 184, 0.48); padding: 1.5rem; margin-bottom: 2rem; }
-  .forum-form-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; padding-bottom: 0.85rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(110, 43, 37, 0.25); }
-  .forum-form-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent-crimson); margin-bottom: 0.2rem; display: block; }
-  .forum-form-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.6rem; font-weight: 700; color: var(--ink-sumi); margin: 0; }
-  .forum-form-note { font-family: 'EB Garamond', Georgia, serif; font-size: 1rem; color: var(--ink-muted); margin: 0 0 1.2rem; }
-  .washi-form { display: flex; flex-direction: column; gap: 1rem; }
-  .form-grid-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1rem; }
-  .form-field { display: flex; flex-direction: column; gap: 0.35rem; }
-  .form-field label { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-sumi); font-weight: 600; }
-  .form-field input, .form-field select, .form-field textarea { font-family: 'EB Garamond', Georgia, serif; font-size: 1.05rem; color: var(--ink-sumi); background-color: var(--washi-bg); border: 1px solid rgba(28, 26, 23, 0.3); padding: 0.6rem 0.75rem; outline: none; transition: border-color 0.2s ease; }
-  .form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-color: var(--accent-crimson); }
-  .field-helper { font-family: 'EB Garamond', Georgia, serif; font-size: 0.85rem; color: var(--ink-muted); font-style: italic; }
-  
-  .form-options { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.2rem; }
-  .checkbox-label { display: flex; align-items: center; gap: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--ink-sumi); cursor: pointer; }
-  
-  .form-feedback { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; line-height: 1.4; min-height: 1.2rem; }
-  .form-feedback.is-error { color: #8B1E1E; font-weight: 600; }
-  .form-feedback.is-success { color: var(--accent-crimson); font-weight: 600; }
-  .form-actions { display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 0.4rem; }
+  .page-heading {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(2.15rem, 4.5vw, 3.1rem);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--ink-sumi);
+    line-height: 1.15;
+    margin: 0 0 0.6rem;
+  }
 
-  /* Thread Streams */
-  .forum-toolbar { margin-bottom: 1.75rem; }
-  .forum-Toolbar-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(28, 26, 23, 0.16); padding-bottom: 1rem; }
-  .category-filter-bar { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-  .forum-status-bar { display: flex; justify-content: space-between; padding-top: 0.65rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--ink-muted); }
-  .forum-status-text { color: var(--accent-crimson); }
+  .page-subtitle {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--ink-muted);
+    max-width: 38rem;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
 
-  .threads-stream { display: flex; flex-direction: column; }
-  .stream-item { padding: 1.6rem 1.25rem; border-bottom: 1px solid rgba(28, 26, 23, 0.15); cursor: pointer; }
-  .stream-item:hover { background-color: rgba(216, 206, 184, 0.45); }
-  .stream-item.is-pinned-item { border-left: 3px solid var(--accent-crimson); background-color: rgba(216, 206, 184, 0.28); }
-  .stream-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem 0.65rem; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 0.55rem; }
-  .pinned-stamp { color: var(--accent-crimson); font-weight: 700; border: 1px solid rgba(110, 43, 37, 0.45); background-color: rgba(110, 43, 37, 0.08); padding: 0.1rem 0.4rem; }
-  .category-tag { color: var(--ink-sumi); background-color: rgba(216, 206, 184, 0.7); border: 1px solid rgba(28, 26, 23, 0.2); padding: 0.1rem 0.45rem; }
-  .reply-count-tag { margin-left: auto; color: var(--accent-crimson); font-weight: 600; }
-  .stream-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.55rem; font-weight: 700; color: var(--ink-sumi); margin: 0 0 0.5rem; }
-  .stream-excerpt { font-family: 'EB Garamond', Georgia, serif; font-size: 1.08rem; line-height: 1.65; color: var(--ink-muted); margin: 0 0 0.85rem; }
-  .stream-read-link { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; text-transform: uppercase; color: var(--accent-crimson); font-weight: 600; }
+  .page-break {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: 2rem 0;
+    user-select: none;
+  }
 
-  /* Thread View */
-  .thread-nav-bar { margin-bottom: 1.5rem; }
-  .active-thread-box { border: 1px solid rgba(28, 26, 23, 0.25); border-left: 3px solid var(--accent-crimson); background-color: rgba(216, 206, 184, 0.35); padding: 1.75rem; }
-  .active-thread-heading { font-family: 'Cormorant Garamond', Georgia, serif; font-size: clamp(1.75rem, 3.5vw, 2.35rem); font-weight: 700; color: var(--ink-sumi); margin: 0.35rem 0 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(28, 26, 23, 0.15); }
-  .active-thread-prose { font-family: 'EB Garamond', Georgia, serif; font-size: 1.15rem; line-height: 1.8; color: var(--ink-sumi); }
-  .active-thread-prose p { margin: 0 0 1.1rem; }
+  .page-break .line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(110, 43, 37, 0.45) 20%,
+      rgba(110, 43, 37, 0.45) 80%,
+      transparent 100%
+    );
+  }
 
-  .replies-section { margin-bottom: 2.25rem; }
-  .replies-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(110, 43, 37, 0.35); }
-  .replies-heading { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.5rem; font-weight: 700; text-transform: uppercase; color: var(--ink-sumi); margin: 0; }
-  .replies-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--accent-crimson); font-weight: 600; }
-  .replies-list { display: flex; flex-direction: column; gap: 1rem; }
-  .reply-card { border: 1px solid rgba(28, 26, 23, 0.18); background-color: rgba(230, 223, 207, 0.75); padding: 1.25rem 1.4rem; }
-  .reply-card-meta { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--ink-muted); margin-bottom: 0.65rem; padding-bottom: 0.45rem; border-bottom: 1px dashed rgba(28, 26, 23, 0.15); }
-  .reply-card-body { font-family: 'EB Garamond', Georgia, serif; font-size: 1.08rem; line-height: 1.7; color: var(--ink-sumi); }
-  .empty-replies-box { border: 1px dashed rgba(28, 26, 23, 0.25); padding: 1.5rem; text-align: center; font-family: 'EB Garamond', Georgia, serif; font-style: italic; color: var(--ink-muted); }
+  .page-break .kanji {
+    font-family: 'Shippori Mincho', 'Noto Serif JP', serif;
+    font-size: 0.95rem;
+    color: var(--accent-crimson);
+    padding: 0.2rem 0.5rem;
+    border: 1px solid rgba(110, 43, 37, 0.35);
+    background-color: rgba(216, 206, 184, 0.45);
+    line-height: 1;
+  }
 
-  /* Feature 3: Admin Star Badges */
-  .author-badge-admin { background-color: #6E2B25; color: #F4F1EA; padding: 0.1rem 0.45rem; border: 1px solid #D4AF37; font-weight: 700; border-radius: 2px; }
-  .admin-seal-tag { color: #D4AF37; font-size: 0.6rem; margin-left: 0.3rem; }
-  .author-badge-verified { color: var(--ink-sumi); font-weight: 600; }
-  .verified-check { color: #8C3B33; font-weight: bold; margin-left: 0.1rem; }
-  .author-badge-guest { color: var(--ink-muted); }
-  .is-admin-reply { border-left: 3px solid #6E2B25; background-color: rgba(216, 206, 184, 0.45); }
-  
-  /* 3-Step Setup */
-  .supabase-setup-box { border: 2px solid var(--accent-crimson); background-color: var(--washi-dark); padding: 1.75rem; margin-top: 1rem; }
-  .supabase-setup-header { display: flex; justify-content: space-between; padding-bottom: 0.75rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(110, 43, 37, 0.35); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; }
-  .supabase-setup-eyebrow { color: var(--accent-crimson); font-weight: 700; }
-  .supabase-setup-badge { background-color: var(--accent-crimson); color: #F4F1EA; padding: 0.15rem 0.5rem; font-size: 0.65rem; }
-  .supabase-setup-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.75rem; font-weight: 700; color: var(--ink-sumi); margin: 0 0 0.65rem; }
-  .supabase-steps-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 1rem; }
-  .supabase-step-card { border: 1px solid rgba(28, 26, 23, 0.2); background-color: var(--washi-bg); padding: 1rem 1.2rem; }
-  .supabase-step-num { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 700; color: var(--accent-crimson); margin-bottom: 0.4rem; }
+  /* Buttons (.ink-action-btn & filled crimson variant) */
+  .ink-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.55rem 0.95rem;
+    border: 1px solid rgba(28, 26, 23, 0.35);
+    background-color: rgba(216, 206, 184, 0.35);
+    color: var(--ink-sumi);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    line-height: 1.2;
+  }
+
+  .ink-action-btn:hover {
+    border-color: var(--accent-crimson);
+    color: var(--accent-crimson);
+    background-color: rgba(216, 206, 184, 0.75);
+  }
+
+  .ink-action-btn.is-active {
+    border-color: var(--accent-crimson);
+    background-color: var(--washi-dark);
+    color: var(--accent-crimson);
+    font-weight: 600;
+    box-shadow: inset 0 -2px 0 var(--accent-crimson);
+  }
+
+  .ink-action-btn.crimson-filled-btn {
+    background: var(--accent-crimson);
+    color: #F4F1EA;
+    border-color: var(--accent-crimson);
+    font-weight: 500;
+  }
+
+  .ink-action-btn.crimson-filled-btn:hover {
+    background: var(--accent-crimson-light);
+    border-color: var(--accent-crimson-light);
+    color: #F4F1EA;
+  }
+
+  .ink-action-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  /* ========================================================================== */
+  /* FEATURE 3: EYE-CATCHING ADMIN STAR & VERIFIED PILGRIM ROLE BADGES          */
+  /* ========================================================================== */
+  .author-badge-admin {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.42rem;
+    background-color: #6E2B25;
+    color: #F4F1EA;
+    border: 1px solid #D4AF37;
+    padding: 0.14rem 0.55rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: none;
+    box-shadow: 0 1px 3px rgba(28, 26, 23, 0.22), inset 0 0 0 1px rgba(212, 175, 55, 0.22);
+    line-height: 1.3;
+    vertical-align: middle;
+  }
+
+  .author-badge-admin::first-letter {
+    color: #D4AF37;
+  }
+
+  .admin-seal-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', 'Shippori Mincho', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    color: #D4AF37;
+    background-color: rgba(28, 26, 23, 0.32);
+    border-left: 1px solid rgba(212, 175, 55, 0.55);
+    padding: 0.05rem 0.35rem 0.05rem 0.42rem;
+    margin-left: 0.1rem;
+    text-transform: uppercase;
+  }
+
+  .author-badge-verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #1C1A17;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0.04em;
+    vertical-align: middle;
+  }
+
+  .verified-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.05rem;
+    height: 1.05rem;
+    font-size: 0.64rem;
+    font-weight: 700;
+    color: #6E2B25;
+    background-color: rgba(110, 43, 37, 0.12);
+    border: 1px solid rgba(110, 43, 37, 0.45);
+    line-height: 1;
+    cursor: help;
+  }
+
+  .author-badge-guest {
+    color: var(--ink-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-transform: none;
+  }
+
+  /* Forum Toolbar & Filter Bar */
+  .forum-toolbar {
+    margin-bottom: 1.75rem;
+  }
+
+  .forum-Toolbar-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(28, 26, 23, 0.16);
+  }
+
+  .category-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .forum-status-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding-top: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.06em;
+  }
+
+  .forum-status-text {
+    color: var(--accent-crimson);
+  }
+
+  /* Stream Item styling (matching Camino_Henro_Apple_Scroll_Preview-v2.html) */
+  .threads-stream {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stream-item {
+    padding: 1.6rem 1.25rem;
+    border-bottom: 1px solid rgba(28, 26, 23, 0.15);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .stream-item:first-child {
+    border-top: 1px solid rgba(28, 26, 23, 0.15);
+  }
+
+  .stream-item:hover {
+    background-color: rgba(216, 206, 184, 0.45);
+  }
+
+  .stream-item.is-pinned-item {
+    border-left: 3px solid var(--accent-crimson);
+    background-color: rgba(216, 206, 184, 0.28);
+  }
+
+  .stream-item.is-pinned-item:hover {
+    background-color: rgba(216, 206, 184, 0.55);
+  }
+
+  .stream-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    margin-bottom: 0.55rem;
+  }
+
+  .pinned-stamp {
+    color: var(--accent-crimson);
+    font-weight: 700;
+    border: 1px solid rgba(110, 43, 37, 0.45);
+    background-color: rgba(110, 43, 37, 0.08);
+    padding: 0.1rem 0.4rem;
+  }
+
+  .category-tag {
+    color: var(--ink-sumi);
+    background-color: rgba(216, 206, 184, 0.7);
+    border: 1px solid rgba(28, 26, 23, 0.2);
+    padding: 0.1rem 0.45rem;
+  }
+
+  .reply-count-tag {
+    margin-left: auto;
+    color: var(--accent-crimson);
+    font-weight: 600;
+  }
+
+  .stream-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: var(--ink-sumi);
+    margin: 0 0 0.5rem;
+    line-height: 1.25;
+    transition: color 0.2s ease;
+  }
+
+  .stream-item:hover .stream-title {
+    color: var(--accent-crimson);
+  }
+
+  .stream-excerpt {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.08rem;
+    line-height: 1.65;
+    color: var(--ink-muted);
+    margin: 0 0 0.85rem;
+  }
+
+  .stream-read-link {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent-crimson);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .stream-item:hover .stream-read-link {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  /* Forms & Drawers */
+  .hidden-view {
+    display: none !important;
+  }
+
+  .honeypot-field {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .forum-form-panel,
+  .reply-form-box {
+    border: 1px solid var(--accent-crimson);
+    background-color: rgba(216, 206, 184, 0.48);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .forum-form-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-bottom: 0.85rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid rgba(110, 43, 37, 0.25);
+  }
+
+  .forum-form-eyebrow {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent-crimson);
+    margin-bottom: 0.2rem;
+  }
+
+  .forum-form-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--ink-sumi);
+    margin: 0;
+  }
+
+  .forum-form-note {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1rem;
+    color: var(--ink-muted);
+    margin: 0 0 1.2rem;
+    line-height: 1.55;
+  }
+
+  .washi-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .form-grid-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .form-grid-two {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .form-field label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-sumi);
+    font-weight: 600;
+  }
+
+  .form-field input,
+  .form-field select,
+  .form-field textarea {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.05rem;
+    color: var(--ink-sumi);
+    background-color: var(--washi-bg);
+    border: 1px solid rgba(28, 26, 23, 0.3);
+    padding: 0.6rem 0.75rem;
+    border-radius: 0;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .form-field input:focus,
+  .form-field select:focus,
+  .form-field textarea:focus {
+    border-color: var(--accent-crimson);
+    box-shadow: 0 0 0 1px var(--accent-crimson);
+  }
+
+  .field-helper-caption {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 0.88rem;
+    line-height: 1.35;
+    color: var(--ink-muted);
+  }
+
+  .remember-identity-row {
+    display: flex;
+    align-items: center;
+    padding: 0.25rem 0;
+  }
+
+  .remember-checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--ink-sumi);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .remember-checkbox-label input[type="checkbox"] {
+    accent-color: var(--accent-crimson);
+    width: 0.95rem;
+    height: 0.95rem;
+    cursor: pointer;
+  }
+
+  .form-feedback {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    min-height: 1.2rem;
+  }
+
+  .form-feedback.is-error {
+    color: #8B1E1E;
+    font-weight: 600;
+  }
+
+  .form-feedback.is-success {
+    color: var(--accent-crimson);
+    font-weight: 600;
+  }
+
+  .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding-top: 0.4rem;
+  }
+
+  /* Single Thread & Replies View */
+  .thread-nav-bar {
+    margin-bottom: 1.5rem;
+  }
+
+  .active-thread-box {
+    border: 1px solid rgba(28, 26, 23, 0.25);
+    border-left: 3px solid var(--accent-crimson);
+    background-color: rgba(216, 206, 184, 0.35);
+    padding: 1.75rem;
+  }
+
+  .active-thread-heading {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(1.75rem, 3.5vw, 2.35rem);
+    font-weight: 700;
+    color: var(--ink-sumi);
+    line-height: 1.2;
+    margin: 0.35rem 0 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(28, 26, 23, 0.15);
+  }
+
+  .active-thread-prose {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.15rem;
+    line-height: 1.8;
+    color: var(--ink-sumi);
+  }
+
+  .active-thread-prose p {
+    margin: 0 0 1.1rem;
+  }
+
+  .active-thread-prose p:last-child {
+    margin-bottom: 0;
+  }
+
+  .replies-section {
+    margin-bottom: 2.25rem;
+  }
+
+  .replies-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(110, 43, 37, 0.35);
+  }
+
+  .replies-heading {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-sumi);
+    margin: 0;
+  }
+
+  .replies-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent-crimson);
+    font-weight: 600;
+  }
+
+  .replies-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .reply-card {
+    border: 1px solid rgba(28, 26, 23, 0.18);
+    background-color: rgba(230, 223, 207, 0.75);
+    padding: 1.25rem 1.4rem;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .reply-card.is-admin-reply {
+    border-left: 3px solid #6E2B25;
+    background-color: rgba(244, 241, 234, 0.9);
+    box-shadow: 0 2px 6px rgba(110, 43, 37, 0.08);
+  }
+
+  .reply-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--ink-muted);
+    margin-bottom: 0.65rem;
+    padding-bottom: 0.45rem;
+    border-bottom: 1px dashed rgba(28, 26, 23, 0.15);
+  }
+
+  .reply-card-body {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.08rem;
+    line-height: 1.7;
+    color: var(--ink-sumi);
+  }
+
+  .reply-card-body p {
+    margin: 0 0 0.75rem;
+  }
+
+  .reply-card-body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .empty-replies-box {
+    border: 1px dashed rgba(28, 26, 23, 0.25);
+    padding: 1.5rem;
+    text-align: center;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--ink-muted);
+  }
+
+  .kanji-seal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 1px solid var(--accent-crimson);
+    color: var(--accent-crimson);
+    font-family: 'Shippori Mincho', serif;
+    font-size: 0.85rem;
+  }
+
+  /* 3-Step Supabase Activation Box */
+  .supabase-setup-box {
+    border: 2px solid var(--accent-crimson);
+    background-color: var(--washi-dark);
+    padding: 1.75rem;
+    margin-top: 1rem;
+  }
+
+  .supabase-setup-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid rgba(110, 43, 37, 0.35);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+  }
+
+  .supabase-setup-eyebrow {
+    color: var(--accent-crimson);
+    font-weight: 700;
+  }
+
+  .supabase-setup-badge {
+    background-color: var(--accent-crimson);
+    color: #F4F1EA;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.65rem;
+  }
+
+  .supabase-setup-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--ink-sumi);
+    margin: 0 0 0.65rem;
+  }
+
+  .supabase-setup-intro {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.05rem;
+    line-height: 1.65;
+    color: var(--ink-sumi);
+    margin: 0 0 1.25rem;
+  }
+
+  .supabase-steps-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .supabase-step-card {
+    border: 1px solid rgba(28, 26, 23, 0.2);
+    background-color: var(--washi-bg);
+    padding: 1rem 1.2rem;
+  }
+
+  .supabase-step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--accent-crimson);
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+  }
+
+  .supabase-step-card p {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--ink-sumi);
+    margin: 0;
+  }
+
+  .supabase-step-card a {
+    color: var(--accent-crimson);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .supabase-step-card code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    background-color: var(--washi-dark);
+    padding: 0.1rem 0.35rem;
+  }
+
+  .supabase-code-snippet {
+    margin: 0.75rem 0 0;
+    padding: 0.85rem;
+    background-color: var(--ink-sumi);
+    color: var(--washi-bg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+
+  .supabase-code-snippet code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+  }
 </style>
 
 <script is:inline>
@@ -472,268 +1228,852 @@ const categories = [
     const supabaseAnonKey = (rootEl.getAttribute('data-supabase-key') || '').trim();
     const isLiveSupabase = Boolean(supabaseUrl && supabaseAnonKey);
 
+    const STORAGE_KEY_IDENTITY = 'camino_henro_forum_identity';
+
+    // Starter Philosophical Threads for Local Preview / Demo Mode (with author_role)
+    const demoStarterThreads = [
+      {
+        id: 'demo-thread-1',
+        category: 'Philosophy & Sufficiency',
+        title: 'On Sufficiency vs. Surplus: What Does It Require to Feel Secure?',
+        author_name: 'Henro (Pilgrim)',
+        author_role: 'admin',
+        body: 'Where do we draw the boundary between what is genuinely required to feel safe in the world and what we accumulate merely out of habit or fear?\n\nWalking eastward from the Atlantic cliffs with only what fits inside a small pack strips the question down to bone and breath: water, bread, dry shelter at nightfall, and the quiet trust that human society is not separate from Nature, but one of its living expressions.\n\nHave you experienced a moment in your own life when carrying or owning less unexpectedly deepened your sense of material security? Share your reflections below.',
+        is_pinned: true,
+        reply_count: 1,
+        created_at: new Date(Date.now() - 3 * 86400000).toISOString(),
+      },
+      {
+        id: 'demo-thread-2',
+        category: 'Osettai & Hospitality',
+        title: 'Traditions of Hospitality: Bridging Osettai (お接待) and Donativo',
+        author_name: 'Henro (Pilgrim)',
+        author_role: 'admin',
+        body: 'Both the European Camino de Santiago and the Shikoku Henro pilgrimage rest upon an ancient economy of trust. In Spain, hospitaleros welcome foot-weary strangers under the spirit of donativo; in Shikoku, locals offer green tea, citrus, or lodging as Osettai (お接待)—freely given alms offered in good faith so that giver and walker travel forward together in spirit (Dōgyō Ninin / 同行二人).\n\nHow can we preserve and practice uncalculated hospitality inside a modern commercial world that prices every interaction? Have you encountered or offered Osettai in unexpected places?',
+        is_pinned: true,
+        reply_count: 0,
+        created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
+      },
+      {
+        id: 'demo-thread-3',
+        category: 'Community & Book Initiatives',
+        title: 'Deliberating Future Works & Community Initiatives for the Archive',
+        author_name: 'Henro (Pilgrim)',
+        author_role: 'admin',
+        body: 'While daily subsistence on the trail comes solely from the road itself, Osettai contributions made through this digital scroll are dedicated to sustaining the archive, preparing a future printed edition of these philosophical dispatches, and supporting community-aligned initiatives.\n\nAs this courtyard grows, how would you like to see our shared platform evolve? Are there specific philosophical inquiries, translations, or physical book formats you feel we should prioritize when the time comes?',
+        is_pinned: true,
+        reply_count: 0,
+        created_at: new Date(Date.now() - 1 * 86400000).toISOString(),
+      },
+    ];
+
+    const demoStarterReplies = {
+      'demo-thread-1': [
+        {
+          id: 'demo-reply-101',
+          thread_id: 'demo-thread-1',
+          author_name: 'Mateo (Galicia)',
+          author_role: 'verified',
+          body: 'Buen Camino from Finisterra. For me, the realization came during a winter storm in O Cebreiro: security was never the weight of my wallet, but the warmth of a shared stove and a stranger handing over a bowl of caldo gallego without asking my name.',
+          created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
+        },
+      ],
+    };
+
+    // Local Demo Mode Passcode Registry (simulates public.forum_users in local preview)
+    const demoClaimedUsers = {
+      'mateo (galicia)': { passcode: 'mateo', role: 'verified' },
+    };
+
+    // State
     let allThreads = [];
     let currentCategory = 'All Topics';
     let activeThreadId = null;
 
-    // Feature 2: LocalStorage Identity Memory
-    const LOCAL_STORAGE_KEY = 'camino_henro_forum_identity';
-    function saveIdentity(name, email, passcode) {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ name, email, passcode }));
-    }
-    function loadIdentity(formIdPrefix) {
-      try {
-        const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (stored) {
-          const { name, email, passcode } = JSON.parse(stored);
-          const nameEl = document.getElementById(formIdPrefix + '-author');
-          const emailEl = document.getElementById(formIdPrefix + '-email');
-          const passEl = document.getElementById(formIdPrefix + '-passcode');
-          if (nameEl && name) nameEl.value = name;
-          if (emailEl && email) emailEl.value = email;
-          if (passEl && passcode) passEl.value = passcode;
-        }
-      } catch (e) {}
+    // DOM References
+    const categoryBtns = document.querySelectorAll('.category-filter-btn');
+    const toggleNewTopicBtn = document.getElementById('toggle-new-topic-btn');
+    const closeNewTopicBtn = document.getElementById('close-new-topic-btn');
+    const cancelNewTopicBtn = document.getElementById('cancel-new-topic-btn');
+    const newTopicDrawer = document.getElementById('new-topic-drawer');
+    const newTopicForm = document.getElementById('new-topic-form');
+    const newTopicFeedback = document.getElementById('new-topic-feedback');
+    const submitNewTopicBtn = document.getElementById('submit-new-topic-btn');
+
+    const countIndicator = document.getElementById('forum-count-indicator');
+    const listView = document.getElementById('forum-list-view');
+    const threadsStreamContainer = document.getElementById('threads-stream-container');
+
+    const threadView = document.getElementById('forum-thread-view');
+    const backToListBtn = document.getElementById('back-to-list-btn');
+    const activeThreadMeta = document.getElementById('active-thread-meta');
+    const activeThreadTitle = document.getElementById('active-thread-title');
+    const activeThreadBody = document.getElementById('active-thread-body');
+    const activeThreadReplyCount = document.getElementById('active-thread-reply-count');
+    const repliesListContainer = document.getElementById('replies-list-container');
+
+    const newReplyForm = document.getElementById('new-reply-form');
+    const newReplyFeedback = document.getElementById('new-reply-feedback');
+    const submitNewReplyBtn = document.getElementById('submit-new-reply-btn');
+
+    const topicAuthorInput = document.getElementById('topic-author');
+    const topicEmailInput = document.getElementById('topic-email');
+    const topicPasscodeInput = document.getElementById('topic-passcode');
+    const topicRememberCheckbox = document.getElementById('topic-remember-identity');
+
+    const replyAuthorInput = document.getElementById('reply-author');
+    const replyEmailInput = document.getElementById('reply-email');
+    const replyPasscodeInput = document.getElementById('reply-passcode');
+    const replyRememberCheckbox = document.getElementById('reply-remember-identity');
+
+    // Helpers
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
 
-    // Feature 3: Badges Helper
-    function escapeHtml(str) {
-      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-    }
     function renderAuthorBadge(authorName, authorRole) {
-      const nameHtml = escapeHtml(authorName);
-      if (authorRole === 'admin') {
-        return `<span class="author-badge-admin">★ ${nameHtml} <span class="admin-seal-tag">PILGRIM ADMIN 印</span></span>`;
-      } else if (authorRole === 'verified') {
-        return `<span class="author-badge-verified">${nameHtml} <span class="verified-check" title="Protected Pilgrim Alias">✓</span></span>`;
+      const normalizedRole = String(authorRole || 'guest').toLowerCase().trim();
+      if (normalizedRole === 'admin') {
+        return `<span class="author-badge-admin">★ ${escapeHtml(authorName)} <span class="admin-seal-tag">PILGRIM ADMIN 印</span></span>`;
       }
-      return `<span class="author-badge-guest">${nameHtml}</span>`;
+      if (normalizedRole === 'verified') {
+        return `<span class="author-badge-verified">${escapeHtml(authorName)} <span class="verified-check" title="Protected Pilgrim Alias">✓</span></span>`;
+      }
+      return `<span class="author-badge-guest">${escapeHtml(authorName)}</span>`;
     }
 
     function formatDate(isoString) {
       if (!isoString) return '';
       const d = new Date(isoString);
       if (Number.isNaN(d.getTime())) return isoString;
-      return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' });
+      return d.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+      });
     }
+
     function makeExcerpt(text, maxLen) {
       const clean = String(text || '').replace(/\s+/g, ' ').trim();
       if (clean.length <= maxLen) return clean;
       return clean.slice(0, maxLen).trim() + '…';
     }
+
     function renderParagraphs(text) {
-      const paragraphs = String(text || '').split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
-      return paragraphs.length === 0 ? '<p>' + escapeHtml(text) + '</p>' : paragraphs.map((p) => '<p>' + escapeHtml(p).replace(/\n/g, '<br />') + '</p>').join('');
-    }
+      const paragraphs = String(text || '')
+        .split(/\n{2,}|\r\n{2,}/)
+        .map((p) => p.trim())
+        .filter(Boolean);
 
-    // Drawer Toggles
-    const toggleNewTopicBtn = document.getElementById('toggle-new-topic-btn');
-    const closeNewTopicBtn = document.getElementById('close-new-topic-btn');
-    const cancelNewTopicBtn = document.getElementById('cancel-new-topic-btn');
-    const newTopicDrawer = document.getElementById('new-topic-drawer');
-
-    function setNewTopicDrawerOpen(isOpen) {
-      if (!newTopicDrawer) return;
-      if (isOpen) {
-        newTopicDrawer.classList.remove('hidden-view');
-        loadIdentity('topic');
-      } else {
-        newTopicDrawer.classList.add('hidden-view');
+      if (paragraphs.length === 0) {
+        return '<p>' + escapeHtml(text) + '</p>';
       }
-    }
-    if (toggleNewTopicBtn) toggleNewTopicBtn.addEventListener('click', () => setNewTopicDrawerOpen(!newTopicDrawer.classList.contains('hidden-view')));
-    if (closeNewTopicBtn) closeNewTopicBtn.addEventListener('click', () => setNewTopicDrawerOpen(false));
-    if (cancelNewTopicBtn) cancelNewTopicBtn.addEventListener('click', () => setNewTopicDrawerOpen(false));
 
-    // Fetch Threads (Include author_role)
-    async function loadThreads() {
-      if (!isLiveSupabase) return;
+      return paragraphs
+        .map((p) => '<p>' + escapeHtml(p).replace(/\n/g, '<br />') + '</p>')
+        .join('');
+    }
+
+    // Load & Save Pilgrim Identity in localStorage (Step 8A)
+    function loadSavedIdentity() {
       try {
-        const endpoint = `${supabaseUrl}/rest/v1/forum_threads?select=id,category,title,author_name,author_role,body,is_pinned,reply_count,created_at&order=is_pinned.desc,created_at.desc`;
-        const res = await fetch(endpoint, { headers: { apikey: supabaseAnonKey, Authorization: `Bearer ${supabaseAnonKey}` } });
-        if (res.ok) {
-          const data = await res.json();
-          allThreads = Array.isArray(data) ? data : [];
-          renderThreadList();
-        }
-      } catch (err) { console.error('Error loading threads:', err); }
+        const raw = localStorage.getItem(STORAGE_KEY_IDENTITY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') return;
+
+        if (topicAuthorInput && parsed.author_name) topicAuthorInput.value = parsed.author_name;
+        if (topicEmailInput && parsed.author_email) topicEmailInput.value = parsed.author_email;
+        if (topicPasscodeInput && parsed.author_passcode) topicPasscodeInput.value = parsed.author_passcode;
+
+        if (replyAuthorInput && parsed.author_name) replyAuthorInput.value = parsed.author_name;
+        if (replyEmailInput && parsed.author_email) replyEmailInput.value = parsed.author_email;
+        if (replyPasscodeInput && parsed.author_passcode) replyPasscodeInput.value = parsed.author_passcode;
+      } catch (err) {
+        console.warn('Could not read saved forum identity from localStorage:', err);
+      }
     }
 
-    function renderThreadList() {
-      const container = document.getElementById('threads-stream-container');
-      if (!container) return;
-      const filtered = currentCategory === 'All Topics' ? allThreads : allThreads.filter((t) => t.category === currentCategory);
-
-      if (filtered.length === 0) {
-        container.innerHTML = `<div class="stream-item"><h3 class="stream-title">No discussions here yet.</h3></div>`;
-        return;
+    function handleIdentityPersistence(author_name, author_email, author_passcode, shouldRemember) {
+      try {
+        if (shouldRemember) {
+          localStorage.setItem(
+            STORAGE_KEY_IDENTITY,
+            JSON.stringify({
+              author_name: author_name || '',
+              author_email: author_email || '',
+              author_passcode: author_passcode || '',
+            })
+          );
+          if (topicAuthorInput) topicAuthorInput.value = author_name || '';
+          if (topicEmailInput) topicEmailInput.value = author_email || '';
+          if (topicPasscodeInput) topicPasscodeInput.value = author_passcode || '';
+          if (replyAuthorInput) replyAuthorInput.value = author_name || '';
+          if (replyEmailInput) replyEmailInput.value = author_email || '';
+          if (replyPasscodeInput) replyPasscodeInput.value = author_passcode || '';
+        } else {
+          localStorage.removeItem(STORAGE_KEY_IDENTITY);
+        }
+      } catch (err) {
+        console.warn('Could not persist forum identity to localStorage:', err);
       }
+    }
 
-      container.innerHTML = filtered.map(thread => {
-        const pinnedBadge = thread.is_pinned ? '<span class="pinned-stamp">[PINNED 印]</span>' : '';
-        const authorBadgeHtml = renderAuthorBadge(thread.author_name, thread.author_role);
-        return `
-          <article class="stream-item ${thread.is_pinned ? 'is-pinned-item' : ''}" data-thread-id="${escapeHtml(thread.id)}">
-            <div class="stream-meta">
-              ${pinnedBadge} <span class="category-tag">${escapeHtml(thread.category)}</span>
-              <span>BY ${authorBadgeHtml}</span> <span>•</span>
-              <time datetime="${escapeHtml(thread.created_at)}">${escapeHtml(formatDate(thread.created_at))}</time>
-              <span class="reply-count-tag">💬 ${Number(thread.reply_count || 0)} Replies</span>
-            </div>
-            <h3 class="stream-title">${escapeHtml(thread.title)}</h3>
-            <p class="stream-excerpt">${escapeHtml(makeExcerpt(thread.body, 180))}</p>
-            <span class="stream-read-link">Unroll Discussion ➔</span>
-          </article>
-        `;
-      }).join('');
-
-      container.querySelectorAll('.stream-item').forEach(item => {
-        item.addEventListener('click', () => openThreadView(item.getAttribute('data-thread-id')));
+    // Sync the two "Remember me" checkboxes so toggling one updates the other
+    if (topicRememberCheckbox && replyRememberCheckbox) {
+      topicRememberCheckbox.addEventListener('change', function () {
+        replyRememberCheckbox.checked = topicRememberCheckbox.checked;
+      });
+      replyRememberCheckbox.addEventListener('change', function () {
+        topicRememberCheckbox.checked = replyRememberCheckbox.checked;
       });
     }
 
-    // Category Tabs
-    document.querySelectorAll('.category-filter-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        currentCategory = btn.getAttribute('data-category');
-        document.querySelectorAll('.category-filter-btn').forEach(b => b.classList.toggle('is-active', b === btn));
-        if (activeThreadId) closeThreadView();
+    // Extract friendly ALIAS_PROTECTED error message from Supabase response
+    function extractProtectionErrorMessage(errText) {
+      const raw = String(errText || '');
+      if (raw.includes('ALIAS_PROTECTED:')) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.message) {
+            return parsed.message.replace(/^.*ALIAS_PROTECTED:\s*/i, '');
+          }
+        } catch (_e) {
+          // Fallback regex extraction if not JSON
+        }
+        const match = raw.match(/ALIAS_PROTECTED:\s*([^"\\]+)/i);
+        if (match && match[1]) {
+          return match[1].trim();
+        }
+        return 'This pilgrim alias is protected. Please enter the correct passcode for this name, or choose another alias.';
+      }
+      return null;
+    }
+
+    // Simulate alias verification & role assignment in Local Preview / Demo Mode
+    function verifyDemoAliasAndRole(authorName, authorPasscode) {
+      const aliasKey = String(authorName || '').toLowerCase().trim();
+      const passcode = String(authorPasscode || '').trim();
+
+      // Anti-Impersonation rule for Henro / Admin
+      if (
+        aliasKey.includes('henro') ||
+        aliasKey.includes('admin') ||
+        aliasKey.includes('カミノ遍路')
+      ) {
+        if (passcode !== 'henro') {
+          return {
+            ok: false,
+            error:
+              "The name Henro is reserved. In Local Demo Mode, enter passcode 'henro' to test posting with the ★ PILGRIM ADMIN badge, or choose another alias.",
+          };
+        }
+        return { ok: true, role: 'admin' };
+      }
+
+      // Check existing claimed demo alias
+      if (demoClaimedUsers[aliasKey]) {
+        if (passcode !== demoClaimedUsers[aliasKey].passcode) {
+          return {
+            ok: false,
+            error:
+              'This pilgrim alias is already claimed and protected. Please enter its passcode to post, or choose a different alias.',
+          };
+        }
+        return { ok: true, role: demoClaimedUsers[aliasKey].role };
+      }
+
+      // New alias with a passcode (3+ chars) claims 'verified' status
+      if (passcode.length >= 3) {
+        demoClaimedUsers[aliasKey] = { passcode: passcode, role: 'verified' };
+        return { ok: true, role: 'verified' };
+      }
+
+      return { ok: true, role: 'guest' };
+    }
+
+    // Drawer Toggle
+    function setNewTopicDrawerOpen(isOpen) {
+      if (!newTopicDrawer || !toggleNewTopicBtn) return;
+      if (isOpen) {
+        newTopicDrawer.classList.remove('hidden-view');
+        toggleNewTopicBtn.setAttribute('aria-expanded', 'true');
+        loadSavedIdentity();
+        if (topicAuthorInput && !topicAuthorInput.value) {
+          topicAuthorInput.focus();
+        } else {
+          const titleInput = document.getElementById('topic-title');
+          if (titleInput) titleInput.focus();
+        }
+      } else {
+        newTopicDrawer.classList.add('hidden-view');
+        toggleNewTopicBtn.setAttribute('aria-expanded', 'false');
+        if (newTopicFeedback) {
+          newTopicFeedback.textContent = '';
+          newTopicFeedback.className = 'form-feedback';
+        }
+      }
+    }
+
+    if (toggleNewTopicBtn) {
+      toggleNewTopicBtn.addEventListener('click', function () {
+        const isCurrentlyHidden = newTopicDrawer.classList.contains('hidden-view');
+        setNewTopicDrawerOpen(isCurrentlyHidden);
+      });
+    }
+    if (closeNewTopicBtn) {
+      closeNewTopicBtn.addEventListener('click', function () {
+        setNewTopicDrawerOpen(false);
+      });
+    }
+    if (cancelNewTopicBtn) {
+      cancelNewTopicBtn.addEventListener('click', function () {
+        setNewTopicDrawerOpen(false);
+      });
+    }
+
+    // Fetch Threads from Supabase (including author_role) or Demo Mode
+    async function loadThreads() {
+      if (!isLiveSupabase) {
+        allThreads = demoStarterThreads.slice();
+        renderThreadList();
+        return;
+      }
+
+      try {
+        const endpoint = `${supabaseUrl}/rest/v1/forum_threads?select=id,category,title,author_name,author_role,body,is_pinned,reply_count,created_at&order=is_pinned.desc,created_at.desc`;
+        const response = await fetch(endpoint, {
+          method: 'GET',
+          headers: {
+            apikey: supabaseAnonKey,
+            Authorization: `Bearer ${supabaseAnonKey}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Supabase HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        allThreads = Array.isArray(data) ? data : [];
+        renderThreadList();
+      } catch (err) {
+        console.error('Error loading threads from Supabase:', err);
+        allThreads = demoStarterThreads.slice();
+        renderThreadList();
+      }
+    }
+
+    // Render Thread List View (#forum-list-view) using renderAuthorBadge()
+    function renderThreadList() {
+      if (!threadsStreamContainer) return;
+
+      const filtered =
+        currentCategory === 'All Topics'
+          ? allThreads
+          : allThreads.filter((t) => t.category === currentCategory);
+
+      if (countIndicator) {
+        const label = currentCategory === 'All Topics' ? 'All Topics' : currentCategory;
+        countIndicator.textContent = `${label} (${filtered.length} ${filtered.length === 1 ? 'Thread' : 'Threads'})`;
+      }
+
+      if (filtered.length === 0) {
+        threadsStreamContainer.innerHTML = `
+          <div class="stream-item">
+            <div class="stream-meta">EMPTY COURTYARD SECTION</div>
+            <h3 class="stream-title">No discussions inscribed in "${escapeHtml(currentCategory)}" yet</h3>
+            <p class="stream-excerpt">
+              Be the first pilgrim to open a dialogue in this category by clicking "+ Inscribe New Topic 印" above.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      threadsStreamContainer.innerHTML = filtered
+        .map((thread) => {
+          const pinnedBadge = thread.is_pinned
+            ? '<span class="pinned-stamp">[PINNED 印]</span>'
+            : '';
+          const replyCount = Number(thread.reply_count || 0);
+          const replyLabel = replyCount === 1 ? '1 Reply' : `${replyCount} Replies`;
+          const excerpt = makeExcerpt(thread.body, 180);
+          const authorBadgeHtml = renderAuthorBadge(thread.author_name, thread.author_role);
+
+          return `
+            <article
+              class="stream-item ${thread.is_pinned ? 'is-pinned-item' : ''}"
+              data-thread-id="${escapeHtml(thread.id)}"
+              tabindex="0"
+              role="button"
+              aria-label="Open discussion: ${escapeHtml(thread.title)}"
+            >
+              <div class="stream-meta">
+                ${pinnedBadge}
+                <span class="category-tag">${escapeHtml(thread.category)}</span>
+                <span>BY ${authorBadgeHtml}</span>
+                <span>•</span>
+                <time datetime="${escapeHtml(thread.created_at)}">${escapeHtml(formatDate(thread.created_at))}</time>
+                <span class="reply-count-tag">💬 ${escapeHtml(replyLabel)}</span>
+              </div>
+              <h3 class="stream-title">${escapeHtml(thread.title)}</h3>
+              <p class="stream-excerpt">${escapeHtml(excerpt)}</p>
+              <span class="stream-read-link">Unroll Discussion ➔</span>
+            </article>
+          `;
+        })
+        .join('');
+
+      // Attach click & keyboard listeners to each .stream-item
+      const items = threadsStreamContainer.querySelectorAll('.stream-item[data-thread-id]');
+      items.forEach((item) => {
+        item.addEventListener('click', function () {
+          const id = item.getAttribute('data-thread-id');
+          if (id) openThreadView(id);
+        });
+        item.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            const id = item.getAttribute('data-thread-id');
+            if (id) openThreadView(id);
+          }
+        });
+      });
+    }
+
+    // Category Filter Buttons
+    categoryBtns.forEach((btn) => {
+      btn.addEventListener('click', function () {
+        const selectedCat = btn.getAttribute('data-category') || 'All Topics';
+        currentCategory = selectedCat;
+
+        categoryBtns.forEach((b) => {
+          const isMatch = b.getAttribute('data-category') === selectedCat;
+          b.classList.toggle('is-active', isMatch);
+          b.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+        });
+
+        // If user is currently inside a single thread, return to list view
+        if (activeThreadId !== null) {
+          closeThreadView();
+        }
         renderThreadList();
       });
     });
 
+    // Open Single Thread & Replies View (#forum-thread-view)
     async function openThreadView(threadId) {
-      const thread = allThreads.find(t => String(t.id) === String(threadId));
+      const thread = allThreads.find((t) => String(t.id) === String(threadId));
       if (!thread) return;
+
       activeThreadId = thread.id;
 
-      const meta = document.getElementById('active-thread-meta');
-      if (meta) {
-        meta.innerHTML = `
-          ${thread.is_pinned ? '<span class="pinned-stamp">[PINNED 印]</span>' : ''}
+      // Populate thread details using renderAuthorBadge()
+      if (activeThreadMeta) {
+        const pinnedHtml = thread.is_pinned ? '<span class="pinned-stamp">[PINNED 印]</span>' : '';
+        const authorBadgeHtml = renderAuthorBadge(thread.author_name, thread.author_role);
+        activeThreadMeta.innerHTML = `
+          ${pinnedHtml}
           <span class="category-tag">${escapeHtml(thread.category)}</span>
-          <span>INSCRIBED BY ${renderAuthorBadge(thread.author_name, thread.author_role)}</span>
-          <span>•</span> <time>${escapeHtml(formatDate(thread.created_at))}</time>
+          <span>INSCRIBED BY ${authorBadgeHtml}</span>
+          <span>•</span>
+          <time datetime="${escapeHtml(thread.created_at)}">${escapeHtml(formatDate(thread.created_at))}</time>
         `;
       }
-      document.getElementById('active-thread-title').textContent = thread.title;
-      document.getElementById('active-thread-body').innerHTML = renderParagraphs(thread.body);
+      if (activeThreadTitle) {
+        activeThreadTitle.textContent = thread.title;
+      }
+      if (activeThreadBody) {
+        activeThreadBody.innerHTML = renderParagraphs(thread.body);
+      }
 
-      document.getElementById('forum-list-view').classList.add('hidden-view');
-      document.getElementById('forum-thread-view').classList.remove('hidden-view');
-      loadIdentity('reply');
+      // Switch views
+      if (listView) listView.classList.add('hidden-view');
+      if (threadView) threadView.classList.remove('hidden-view');
+
+      loadSavedIdentity();
+
+      if (newReplyFeedback) {
+        newReplyFeedback.textContent = '';
+        newReplyFeedback.className = 'form-feedback';
+      }
+
       await loadRepliesForThread(thread.id);
     }
 
     function closeThreadView() {
       activeThreadId = null;
-      document.getElementById('forum-thread-view').classList.add('hidden-view');
-      document.getElementById('forum-list-view').classList.remove('hidden-view');
+      if (threadView) threadView.classList.add('hidden-view');
+      if (listView) listView.classList.remove('hidden-view');
+      renderThreadList();
     }
-    const backToListBtn = document.getElementById('back-to-list-btn');
-    if (backToListBtn) backToListBtn.addEventListener('click', closeThreadView);
 
-    // Fetch Replies (Include author_role)
+    if (backToListBtn) {
+      backToListBtn.addEventListener('click', function () {
+        closeThreadView();
+      });
+    }
+
+    // Fetch Replies for a Thread (including author_role)
     async function loadRepliesForThread(threadId) {
-      const container = document.getElementById('replies-list-container');
-      if (!isLiveSupabase || !container) return;
+      if (!repliesListContainer) return;
+
+      repliesListContainer.innerHTML = `
+        <div class="empty-replies-box">Unrolling responses...</div>
+      `;
+
+      if (!isLiveSupabase) {
+        const list = demoStarterReplies[threadId] || [];
+        renderRepliesList(list);
+        return;
+      }
+
       try {
         const endpoint = `${supabaseUrl}/rest/v1/forum_replies?thread_id=eq.${encodeURIComponent(threadId)}&select=id,author_name,author_role,body,created_at&order=created_at.asc`;
-        const res = await fetch(endpoint, { headers: { apikey: supabaseAnonKey, Authorization: `Bearer ${supabaseAnonKey}` } });
-        if (res.ok) {
-          const replies = await res.json();
-          document.getElementById('active-thread-reply-count').textContent = `${replies.length} Replies`;
-          container.innerHTML = replies.map(r => `
-            <div class="reply-card ${r.author_role === 'admin' ? 'is-admin-reply' : ''}">
-              <div class="reply-card-meta">
-                <span class="reply-author-name">${renderAuthorBadge(r.author_name, r.author_role)}</span>
-                <time>${escapeHtml(formatDate(r.created_at))}</time>
-              </div>
-              <div class="reply-card-body">${renderParagraphs(r.body)}</div>
-            </div>
-          `).join('');
-        }
-      } catch(err) { console.error('Error fetching replies:', err); }
-    }
-
-    // Submit Forms with Feature 2 Auth + Feature 1 Notifications
-    async function handleSubmit(formType, e) {
-      e.preventDefault();
-      if (!isLiveSupabase) return;
-
-      const hp = document.getElementById(`${formType}-website-url`);
-      if (hp && hp.value.trim() !== '') return;
-
-      const btn = document.getElementById(`submit-new-${formType}-btn`);
-      const feedback = document.getElementById(`new-${formType}-feedback`);
-      const payload = {
-        author_name: document.getElementById(`${formType}-author`).value.trim(),
-        author_passcode: document.getElementById(`${formType}-passcode`)?.value || null,
-        author_email: document.getElementById(`${formType}-email`)?.value.trim() || null,
-        notify_replies: document.getElementById(`${formType}-notify-replies`)?.checked || false,
-        body: document.getElementById(`${formType}-body`).value.trim(),
-      };
-
-      if (formType === 'topic') {
-        payload.category = document.getElementById('topic-category').value;
-        payload.title = document.getElementById('topic-title').value.trim();
-      } else {
-        payload.thread_id = activeThreadId;
-      }
-
-      // Feature 2: Save to localStorage if checked
-      if (document.getElementById(`${formType}-remember-identity`)?.checked) {
-        saveIdentity(payload.author_name, payload.author_email || '', payload.author_passcode || '');
-      }
-
-      btn.disabled = true;
-      btn.textContent = 'Inscribing...';
-      feedback.textContent = '';
-      feedback.className = 'form-feedback';
-
-      try {
-        const table = formType === 'topic' ? 'forum_threads' : 'forum_replies';
-        const endpoint = `${supabaseUrl}/rest/v1/${table}`;
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { apikey: supabaseAnonKey, Authorization: `Bearer ${supabaseAnonKey}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
-          body: JSON.stringify(payload),
+        const response = await fetch(endpoint, {
+          method: 'GET',
+          headers: {
+            apikey: supabaseAnonKey,
+            Authorization: `Bearer ${supabaseAnonKey}`,
+          },
         });
 
-        if (!res.ok) {
-          const errText = await res.text();
-          if (errText.includes('ALIAS_PROTECTED')) {
-            const match = errText.match(/ALIAS_PROTECTED: (.*?)["\n]/);
-            throw new Error(match ? match[1] : 'This pilgrim alias is protected. Please enter the correct passcode.');
-          }
-          throw new Error('Could not inscribe. HTTP ' + res.status);
+        if (!response.ok) {
+          throw new Error(`Supabase HTTP ${response.status}`);
         }
 
-        document.getElementById(`new-${formType}-form`).reset();
-        loadIdentity(formType); // Restore memory immediately if they just cleared the form
-        
-        if (formType === 'topic') {
-          setNewTopicDrawerOpen(false);
-          await loadThreads();
-        } else {
-          await loadRepliesForThread(activeThreadId);
-          feedback.textContent = '✓ Reply inscribed.';
-          feedback.className = 'form-feedback is-success';
-        }
+        const replies = await response.json();
+        renderRepliesList(Array.isArray(replies) ? replies : []);
       } catch (err) {
-        feedback.textContent = err.message;
-        feedback.className = 'form-feedback is-error';
-      } finally {
-        btn.disabled = false;
-        btn.textContent = formType === 'topic' ? 'Inscribe Topic into Scroll 印' : 'Inscribe Reply 印';
+        console.error('Error fetching replies:', err);
+        const fallback = demoStarterReplies[threadId] || [];
+        renderRepliesList(fallback);
       }
     }
 
-    const tForm = document.getElementById('new-topic-form');
-    const rForm = document.getElementById('new-reply-form');
-    if (tForm) tForm.addEventListener('submit', (e) => handleSubmit('topic', e));
-    if (rForm) rForm.addEventListener('submit', (e) => handleSubmit('reply', e));
+    // Render Replies List using renderAuthorBadge() and .is-admin-reply
+    function renderRepliesList(replies) {
+      if (!repliesListContainer) return;
 
+      if (activeThreadReplyCount) {
+        const count = replies.length;
+        activeThreadReplyCount.textContent = count === 1 ? '1 Reply' : `${count} Replies`;
+      }
+
+      if (replies.length === 0) {
+        repliesListContainer.innerHTML = `
+          <div class="empty-replies-box">
+            No replies have been inscribed yet. Be the first to respond below.
+          </div>
+        `;
+        return;
+      }
+
+      repliesListContainer.innerHTML = replies
+        .map((reply) => {
+          const role = String(reply.author_role || 'guest').toLowerCase().trim();
+          const isAdminClass = role === 'admin' ? 'is-admin-reply' : '';
+          const authorBadgeHtml = renderAuthorBadge(reply.author_name, role);
+
+          return `
+            <div class="reply-card ${isAdminClass}">
+              <div class="reply-card-meta">
+                ${authorBadgeHtml}
+                <time datetime="${escapeHtml(reply.created_at)}">${escapeHtml(formatDate(reply.created_at))}</time>
+              </div>
+              <div class="reply-card-body">
+                ${renderParagraphs(reply.body)}
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    // Handle "New Discussion Topic" Form Submission
+    if (newTopicForm) {
+      newTopicForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const honeypot = document.getElementById('topic-website-url');
+        if (honeypot && honeypot.value.trim() !== '') {
+          newTopicForm.reset();
+          setNewTopicDrawerOpen(false);
+          return;
+        }
+
+        const categoryEl = document.getElementById('topic-category');
+        const titleEl = document.getElementById('topic-title');
+        const bodyEl = document.getElementById('topic-body');
+
+        const category = categoryEl ? categoryEl.value.trim() : 'Philosophy & Sufficiency';
+        const author_name = topicAuthorInput ? topicAuthorInput.value.trim() : '';
+        const author_email = topicEmailInput ? topicEmailInput.value.trim() : '';
+        const author_passcode = topicPasscodeInput ? topicPasscodeInput.value.trim() : '';
+        const shouldRemember = topicRememberCheckbox ? topicRememberCheckbox.checked : true;
+        const title = titleEl ? titleEl.value.trim() : '';
+        const body = bodyEl ? bodyEl.value.trim() : '';
+
+        if (author_name.length < 1 || author_name.length > 60) {
+          newTopicFeedback.textContent = 'Please enter your Name or Pilgrim Alias (1–60 characters).';
+          newTopicFeedback.className = 'form-feedback is-error';
+          return;
+        }
+        if (title.length < 3 || title.length > 160) {
+          newTopicFeedback.textContent = 'Please enter a Topic Title between 3 and 160 characters.';
+          newTopicFeedback.className = 'form-feedback is-error';
+          return;
+        }
+        if (body.length < 5 || body.length > 5000) {
+          newTopicFeedback.textContent = 'Please write a Reflection between 5 and 5,000 characters.';
+          newTopicFeedback.className = 'form-feedback is-error';
+          return;
+        }
+
+        submitNewTopicBtn.disabled = true;
+        submitNewTopicBtn.textContent = 'Inscribing...';
+        newTopicFeedback.textContent = '';
+        newTopicFeedback.className = 'form-feedback';
+
+        if (!isLiveSupabase) {
+          const demoCheck = verifyDemoAliasAndRole(author_name, author_passcode);
+          if (!demoCheck.ok) {
+            newTopicFeedback.textContent = demoCheck.error;
+            newTopicFeedback.className = 'form-feedback is-error';
+            submitNewTopicBtn.disabled = false;
+            submitNewTopicBtn.textContent = 'Inscribe Topic into Scroll 印';
+            return;
+          }
+
+          handleIdentityPersistence(author_name, author_email, author_passcode, shouldRemember);
+
+          const createdDemoThread = {
+            id: 'demo-thread-' + Date.now(),
+            category: category,
+            title: title,
+            author_name: author_name,
+            author_role: demoCheck.role,
+            body: body,
+            is_pinned: false,
+            reply_count: 0,
+            created_at: new Date().toISOString(),
+          };
+          allThreads.unshift(createdDemoThread);
+          demoStarterReplies[createdDemoThread.id] = [];
+
+          if (titleEl) titleEl.value = '';
+          if (bodyEl) bodyEl.value = '';
+          loadSavedIdentity();
+
+          submitNewTopicBtn.disabled = false;
+          submitNewTopicBtn.textContent = 'Inscribe Topic into Scroll 印';
+          setNewTopicDrawerOpen(false);
+          renderThreadList();
+          openThreadView(createdDemoThread.id);
+          return;
+        }
+
+        try {
+          const endpoint = `${supabaseUrl}/rest/v1/forum_threads?select=id,category,title,author_name,author_role,body,is_pinned,reply_count,created_at`;
+          const payload = {
+            category: category,
+            title: title,
+            author_name: author_name,
+            author_email: author_email || null,
+            author_passcode: author_passcode || null,
+            body: body,
+          };
+
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              apikey: supabaseAnonKey,
+              Authorization: `Bearer ${supabaseAnonKey}`,
+              'Content-Type': 'application/json',
+              Prefer: 'return=representation',
+            },
+            body: JSON.stringify(payload),
+          });
+
+          if (!response.ok) {
+            const errText = await response.text();
+            const friendlyProtectionError = extractProtectionErrorMessage(errText);
+            if (friendlyProtectionError) {
+              newTopicFeedback.textContent = friendlyProtectionError;
+              newTopicFeedback.className = 'form-feedback is-error';
+              return;
+            }
+            throw new Error(errText || `HTTP ${response.status}`);
+          }
+
+          handleIdentityPersistence(author_name, author_email, author_passcode, shouldRemember);
+
+          const inserted = await response.json();
+          const newThread = Array.isArray(inserted) && inserted[0] ? inserted[0] : null;
+
+          if (titleEl) titleEl.value = '';
+          if (bodyEl) bodyEl.value = '';
+          loadSavedIdentity();
+          setNewTopicDrawerOpen(false);
+
+          await loadThreads();
+          if (newThread && newThread.id) {
+            openThreadView(newThread.id);
+          }
+        } catch (err) {
+          console.error('Failed to post new topic:', err);
+          newTopicFeedback.textContent =
+            'Could not inscribe topic. Please verify your Supabase connection or try again.';
+          newTopicFeedback.className = 'form-feedback is-error';
+        } finally {
+          submitNewTopicBtn.disabled = false;
+          submitNewTopicBtn.textContent = 'Inscribe Topic into Scroll 印';
+        }
+      });
+    }
+
+    // Handle "Post a Reply to This Thread" Form Submission
+    if (newReplyForm) {
+      newReplyForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (!activeThreadId) return;
+
+        const honeypot = document.getElementById('reply-website-url');
+        if (honeypot && honeypot.value.trim() !== '') {
+          newReplyForm.reset();
+          return;
+        }
+
+        const bodyEl = document.getElementById('reply-body');
+
+        const author_name = replyAuthorInput ? replyAuthorInput.value.trim() : '';
+        const author_email = replyEmailInput ? replyEmailInput.value.trim() : '';
+        const author_passcode = replyPasscodeInput ? replyPasscodeInput.value.trim() : '';
+        const shouldRemember = replyRememberCheckbox ? replyRememberCheckbox.checked : true;
+        const body = bodyEl ? bodyEl.value.trim() : '';
+
+        if (author_name.length < 1 || author_name.length > 60) {
+          newReplyFeedback.textContent = 'Please enter your Name or Pilgrim Alias (1–60 characters).';
+          newReplyFeedback.className = 'form-feedback is-error';
+          return;
+        }
+        if (body.length < 2 || body.length > 3000) {
+          newReplyFeedback.textContent = 'Please enter a reply between 2 and 3,000 characters.';
+          newReplyFeedback.className = 'form-feedback is-error';
+          return;
+        }
+
+        submitNewReplyBtn.disabled = true;
+        submitNewReplyBtn.textContent = 'Inscribing Reply...';
+        newReplyFeedback.textContent = '';
+        newReplyFeedback.className = 'form-feedback';
+
+        if (!isLiveSupabase) {
+          const demoCheck = verifyDemoAliasAndRole(author_name, author_passcode);
+          if (!demoCheck.ok) {
+            newReplyFeedback.textContent = demoCheck.error;
+            newReplyFeedback.className = 'form-feedback is-error';
+            submitNewReplyBtn.disabled = false;
+            submitNewReplyBtn.textContent = 'Inscribe Reply 印';
+            return;
+          }
+
+          handleIdentityPersistence(author_name, author_email, author_passcode, shouldRemember);
+
+          const demoReply = {
+            id: 'demo-reply-' + Date.now(),
+            thread_id: activeThreadId,
+            author_name: author_name,
+            author_role: demoCheck.role,
+            body: body,
+            created_at: new Date().toISOString(),
+          };
+          if (!demoStarterReplies[activeThreadId]) {
+            demoStarterReplies[activeThreadId] = [];
+          }
+          demoStarterReplies[activeThreadId].push(demoReply);
+
+          const parentThread = allThreads.find((t) => String(t.id) === String(activeThreadId));
+          if (parentThread) {
+            parentThread.reply_count = Number(parentThread.reply_count || 0) + 1;
+          }
+
+          renderRepliesList(demoStarterReplies[activeThreadId]);
+          if (bodyEl) bodyEl.value = '';
+          loadSavedIdentity();
+
+          newReplyFeedback.textContent = '✓ Reply inscribed into the thread.';
+          newReplyFeedback.className = 'form-feedback is-success';
+          submitNewReplyBtn.disabled = false;
+          submitNewReplyBtn.textContent = 'Inscribe Reply 印';
+          return;
+        }
+
+        try {
+          const endpoint = `${supabaseUrl}/rest/v1/forum_replies?select=id,author_name,author_role,body,created_at`;
+          const payload = {
+            thread_id: activeThreadId,
+            author_name: author_name,
+            author_email: author_email || null,
+            author_passcode: author_passcode || null,
+            body: body,
+          };
+
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              apikey: supabaseAnonKey,
+              Authorization: `Bearer ${supabaseAnonKey}`,
+              'Content-Type': 'application/json',
+              Prefer: 'return=representation',
+            },
+            body: JSON.stringify(payload),
+          });
+
+          if (!response.ok) {
+            const errText = await response.text();
+            const friendlyProtectionError = extractProtectionErrorMessage(errText);
+            if (friendlyProtectionError) {
+              newReplyFeedback.textContent = friendlyProtectionError;
+              newReplyFeedback.className = 'form-feedback is-error';
+              return;
+            }
+            throw new Error(errText || `HTTP ${response.status}`);
+          }
+
+          handleIdentityPersistence(author_name, author_email, author_passcode, shouldRemember);
+
+          // Increment local thread reply_count and re-fetch replies chronologically
+          const parentThread = allThreads.find((t) => String(t.id) === String(activeThreadId));
+          if (parentThread) {
+            parentThread.reply_count = Number(parentThread.reply_count || 0) + 1;
+          }
+
+          if (bodyEl) bodyEl.value = '';
+          loadSavedIdentity();
+          await loadRepliesForThread(activeThreadId);
+          newReplyFeedback.textContent = '✓ Your reply has been inscribed into the thread.';
+          newReplyFeedback.className = 'form-feedback is-success';
+        } catch (err) {
+          console.error('Failed to post reply:', err);
+          newReplyFeedback.textContent =
+            'Could not post reply. Please verify your connection and try again.';
+          newReplyFeedback.className = 'form-feedback is-error';
+        } finally {
+          submitNewReplyBtn.disabled = false;
+          submitNewReplyBtn.textContent = 'Inscribe Reply 印';
+        }
+      });
+    }
+
+    // Pre-fill saved identity and initialize Forum on Page Load
+    loadSavedIdentity();
     loadThreads();
   })();
 </script>
