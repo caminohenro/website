@@ -868,3 +868,16 @@ h1.page-heading {
     min-height: min(72vh, calc(100dvh - 100px)) !important;
   }
 }
+
+/* ==========================================================================
+   STEP 16: Mobile Header Scroll-Hide Behavior
+   ========================================================================== */
+header.site-header {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), background 0.35s ease;
+}
+
+@media (max-width: 680px) {
+  header.site-header.is-hidden {
+    transform: translateY(-100%);
+  }
+}

@@ -46,3 +46,32 @@ const navLinks = [
     </a>
   </nav>
 </header>
+
+<script is:inline>
+  (function() {
+    let lastScroll = 0;
+    const header = document.querySelector('header.site-header');
+    
+    if (!header) return;
+
+    window.addEventListener('scroll', () => {
+      const currentScroll = window.scrollY;
+      
+      if (currentScroll <= 0) {
+        header.classList.remove('is-hidden');
+        lastScroll = currentScroll;
+        return;
+      }
+      
+      if (currentScroll > lastScroll && currentScroll > 50) {
+        // Scrolling down
+        header.classList.add('is-hidden');
+      } else if (currentScroll < lastScroll) {
+        // Scrolling up
+        header.classList.remove('is-hidden');
+      }
+      
+      lastScroll = currentScroll;
+    }, { passive: true });
+  })();
+</script>
