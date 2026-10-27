@@ -881,3 +881,121 @@ header.site-header {
     transform: translateY(-100%);
   }
 }
+
+/* STEP17_MOBILE_SCROLL_PHYSICS_START */
+/*
+ * Only the main page parchment is affected. Forum composer scrolls keep
+ * their existing animations, size constraints, and independent scrolling.
+ */
+@media (max-width: 680px) {
+  body > .scroll-stage {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+    max-height: none !important;
+    height: auto !important;
+    margin-bottom: 0 !important;
+    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+    overflow: visible !important;
+  }
+
+  body > .scroll-stage > main.washi-scroll {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    clip-path: none;
+    -webkit-clip-path: none;
+  }
+
+  /* Preserve the existing pseudo-element padding architecture. */
+  body > .scroll-stage > main.washi-scroll::after {
+    height: calc(48px + env(safe-area-inset-bottom, 0px));
+  }
+
+  body > .scroll-stage > .scroll-roller-bottom {
+    animation: none !important;
+    transition: none !important;
+    touch-action: auto;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  body > .scroll-stage > .scroll-roller-bottom:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 6px;
+  }
+
+  .step17-unfurl-tooltip {
+    position: absolute;
+    left: 50%;
+    z-index: 14;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    width: max-content;
+    max-width: calc(100vw - 32px);
+    margin: 0;
+    padding: 0;
+    color: #fff;
+    font-family: 'EB Garamond', 'Cormorant Garamond', Georgia, serif;
+    font-size: 17px;
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1.2;
+    text-align: center;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
+    opacity: 0;
+    transform: translate(-50%, -5px);
+    transition: opacity 320ms ease, transform 400ms ease;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .step17-unfurl-tooltip.is-visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  .step17-unfurl-arrow {
+    display: block;
+    color: #fff;
+    font-family: Georgia, serif;
+    font-size: 30px;
+    font-weight: 400;
+    font-style: normal;
+    line-height: 1;
+    animation: step17ArrowFloat 1.6s ease-in-out infinite;
+  }
+
+  @keyframes step17ArrowFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(5px); }
+  }
+}
+
+@media (min-width: 681px) {
+  .step17-unfurl-tooltip {
+    display: none !important;
+  }
+}
+
+@media (max-width: 680px) and (prefers-reduced-motion: reduce) {
+  .step17-unfurl-tooltip {
+    transition: opacity 150ms linear;
+  }
+
+  .step17-unfurl-arrow {
+    animation: none;
+  }
+}
+/* STEP17_MOBILE_SCROLL_PHYSICS_END */
