@@ -450,9 +450,9 @@ h1.page-heading {
    ========================================================================== */
 
 :root {
-  --fade-duration: 0.6s;
+  --fade-duration: 0.5s;
   --pause-duration: 0.1s;
-  --unfurl-duration: 10s;
+  --unfurl-duration: 8s;
   --unfurl-delay: calc(var(--fade-duration) + var(--pause-duration));
   --unfurl-easing: cubic-bezier(0.33, 1, 0.62, 1);
 }
