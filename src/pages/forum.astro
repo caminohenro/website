@@ -2152,6 +2152,7 @@ const categories = [
       const anchor = getComposerAnchor(type);
 
       if (activeComposerPresentation === 'overlay') {
+        document.querySelector('header.site-header')?.classList.add('is-hidden');
         // Move the fixed overlay to <body> so the main scroll's transforms/overflow cannot clip it.
         if (composeOverlay && composeOverlay.parentNode !== document.body) {
           document.body.appendChild(composeOverlay);
@@ -2224,6 +2225,7 @@ const categories = [
       const closeDuration = presentation === 'overlay' ? composerOverlayCloseDuration : composerInlineCloseDuration;
 
       if (presentation === 'overlay' && composeOverlay && composeOverlayStage && composeOverlayPaper) {
+        document.querySelector('header.site-header')?.classList.remove('is-hidden');
         composeOverlayStage.classList.add('is-closing');
         const paperStyle = window.getComputedStyle(composeOverlayPaper);
         const currentMaxHeight = paperStyle.maxHeight === 'none'

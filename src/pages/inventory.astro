@@ -360,7 +360,7 @@ const getConditionBadgeClasses = (condition: string) => {
   <!-- Interactive Item Inspection Modal -->
   <div
     id="inventory-modal-backdrop"
-    class="fixed inset-0 z-50 hidden items-center justify-center bg-[#1C1A17]/75 backdrop-blur-[2px] p-4 sm:p-6 overflow-y-auto"
+    class="fixed inset-0 z-[200] hidden items-center justify-center bg-[#1C1A17]/75 backdrop-blur-[2px] p-4 sm:p-6 overflow-y-auto"
     style="overflow-y: auto; overscroll-behavior: contain; padding: 2rem 1rem;"
     role="dialog"
     aria-modal="true"
@@ -582,6 +582,7 @@ const getConditionBadgeClasses = (condition: string) => {
 
         backdrop.classList.remove('hidden');
         backdrop.classList.add('flex');
+        document.querySelector('header.site-header')?.classList.add('is-hidden');
         if (panel) panel.scrollTop = 0;
 
         if (closeBtn) {
@@ -593,6 +594,7 @@ const getConditionBadgeClasses = (condition: string) => {
         if (!backdrop || backdrop.classList.contains('hidden')) return;
         backdrop.classList.add('hidden');
         backdrop.classList.remove('flex');
+        document.querySelector('header.site-header')?.classList.remove('is-hidden');
 
         if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
           lastFocusedElement.focus({ preventScroll: true });
