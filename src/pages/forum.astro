@@ -67,6 +67,18 @@ const categories = [
         </button>
       </div>
 
+      <!-- Compact mode selector, inside the parchment and beneath the category/action row. -->
+      <div class="compose-mode-control" aria-label="Message composer presentation">
+        <span class="compose-mode-label">Compose</span>
+        <div class="compose-mode-options" role="group" aria-label="Choose message-box layout">
+          <button type="button" id="compose-mode-overlay-btn" class="compose-mode-btn is-active" aria-label="Option 1: separate scrolls" title="Option 1: separate side scrolls" aria-pressed="true">1</button>
+          <button type="button" id="compose-mode-inline-btn" class="compose-mode-btn" aria-label="Option 2: expand the main scroll" title="Option 2: expand the main scroll" aria-pressed="false">2</button>
+          <button type="button" id="compose-mode-mixed-btn" class="compose-mode-btn" aria-label="Mixed: new topics in a side scroll, replies in the main scroll" title="Mixed: new topics in a side scroll; replies in the main scroll" aria-pressed="false">M</button>
+        </div>
+        <button type="button" class="compose-mode-info" aria-label="About message-box layouts" aria-describedby="compose-mode-tooltip">?</button>
+        <span id="compose-mode-tooltip" class="compose-mode-tooltip" role="tooltip">1: Topics and replies use separate scrolls. 2: Both forms open in the main scroll. M: New topics use a side scroll; replies open in the main scroll. Your choice is remembered on this device.</span>
+      </div>
+
       <!-- Status & Mode Indicator Strip -->
       <div class="forum-status-bar">
         <span id="forum-status-indicator" class="forum-status-text">
@@ -78,9 +90,11 @@ const categories = [
           Showing All Topics
         </span>
       </div>
+
     </section>
 
     <!-- Collapsible "New Discussion Topic" Washi Form -->
+    <div id="new-topic-inline-slot" class="composer-inline-slot">
     <section
       id="new-topic-drawer"
       class="forum-form-panel hidden-view"
@@ -228,6 +242,7 @@ const categories = [
         </div>
       </form>
     </section>
+    </div>
 
     <!-- ================================================================== -->
     <!-- MAIN VIEW 1: THREAD LIST VIEW (#forum-list-view)                   -->
@@ -298,11 +313,12 @@ const categories = [
       </button>
 
       <!-- Post a Reply to This Thread Form (closed by default) -->
+      <div id="reply-inline-slot" class="composer-inline-slot">
       <div id="reply-form-box" class="reply-form-box hidden-view">
         <div class="forum-form-header">
           <div>
             <span class="forum-form-eyebrow">返答 • ADD YOUR VOICE</span>
-            <h3 class="forum-form-title">Post a Reply to This Thread</h3>
+            <h3 id="reply-form-heading" class="forum-form-title">Post a Reply to This Thread</h3>
           </div>
           <button
             type="button"
@@ -406,7 +422,17 @@ const categories = [
           </div>
         </form>
       </div>
+      </div>
     </section>
+
+    <!-- The separate-scroll composer lives here and receives the existing form element when Option 1 is selected. -->
+    <div id="forum-compose-overlay" class="forum-compose-overlay hidden-view" aria-hidden="true">
+      <div id="forum-compose-scroll-stage" class="forum-compose-scroll-stage" aria-hidden="true">
+        <div class="scroll-roller-top" aria-hidden="true"></div>
+        <div id="forum-compose-scroll-paper" class="washi-scroll forum-compose-scroll-content"></div>
+        <div class="scroll-roller-bottom" aria-hidden="true"></div>
+      </div>
+    </div>
 
     <!-- ================================================================== -->
     <!-- 3-STEP SUPABASE ACTIVATION GUIDE (Shown when supabaseUrl is empty) -->
@@ -814,6 +840,130 @@ const categories = [
   /* Forms & Drawers */
   .hidden-view {
     display: none !important;
+  }
+
+  .composer-inline-slot {
+    height: 0;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Compact three-position toggle in its own toolbar row, inside the parchment. */
+  .compose-mode-control {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    width: fit-content;
+    max-width: 100%;
+    margin: 0.65rem 0 0 auto;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.28rem 0.35rem;
+    border: 1px solid rgba(110, 43, 37, 0.28);
+    border-radius: 999px;
+    background: rgba(246, 240, 226, 0.88);
+    box-shadow: 0 3px 12px rgba(35, 24, 16, 0.12);
+    backdrop-filter: blur(6px);
+  }
+
+  .compose-mode-label {
+    color: var(--ink-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding-left: 0.25rem;
+  }
+
+  .compose-mode-options {
+    display: flex;
+    gap: 2px;
+    padding: 2px;
+    border-radius: 999px;
+    background: rgba(110, 43, 37, 0.08);
+  }
+
+  .compose-mode-btn {
+    display: inline-grid;
+    place-items: center;
+    min-width: 25px;
+    height: 25px;
+    padding: 0 0.38rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+  }
+
+  .compose-mode-btn:hover,
+  .compose-mode-btn:focus-visible,
+  .compose-mode-info:hover,
+  .compose-mode-info:focus-visible {
+    outline: 2px solid rgba(110, 43, 37, 0.32);
+    outline-offset: 1px;
+  }
+
+  .compose-mode-btn.is-active,
+  .compose-mode-btn[aria-pressed="true"] {
+    color: var(--parchment-light);
+    background: var(--accent-crimson);
+    border-color: var(--accent-crimson);
+  }
+
+  .compose-mode-info {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 19px;
+    width: 19px;
+    height: 19px;
+    padding: 0;
+    border: 1px solid rgba(110, 43, 37, 0.35);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--ink-muted);
+    font-family: Georgia, serif;
+    font-size: 0.72rem;
+    cursor: help;
+  }
+
+  .compose-mode-tooltip {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 9px);
+    width: min(290px, calc(100vw - 24px));
+    padding: 0.65rem 0.75rem;
+    border: 1px solid rgba(110, 43, 37, 0.35);
+    border-radius: 8px;
+    background: var(--parchment-light, #f6f0e2);
+    color: var(--ink-sumi, #2c241f);
+    box-shadow: 0 8px 24px rgba(35, 24, 16, 0.18);
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 0.9rem;
+    line-height: 1.35;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(4px);
+    transition: opacity 150ms ease, transform 150ms ease, visibility 150ms ease;
+    pointer-events: none;
+  }
+
+  .compose-mode-info:hover ~ .compose-mode-tooltip,
+  .compose-mode-info:focus-visible ~ .compose-mode-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  @media (max-width: 480px) {
+    .compose-mode-label { display: none; }
+    .compose-mode-control { margin-top: 0.55rem; }
   }
 
   .honeypot-field {
@@ -1347,6 +1497,55 @@ const categories = [
     const replyPasscodeInput = document.getElementById('reply-passcode');
     const replyRememberCheckbox = document.getElementById('reply-remember-identity');
 
+    const composeModeOverlayBtn = document.getElementById('compose-mode-overlay-btn');
+    const composeModeInlineBtn = document.getElementById('compose-mode-inline-btn');
+    const composeModeMixedBtn = document.getElementById('compose-mode-mixed-btn');
+    const composeModeHelp = document.getElementById('compose-mode-tooltip');
+    const composeOverlay = document.getElementById('forum-compose-overlay');
+    const composeOverlayStage = document.getElementById('forum-compose-scroll-stage');
+    const composeOverlayPaper = document.getElementById('forum-compose-scroll-paper');
+    const composeOverlayHomeAnchor = document.createComment('original composer overlay position');
+    if (composeOverlay && composeOverlay.parentNode) {
+      composeOverlay.parentNode.insertBefore(composeOverlayHomeAnchor, composeOverlay);
+    }
+    const newTopicInlineSlot = document.getElementById('new-topic-inline-slot');
+    const replyInlineSlot = document.getElementById('reply-inline-slot');
+
+    // Leave a home marker so a form can move into the overlay and then return to its exact location.
+    const newTopicHomeAnchor = document.createComment('original new-topic form position');
+    if (newTopicDrawer && newTopicDrawer.parentNode) {
+      newTopicDrawer.parentNode.insertBefore(newTopicHomeAnchor, newTopicDrawer);
+    }
+    const replyHomeAnchor = document.createComment('original reply form position');
+    if (replyFormBox && replyFormBox.parentNode) {
+      replyFormBox.parentNode.insertBefore(replyHomeAnchor, replyFormBox);
+    }
+
+    let composeMode = 'mixed';
+    let activeComposerType = null;
+    let activeComposerPresentation = null;
+    let lastComposerTrigger = null;
+    let composerTransitioning = false;
+    let composerOperationId = 0;
+    const prefersReducedMotion = Boolean(
+      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    );
+    // Animation tuning: edit these values (milliseconds) to adjust the two composer presentations.
+    const composerOverlayOpenDuration = prefersReducedMotion ? 1 : 900; // Small scroll unfurl
+    const composerOverlayCloseDuration = prefersReducedMotion ? 1 : 620; // Small scroll furl
+    const composerInlineOpenDuration = prefersReducedMotion ? 1 : 1100; // Main scroll expands more slowly
+    const composerInlineCloseDuration = prefersReducedMotion ? 1 : 900; // Main scroll collapses
+    const composerContentFadeDuration = prefersReducedMotion ? 1 : 220; // Text fade/float speed
+
+    try {
+      const savedComposeMode = window.localStorage.getItem('forum-compose-mode');
+      if (savedComposeMode === 'inline' || savedComposeMode === 'overlay' || savedComposeMode === 'mixed') {
+        composeMode = savedComposeMode;
+      }
+    } catch (_) {
+      // Storage may be unavailable in private browsing; the in-memory choice still works.
+    }
+
     // Helpers
     function escapeHtml(str) {
       return String(str || '')
@@ -1360,7 +1559,7 @@ const categories = [
     function renderAuthorBadge(authorName, authorRole) {
       const normalizedRole = String(authorRole || 'guest').toLowerCase().trim();
       if (normalizedRole === 'admin') {
-        return `<span class="author-badge-admin">★ ${escapeHtml(authorName)} <span class="admin-seal-tag">PILGRIM ADMIN 印</span></span>`;
+        return `<span class="author-badge-admin">★ ${escapeHtml(authorName)} <span class="admin-seal-tag">ADMIN 印</span></span>`;
       }
       if (normalizedRole === 'verified') {
         return `<span class="author-badge-verified">${escapeHtml(authorName)} <span class="verified-check" title="Protected Pilgrim Alias">✓</span></span>`;
@@ -1491,7 +1690,7 @@ const categories = [
           return {
             ok: false,
             error:
-              "The name Henro is reserved. In Local Demo Mode, enter passcode 'henro' to test posting with the ★ PILGRIM ADMIN badge, or choose another alias.",
+              "The name Henro is reserved. In Local Demo Mode, enter passcode 'henro' to test posting with the ★ ADMIN badge, or choose another alias.",
           };
         }
         return { ok: true, role: 'admin' };
@@ -1518,71 +1717,426 @@ const categories = [
       return { ok: true, role: 'guest' };
     }
 
+    // Composer presentation helpers. The forms themselves are moved, not cloned,
+    // so their IDs, validation, identity fields, and submit listeners stay intact.
+    function getComposerPanel(type) {
+      return type === 'topic' ? newTopicDrawer : replyFormBox;
+    }
+
+    function getComposerAnchor(type) {
+      return type === 'topic' ? newTopicHomeAnchor : replyHomeAnchor;
+    }
+
+    function getComposerSlot(type) {
+      return type === 'topic' ? newTopicInlineSlot : replyInlineSlot;
+    }
+
+    function getComposerHeadingId(type) {
+      return type === 'topic' ? 'new-topic-heading' : 'reply-form-heading';
+    }
+
+    function restoreComposerHome(type) {
+      const panel = getComposerPanel(type);
+      const anchor = getComposerAnchor(type);
+      if (!panel || !anchor || !anchor.parentNode) return;
+      if (panel.parentNode !== anchor.parentNode) {
+        anchor.parentNode.insertBefore(panel, anchor.nextSibling);
+      }
+    }
+
+    function restoreComposeOverlayHome() {
+      if (!composeOverlay || !composeOverlayHomeAnchor || !composeOverlayHomeAnchor.parentNode) return;
+      if (composeOverlay.parentNode !== composeOverlayHomeAnchor.parentNode) {
+        composeOverlayHomeAnchor.parentNode.insertBefore(composeOverlay, composeOverlayHomeAnchor.nextSibling);
+      }
+    }
+
+    function positionComposeOverlay(trigger) {
+      if (!composeOverlayStage || !trigger) return;
+      const rect = trigger.getBoundingClientRect();
+      const viewportWidth = document.documentElement.clientWidth;
+      const viewportHeight = window.innerHeight;
+      const mobile = viewportWidth <= 680;
+      const overlayWidth = Math.min(mobile ? viewportWidth - 20 : 620, viewportWidth - 20);
+      let left;
+      if (mobile) {
+        left = 10;
+      } else {
+        left = rect.right + 18;
+        if (left + overlayWidth > viewportWidth - 10) {
+          left = rect.left - overlayWidth - 18;
+        }
+        left = Math.max(10, Math.min(left, viewportWidth - overlayWidth - 10));
+      }
+      const expectedContentHeight = Math.min(viewportHeight - 80, Math.max(viewportHeight * 0.72, 260));
+      const maxTop = Math.max(10, viewportHeight - expectedContentHeight - 50);
+      const top = Math.max(10, Math.min(rect.top - 10, maxTop));
+      composeOverlayStage.style.width = `${overlayWidth}px`;
+      composeOverlayStage.style.left = `${left}px`;
+      composeOverlayStage.style.top = `${top}px`;
+    }
+
+    // Drag a separate composer by its top roller. Pointer events support mouse and touch.
+    const composeOverlayHandle = composeOverlayStage
+      ? composeOverlayStage.querySelector('.scroll-roller-top')
+      : null;
+    if (composeOverlayHandle && composeOverlayStage) {
+      let dragState = null;
+      composeOverlayHandle.style.touchAction = 'none';
+      composeOverlayHandle.style.cursor = 'grab';
+
+      composeOverlayHandle.addEventListener('pointerdown', (event) => {
+        if (activeComposerPresentation !== 'overlay' || event.button > 0) return;
+        const rect = composeOverlayStage.getBoundingClientRect();
+        dragState = {
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          startY: event.clientY,
+          left: rect.left,
+          top: rect.top,
+        };
+        composeOverlayHandle.style.cursor = 'grabbing';
+        composeOverlayStage.classList.add('is-dragging');
+        try { composeOverlayHandle.setPointerCapture(event.pointerId); } catch (_) {}
+        event.preventDefault();
+      });
+
+      composeOverlayHandle.addEventListener('pointermove', (event) => {
+        if (!dragState || dragState.pointerId !== event.pointerId) return;
+        const maxLeft = Math.max(0, window.innerWidth - composeOverlayStage.offsetWidth);
+        const maxTop = Math.max(0, window.innerHeight - composeOverlayStage.offsetHeight);
+        const left = Math.max(0, Math.min(maxLeft, dragState.left + event.clientX - dragState.startX));
+        const top = Math.max(0, Math.min(maxTop, dragState.top + event.clientY - dragState.startY));
+        composeOverlayStage.style.left = `${left}px`;
+        composeOverlayStage.style.top = `${top}px`;
+      });
+
+      const endOverlayDrag = (event) => {
+        if (!dragState || (event && dragState.pointerId !== event.pointerId)) return;
+        dragState = null;
+        composeOverlayHandle.style.cursor = 'grab';
+        composeOverlayStage.classList.remove('is-dragging');
+      };
+      composeOverlayHandle.addEventListener('pointerup', endOverlayDrag);
+      composeOverlayHandle.addEventListener('pointercancel', endOverlayDrag);
+      composeOverlayHandle.addEventListener('lostpointercapture', endOverlayDrag);
+    }
+
+    async function openInlineComposer(type, panel, operationId) {
+      const slot = getComposerSlot(type);
+      if (!slot) return;
+      panel.classList.remove('hidden-view');
+      slot.style.height = '0px';
+      slot.style.overflow = 'hidden';
+      void slot.offsetHeight;
+
+      const marginBottom = parseFloat(window.getComputedStyle(panel).marginBottom) || 0;
+      const expandedHeight = panel.offsetHeight + marginBottom;
+      const slotAnimation = slot.animate(
+        [{ height: '0px' }, { height: `${expandedHeight}px` }],
+        { duration: composerInlineOpenDuration, easing: 'cubic-bezier(0.33, 1, 0.62, 1)', fill: 'both' }
+      );
+      const contentAnimation = panel.animate(
+        [
+          { opacity: 0, transform: 'translateY(-14px)' },
+          { opacity: 1, transform: 'translateY(0)' }
+        ],
+        { duration: composerContentFadeDuration, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'both' }
+      );
+      await Promise.all([
+        slotAnimation.finished.catch(() => {}),
+        contentAnimation.finished.catch(() => {})
+      ]);
+      slotAnimation.cancel();
+      contentAnimation.cancel();
+      if (operationId !== composerOperationId) return;
+      slot.style.height = 'auto';
+      slot.style.overflow = 'visible';
+      panel.style.opacity = '';
+      panel.style.transform = '';
+    }
+
+    function updateComposeModeUI() {
+      const buttons = [
+        [composeModeOverlayBtn, 'overlay'],
+        [composeModeInlineBtn, 'inline'],
+        [composeModeMixedBtn, 'mixed'],
+      ];
+      buttons.forEach(([button, mode]) => {
+        if (!button) return;
+        const selected = composeMode === mode;
+        button.classList.toggle('is-active', selected);
+        button.setAttribute('aria-pressed', String(selected));
+      });
+      if (composeModeHelp) {
+        composeModeHelp.textContent = '(1): Topics and replies use separate scrolls. (2): Both forms open in the main scroll. (M): New topics use a side scroll; replies open in the main scroll. Your choice is remembered on this device.';
+      }
+    }
+
+    async function openComposer(type, trigger) {
+      const panel = getComposerPanel(type);
+      if (!panel || composerTransitioning) return;
+      if (activeComposerType && activeComposerType !== type) {
+        await closeComposer(activeComposerType, { restoreFocus: false, clearFeedback: false });
+      }
+
+      activeComposerType = type;
+      activeComposerPresentation = composeMode === 'mixed'
+        ? (type === 'topic' ? 'overlay' : 'inline')
+        : composeMode;
+      const operationId = ++composerOperationId;
+      lastComposerTrigger = trigger || lastComposerTrigger;
+      const anchor = getComposerAnchor(type);
+
+      if (activeComposerPresentation === 'overlay') {
+        // Move the fixed overlay to <body> so the main scroll's transforms/overflow cannot clip it.
+        if (composeOverlay && composeOverlay.parentNode !== document.body) {
+          document.body.appendChild(composeOverlay);
+        }
+        if (composeOverlayPaper && panel.parentNode !== composeOverlayPaper) {
+          composeOverlayPaper.appendChild(panel);
+        }
+        panel.classList.remove('hidden-view');
+        if (composeOverlay) {
+          composeOverlay.classList.remove('hidden-view');
+          composeOverlay.setAttribute('aria-hidden', 'false');
+        }
+        if (composeOverlayStage) {
+          composeOverlayStage.setAttribute('aria-hidden', 'false');
+          composeOverlayStage.setAttribute('aria-labelledby', getComposerHeadingId(type));
+          composeOverlayStage.classList.remove('is-closing');
+          composeOverlayStage.style.setProperty('--composer-scroll-unfurl-duration', `${composerOverlayOpenDuration}ms`);
+          composeOverlayStage.style.height = '';
+          composeOverlayStage.style.opacity = '';
+          composeOverlayStage.style.transform = '';
+          positionComposeOverlay(lastComposerTrigger);
+          composeOverlayStage.style.animation = 'none';
+          void composeOverlayStage.offsetHeight;
+          composeOverlayStage.style.animation = '';
+        }
+        if (composeOverlayPaper) {
+          composeOverlayPaper.style.animation = 'none';
+          void composeOverlayPaper.offsetHeight;
+          composeOverlayPaper.style.animation = '';
+        }
+      } else {
+        if (anchor && anchor.parentNode && panel.parentNode !== anchor.parentNode) {
+          restoreComposerHome(type);
+        }
+        if (composeOverlay) {
+          composeOverlay.classList.add('hidden-view');
+          composeOverlay.setAttribute('aria-hidden', 'true');
+        }
+        if (composeOverlayStage) composeOverlayStage.setAttribute('aria-hidden', 'true');
+        await openInlineComposer(type, panel, operationId);
+      }
+
+      if (type === 'topic') {
+        if (toggleNewTopicBtn) toggleNewTopicBtn.setAttribute('aria-expanded', 'true');
+      } else if (toggleReplyFormBtn) {
+        toggleReplyFormBtn.textContent = 'Hide Reply Form';
+        toggleReplyFormBtn.setAttribute('aria-expanded', 'true');
+      }
+      loadSavedIdentity();
+      const focusTarget = type === 'topic'
+        ? ((!topicAuthorInput || topicAuthorInput.value) ? document.getElementById('topic-title') : topicAuthorInput)
+        : replyAuthorInput;
+      if (focusTarget) focusTarget.focus({ preventScroll: activeComposerPresentation === 'overlay' });
+    }
+
+    async function closeComposer(type, options = {}) {
+      const panel = getComposerPanel(type);
+      const { restoreFocus = false, clearFeedback = true } = options;
+      if (!panel) return;
+      if (activeComposerType !== type) {
+        panel.classList.add('hidden-view');
+        return;
+      }
+      if (composerTransitioning) return;
+      composerTransitioning = true;
+      const operationId = ++composerOperationId;
+      const presentation = activeComposerPresentation;
+      const slot = getComposerSlot(type);
+      const animations = [];
+      const closeDuration = presentation === 'overlay' ? composerOverlayCloseDuration : composerInlineCloseDuration;
+
+      if (presentation === 'overlay' && composeOverlay && composeOverlayStage && composeOverlayPaper) {
+        composeOverlayStage.classList.add('is-closing');
+        const paperStyle = window.getComputedStyle(composeOverlayPaper);
+        const currentMaxHeight = paperStyle.maxHeight === 'none'
+          ? `${composeOverlayPaper.getBoundingClientRect().height}px`
+          : paperStyle.maxHeight;
+        const currentMinHeight = paperStyle.minHeight;
+        const currentHeight = Math.max(composeOverlayStage.getBoundingClientRect().height, 1);
+        composeOverlayPaper.style.setProperty('--scroll-furl-from-max-height', currentMaxHeight);
+        composeOverlayPaper.style.setProperty('--scroll-furl-from-min-height', currentMinHeight);
+        composeOverlayPaper.style.animation = `scrollFurlUp ${closeDuration}ms cubic-bezier(0.4, 0, 0.8, 0.2) forwards`;
+        animations.push(composeOverlayStage.animate(
+          [
+            { height: `${currentHeight}px`, opacity: 1, transform: 'translateY(0)' },
+            { height: '0px', opacity: 0, transform: 'translateY(-8px)' }
+          ],
+          { duration: closeDuration, easing: 'cubic-bezier(0.4, 0, 0.8, 0.2)', fill: 'both' }
+        ));
+      } else if (slot) {
+        const currentHeight = slot.getBoundingClientRect().height || panel.offsetHeight;
+        [...slot.getAnimations(), ...panel.getAnimations()].forEach((animation) => animation.cancel());
+        slot.style.height = `${currentHeight}px`;
+        slot.style.overflow = 'hidden';
+        void slot.offsetHeight;
+        animations.push(slot.animate(
+          [{ height: `${currentHeight}px` }, { height: '0px' }],
+          { duration: closeDuration, easing: 'cubic-bezier(0.4, 0, 0.8, 0.2)', fill: 'both' }
+        ));
+        animations.push(panel.animate(
+          [
+            { opacity: 1, transform: 'translateY(0)' },
+            { opacity: 0, transform: 'translateY(-12px)' }
+          ],
+          { duration: Math.max(1, closeDuration - 80), easing: 'cubic-bezier(0.4, 0, 0.8, 0.2)', fill: 'both' }
+        ));
+      }
+
+      await Promise.all(animations.map((animation) => animation.finished.catch(() => {})));
+      if (operationId !== composerOperationId) return;
+      animations.forEach((animation) => animation.cancel());
+      panel.classList.add('hidden-view');
+      panel.style.opacity = '';
+      panel.style.transform = '';
+      if (slot) {
+        slot.style.height = '0px';
+        slot.style.overflow = 'hidden';
+      }
+      if (presentation === 'overlay') {
+        restoreComposerHome(type);
+        if (composeOverlay) {
+          composeOverlay.classList.add('hidden-view');
+          composeOverlay.setAttribute('aria-hidden', 'true');
+        }
+        if (composeOverlayStage) {
+          composeOverlayStage.classList.remove('is-closing');
+          composeOverlayStage.setAttribute('aria-hidden', 'true');
+          composeOverlayStage.style.height = '';
+          composeOverlayStage.style.opacity = '';
+          composeOverlayStage.style.transform = '';
+          composeOverlayStage.style.animation = '';
+        }
+        if (composeOverlayPaper) {
+          composeOverlayPaper.style.animation = '';
+          composeOverlayPaper.style.removeProperty('--scroll-furl-from-max-height');
+          composeOverlayPaper.style.removeProperty('--scroll-furl-from-min-height');
+        }
+        restoreComposeOverlayHome();
+      }
+
+      if (type === 'topic') {
+        if (toggleNewTopicBtn) toggleNewTopicBtn.setAttribute('aria-expanded', 'false');
+        if (clearFeedback && newTopicFeedback) {
+          newTopicFeedback.textContent = '';
+          newTopicFeedback.className = 'form-feedback';
+        }
+      } else if (toggleReplyFormBtn) {
+        toggleReplyFormBtn.textContent = 'Reply to This Thread';
+        toggleReplyFormBtn.setAttribute('aria-expanded', 'false');
+        if (clearFeedback && newReplyFeedback) {
+          newReplyFeedback.textContent = '';
+          newReplyFeedback.className = 'form-feedback';
+        }
+      }
+      activeComposerType = null;
+      activeComposerPresentation = null;
+      composerTransitioning = false;
+      if (restoreFocus && lastComposerTrigger && typeof lastComposerTrigger.focus === 'function') {
+        lastComposerTrigger.focus({ preventScroll: true });
+      }
+    }
+
+    async function setComposeMode(mode) {
+      if (!['overlay', 'inline', 'mixed'].includes(mode)) return;
+      if (composeMode === mode || composerTransitioning) return;
+      const wasOpen = activeComposerType;
+      const trigger = lastComposerTrigger;
+      composeMode = mode;
+      updateComposeModeUI();
+      try { window.localStorage.setItem('forum-compose-mode', composeMode); } catch (_) {}
+      if (wasOpen) {
+        await closeComposer(wasOpen, { restoreFocus: false, clearFeedback: false });
+        await openComposer(wasOpen, trigger);
+      }
+    }
+
+    if (composeModeOverlayBtn) {
+      composeModeOverlayBtn.addEventListener('click', () => { void setComposeMode('overlay'); });
+    }
+    if (composeModeInlineBtn) {
+      composeModeInlineBtn.addEventListener('click', () => { void setComposeMode('inline'); });
+    }
+    if (composeModeMixedBtn) {
+      composeModeMixedBtn.addEventListener('click', () => { void setComposeMode('mixed'); });
+    }
+    updateComposeModeUI();
+    window.addEventListener('resize', function () {
+      if (activeComposerType && activeComposerPresentation === 'overlay') {
+        positionComposeOverlay(lastComposerTrigger);
+      }
+    });
+
     // Reply form toggle
-    function setReplyFormOpen(isOpen) {
+    function setReplyFormOpen(isOpen, options = {}) {
       if (!replyFormBox || !toggleReplyFormBtn) return;
-      replyFormBox.classList.toggle('hidden-view', !isOpen);
+      if (isOpen) {
+        void openComposer('reply', toggleReplyFormBtn);
+      } else {
+        void closeComposer('reply', options);
+      }
       toggleReplyFormBtn.textContent = isOpen ? 'Hide Reply Form' : 'Reply to This Thread';
       toggleReplyFormBtn.setAttribute('aria-expanded', String(isOpen));
-
-      if (isOpen) {
-        loadSavedIdentity();
-        if (replyAuthorInput) replyAuthorInput.focus();
-      }
     }
 
     if (toggleReplyFormBtn) {
       toggleReplyFormBtn.addEventListener('click', function () {
-        const isCurrentlyHidden = replyFormBox && replyFormBox.classList.contains('hidden-view');
-        setReplyFormOpen(isCurrentlyHidden);
+        setReplyFormOpen(activeComposerType !== 'reply', { restoreFocus: false });
       });
     }
 
     if (closeReplyBtn) {
       closeReplyBtn.addEventListener('click', function () {
-        setReplyFormOpen(false);
+        setReplyFormOpen(false, { restoreFocus: true });
       });
     }
 
-    // Drawer Toggle
-    function setNewTopicDrawerOpen(isOpen) {
+    // New-topic drawer toggle
+    async function setNewTopicDrawerOpen(isOpen, options = {}) {
       if (!newTopicDrawer || !toggleNewTopicBtn) return;
+      toggleNewTopicBtn.setAttribute('aria-expanded', String(isOpen));
       if (isOpen) {
-        newTopicDrawer.classList.remove('hidden-view');
-        toggleNewTopicBtn.setAttribute('aria-expanded', 'true');
-        loadSavedIdentity();
-        if (topicAuthorInput && !topicAuthorInput.value) {
-          topicAuthorInput.focus();
-        } else {
-          const titleInput = document.getElementById('topic-title');
-          if (titleInput) titleInput.focus();
-        }
+        void openComposer('topic', toggleNewTopicBtn);
       } else {
-        newTopicDrawer.classList.add('hidden-view');
-        toggleNewTopicBtn.setAttribute('aria-expanded', 'false');
-        if (newTopicFeedback) {
-          newTopicFeedback.textContent = '';
-          newTopicFeedback.className = 'form-feedback';
-        }
+        await closeComposer('topic', options);
       }
     }
 
     if (toggleNewTopicBtn) {
       toggleNewTopicBtn.addEventListener('click', function () {
-        const isCurrentlyHidden = newTopicDrawer.classList.contains('hidden-view');
-        setNewTopicDrawerOpen(isCurrentlyHidden);
+        setNewTopicDrawerOpen(activeComposerType !== 'topic', { restoreFocus: false });
       });
     }
     if (closeNewTopicBtn) {
       closeNewTopicBtn.addEventListener('click', function () {
-        setNewTopicDrawerOpen(false);
+        setNewTopicDrawerOpen(false, { restoreFocus: true });
       });
     }
     if (cancelNewTopicBtn) {
       cancelNewTopicBtn.addEventListener('click', function () {
-        setNewTopicDrawerOpen(false);
+        setNewTopicDrawerOpen(false, { restoreFocus: true });
       });
     }
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key !== 'Escape' || !activeComposerType || composerTransitioning) return;
+      const type = activeComposerType;
+      void closeComposer(type, { restoreFocus: true });
+    });
 
     // Fetch Threads from Supabase (including author_role) or Demo Mode
     async function loadThreads() {
@@ -1614,6 +2168,66 @@ const categories = [
         allThreads = demoStarterThreads.slice();
         renderThreadList();
       }
+    }
+
+    // Animate list/thread/category changes while keeping the main parchment's bottom roller
+    // visually anchored in the viewport. If this feels disorienting on a device, disable
+    // followMainScrollRoller below and use the fallback scroll-to-top behavior instead.
+    const followMainScrollRoller = true;
+    let mainViewAnimationId = 0;
+
+    function getMainScrollBottomRoller() {
+      return document.querySelector('.scroll-stage > .scroll-roller-bottom, .scroll-stage .scroll-roller-bottom:not(.forum-compose-scroll-stage .scroll-roller-bottom)');
+    }
+
+    function animateMainViewChange(view, mutate, duration = 520) {
+      const bottomRoller = getMainScrollBottomRoller();
+      const initialRollerTop = bottomRoller ? bottomRoller.getBoundingClientRect().top : null;
+      const oldHeight = view ? view.getBoundingClientRect().height : 0;
+      const token = ++mainViewAnimationId;
+      mutate();
+      if (!view) return;
+      const newHeight = view.getBoundingClientRect().height;
+      const targetHeight = Math.max(0, newHeight);
+      view.style.overflow = 'clip';
+      view.style.height = `${oldHeight}px`;
+      view.style.opacity = '0.88';
+      view.style.transform = 'translateY(5px)';
+      void view.offsetHeight;
+      const animation = view.animate([
+        { height: `${oldHeight}px`, opacity: 0.88, transform: 'translateY(5px)' },
+        { height: `${targetHeight}px`, opacity: 1, transform: 'translateY(0)' }
+      ], { duration: prefersReducedMotion ? 1 : duration, easing: 'cubic-bezier(0.33, 1, 0.62, 1)', fill: 'both' });
+
+      let frame = 0;
+      const followRoller = () => {
+        if (token !== mainViewAnimationId) return;
+        if (followMainScrollRoller && bottomRoller && initialRollerTop !== null) {
+          const currentTop = bottomRoller.getBoundingClientRect().top;
+          const delta = currentTop - initialRollerTop;
+          if (Math.abs(delta) > 0.5) {
+            window.scrollTo({
+              top: window.scrollY + delta,
+              behavior: 'instant'
+            });
+          }
+        }
+        frame = window.requestAnimationFrame(followRoller);
+      };
+      if (followMainScrollRoller) frame = window.requestAnimationFrame(followRoller);
+      animation.finished.catch(() => {}).then(() => {
+        if (token !== mainViewAnimationId) return;
+        window.cancelAnimationFrame(frame);
+        animation.cancel();
+        view.style.height = '';
+        view.style.overflow = '';
+        view.style.opacity = '';
+        view.style.transform = '';
+        if (!followMainScrollRoller) {
+          // Fallback experiment: reset the page to the top after content changes.
+          window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+        }
+      });
     }
 
     // Render Thread List View (#forum-list-view) using renderAuthorBadge()
@@ -1708,9 +2322,10 @@ const categories = [
 
         // If user is currently inside a single thread, return to list view
         if (activeThreadId !== null) {
-          closeThreadView();
+          closeThreadView(); // Includes the animated return to the filtered list.
+        } else {
+          animateMainViewChange(listView, () => renderThreadList(), 620);
         }
-        renderThreadList();
       });
     });
 
@@ -1721,8 +2336,16 @@ const categories = [
 
       activeThreadId = thread.id;
 
-      // Start each opened thread with the reply form closed.
-      if (replyFormBox) replyFormBox.classList.add('hidden-view');
+      // Start each opened thread with the reply form closed, including any active overlay.
+      if (activeComposerType === 'reply') {
+        void closeComposer('reply', { restoreFocus: false, clearFeedback: false });
+      } else if (replyFormBox) {
+        replyFormBox.classList.add('hidden-view');
+        if (replyInlineSlot) {
+          replyInlineSlot.style.height = '0px';
+          replyInlineSlot.style.overflow = 'hidden';
+        }
+      }
       if (toggleReplyFormBtn) {
         toggleReplyFormBtn.textContent = 'Reply to This Thread';
         toggleReplyFormBtn.setAttribute('aria-expanded', 'false');
@@ -1747,9 +2370,13 @@ const categories = [
         activeThreadBody.innerHTML = renderParagraphs(thread.body);
       }
 
-      // Switch views
-      if (listView) listView.classList.add('hidden-view');
-      if (threadView) threadView.classList.remove('hidden-view');
+      // Switch views with the same measured-height/fade treatment as Option 2.
+      const switchViews = () => {
+        if (listView) listView.classList.add('hidden-view');
+        if (threadView) threadView.classList.remove('hidden-view');
+      };
+      if (threadView) animateMainViewChange(threadView, switchViews, 620);
+      else switchViews();
 
       loadSavedIdentity();
 
@@ -1763,9 +2390,13 @@ const categories = [
 
     function closeThreadView() {
       activeThreadId = null;
-      if (threadView) threadView.classList.add('hidden-view');
-      if (listView) listView.classList.remove('hidden-view');
-      renderThreadList();
+      const switchViews = () => {
+        if (threadView) threadView.classList.add('hidden-view');
+        if (listView) listView.classList.remove('hidden-view');
+        renderThreadList();
+      };
+      if (listView) animateMainViewChange(listView, switchViews, 620);
+      else switchViews();
     }
 
     if (backToListBtn) {
@@ -1858,7 +2489,7 @@ const categories = [
         const honeypot = document.getElementById('topic-website-url');
         if (honeypot && honeypot.value.trim() !== '') {
           newTopicForm.reset();
-          setNewTopicDrawerOpen(false);
+          await setNewTopicDrawerOpen(false, { restoreFocus: false });
           return;
         }
 
@@ -1927,7 +2558,7 @@ const categories = [
 
           submitNewTopicBtn.disabled = false;
           submitNewTopicBtn.textContent = 'Inscribe Topic into Scroll 印';
-          setNewTopicDrawerOpen(false);
+          await setNewTopicDrawerOpen(false, { restoreFocus: false });
           renderThreadList();
           openThreadView(createdDemoThread.id);
           return;
@@ -1974,7 +2605,7 @@ const categories = [
           if (titleEl) titleEl.value = '';
           if (bodyEl) bodyEl.value = '';
           loadSavedIdentity();
-          setNewTopicDrawerOpen(false);
+          await setNewTopicDrawerOpen(false, { restoreFocus: false });
 
           await loadThreads();
           if (newThread && newThread.id) {
@@ -2066,6 +2697,7 @@ const categories = [
           newReplyFeedback.className = 'form-feedback is-success';
           submitNewReplyBtn.disabled = false;
           submitNewReplyBtn.textContent = 'Inscribe Reply 印';
+          setReplyFormOpen(false, { restoreFocus: false, clearFeedback: false });
           return;
         }
 
@@ -2114,6 +2746,7 @@ const categories = [
           await loadRepliesForThread(activeThreadId);
           newReplyFeedback.textContent = '✓ Your reply has been inscribed into the thread.';
           newReplyFeedback.className = 'form-feedback is-success';
+          setReplyFormOpen(false, { restoreFocus: false, clearFeedback: false });
         } catch (err) {
           console.error('Failed to post reply:', err);
           newReplyFeedback.textContent =
