@@ -286,14 +286,32 @@ const categories = [
         <div id="replies-list-container" class="replies-list"></div>
       </div>
 
-      <!-- Post a Reply to This Thread Form -->
-      <div class="reply-form-box">
+      <!-- Toggle for the reply form; remains visible while the form is closed -->
+      <button
+        type="button"
+        id="toggle-reply-form-btn"
+        class="ink-action-btn"
+        aria-expanded="false"
+        aria-controls="reply-form-box"
+      >
+        Reply to This Thread
+      </button>
+
+      <!-- Post a Reply to This Thread Form (closed by default) -->
+      <div id="reply-form-box" class="reply-form-box hidden-view">
         <div class="forum-form-header">
           <div>
             <span class="forum-form-eyebrow">返答 • ADD YOUR VOICE</span>
             <h3 class="forum-form-title">Post a Reply to This Thread</h3>
           </div>
-          <span class="kanji-seal">印</span>
+          <button
+            type="button"
+            id="close-reply-btn"
+            class="ink-action-btn forum-close-btn"
+            aria-label="Close reply form"
+          >
+            Close ✕
+          </button>
         </div>
 
         <form id="new-reply-form" class="washi-form" novalidate>
@@ -1311,6 +1329,9 @@ const categories = [
     const activeThreadBody = document.getElementById('active-thread-body');
     const activeThreadReplyCount = document.getElementById('active-thread-reply-count');
     const repliesListContainer = document.getElementById('replies-list-container');
+    const replyFormBox = document.getElementById('reply-form-box');
+    const toggleReplyFormBtn = document.getElementById('toggle-reply-form-btn');
+    const closeReplyBtn = document.getElementById('close-reply-btn');
 
     const newReplyForm = document.getElementById('new-reply-form');
     const newReplyFeedback = document.getElementById('new-reply-feedback');
@@ -1497,6 +1518,32 @@ const categories = [
       return { ok: true, role: 'guest' };
     }
 
+    // Reply form toggle
+    function setReplyFormOpen(isOpen) {
+      if (!replyFormBox || !toggleReplyFormBtn) return;
+      replyFormBox.classList.toggle('hidden-view', !isOpen);
+      toggleReplyFormBtn.textContent = isOpen ? 'Hide Reply Form' : 'Reply to This Thread';
+      toggleReplyFormBtn.setAttribute('aria-expanded', String(isOpen));
+
+      if (isOpen) {
+        loadSavedIdentity();
+        if (replyAuthorInput) replyAuthorInput.focus();
+      }
+    }
+
+    if (toggleReplyFormBtn) {
+      toggleReplyFormBtn.addEventListener('click', function () {
+        const isCurrentlyHidden = replyFormBox && replyFormBox.classList.contains('hidden-view');
+        setReplyFormOpen(isCurrentlyHidden);
+      });
+    }
+
+    if (closeReplyBtn) {
+      closeReplyBtn.addEventListener('click', function () {
+        setReplyFormOpen(false);
+      });
+    }
+
     // Drawer Toggle
     function setNewTopicDrawerOpen(isOpen) {
       if (!newTopicDrawer || !toggleNewTopicBtn) return;
@@ -1673,6 +1720,13 @@ const categories = [
       if (!thread) return;
 
       activeThreadId = thread.id;
+
+      // Start each opened thread with the reply form closed.
+      if (replyFormBox) replyFormBox.classList.add('hidden-view');
+      if (toggleReplyFormBtn) {
+        toggleReplyFormBtn.textContent = 'Reply to This Thread';
+        toggleReplyFormBtn.setAttribute('aria-expanded', 'false');
+      }
 
       // Populate thread details using renderAuthorBadge()
       if (activeThreadMeta) {
@@ -2076,4 +2130,341 @@ const categories = [
     loadSavedIdentity();
     loadThreads();
   })();
+</script>
+
+
+<!-- STEP10_EMAIL_AUTH_UPGRADE -->
+<style>
+  .step10-auth-note {
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: #5c5346;
+    background: rgba(212, 175, 55, 0.08);
+    border-left: 3px solid #8c2d19;
+    padding: 0.65rem 0.85rem;
+    border-radius: 0 6px 6px 0;
+    margin: 0.5rem 0 0.85rem;
+  }
+  .step10-field-error {
+    border-color: #b91c1c !important;
+    box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.18) !important;
+    background-color: #fff5f5 !important;
+  }
+  .step10-inline-alert {
+    display: none;
+    margin-top: 0.45rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: #991b1b;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+  }
+  .step10-inline-alert.is-visible {
+    display: block;
+  }
+  .step10-forgot-row {
+    margin-top: 0.35rem;
+    display: flex;
+    justify-content: flex-end;
+  }
+  .step10-forgot-link {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.78rem;
+    color: #8c2d19;
+    text-decoration: underline;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .step10-forgot-link:hover {
+    color: #5c190b;
+  }
+  .step10-recovery-bar {
+    display: none;
+    margin-top: 0.6rem;
+    padding: 0.75rem;
+    background: #faf6ef;
+    border: 1px dashed #c8b99e;
+    border-radius: 8px;
+  }
+  .step10-recovery-bar.is-open {
+    display: block;
+  }
+  .step10-recovery-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #3d342b;
+    margin: 0 0 0.45rem 0;
+  }
+  .step10-recovery-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  @media (max-width: 640px) {
+    .step10-recovery-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .step10-recovery-input {
+    width: 100%;
+    padding: 0.48rem 0.65rem;
+    font-size: 0.82rem;
+    border: 1px solid #d4c8b4;
+    border-radius: 6px;
+    background: #fff;
+    color: #2c2520;
+  }
+  .step10-recovery-btn {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+    background: #8c2d19;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .step10-recovery-btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+  .step10-recovery-status {
+    margin-top: 0.45rem;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: #2c5e3b;
+  }
+</style>
+
+<script is:inline>
+(function () {
+  function resolveSupabaseCredentials() {
+    var metaEl = document.querySelector('[data-supabase-url]');
+    var url = (metaEl && metaEl.getAttribute('data-supabase-url')) || window.SUPABASE_URL || '';
+    var key = (metaEl && metaEl.getAttribute('data-supabase-key')) || window.SUPABASE_ANON_KEY || '';
+    if (!url || !key) {
+      var scripts = document.querySelectorAll('script');
+      for (var i = 0; i < scripts.length; i++) {
+        var txt = scripts[i].textContent || '';
+        if (!url) {
+          var mUrl = txt.match(/https:\/\/[a-z0-9-]+\.supabase\.co/i);
+          if (mUrl) url = mUrl[0];
+        }
+        if (!key) {
+          var mKey = txt.match(/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/);
+          if (mKey) key = mKey[0];
+        }
+      }
+    }
+    return { url: url.replace(/\/$/, ''), key: key };
+  }
+
+  function enhanceIdentityForm(formId) {
+    var form = document.getElementById(formId);
+    if (!form || form.dataset.step10Enhanced === 'true') return;
+    form.dataset.step10Enhanced = 'true';
+
+    var aliasInput = form.querySelector('[name="author_name"]');
+    var emailInput = form.querySelector('[name="author_email"]');
+    var passcodeInput = form.querySelector('[name="author_passcode"]');
+
+    if (!aliasInput || !emailInput || !passcodeInput) return;
+
+    // 1. Update labels & placeholders for clarity
+    var aliasLabel = aliasInput.closest('label') || form.querySelector('label[for="' + aliasInput.id + '"]');
+    if (aliasLabel && aliasLabel.childNodes.length) {
+      var aliasSpan = aliasLabel.querySelector('span, strong') || aliasLabel;
+      if (aliasSpan === aliasLabel && aliasLabel.children.length === 0) {
+        aliasLabel.textContent = 'Pilgrim Alias (Required)';
+      }
+    }
+    aliasInput.setAttribute('placeholder', 'Pilgrim Alias (required)');
+
+    emailInput.setAttribute(
+      'placeholder',
+      'Email (required for Passcode-protected aliases; 100% private)'
+    );
+    passcodeInput.setAttribute(
+      'placeholder',
+      'Alias Passcode (leave blank for unverified guest)'
+    );
+
+    // Insert or update Identity helper note
+    var noteEl = document.createElement('div');
+    noteEl.className = 'step10-auth-note';
+    noteEl.innerHTML =
+      '<strong>Pilgrim Identity &amp; Seal (印):</strong> Enter your <strong>Pilgrim Alias</strong> (required). ' +
+      'To claim or post under a protected alias, enter both your <strong>Email Address</strong> (kept 100% private; also used for reply notifications) ' +
+      'and your <strong>Alias Passcode</strong>. Leave Passcode blank to post as an unverified guest.';
+
+    var firstFieldWrapper = aliasInput.parentElement;
+    if (firstFieldWrapper && firstFieldWrapper.parentElement) {
+      var gridOrSection = firstFieldWrapper.parentElement;
+      if (gridOrSection.parentElement) {
+        gridOrSection.parentElement.insertBefore(noteEl, gridOrSection);
+      }
+    }
+
+    // Inline validation alert below Email input
+    var emailAlert = document.createElement('div');
+    emailAlert.className = 'step10-inline-alert';
+    emailAlert.setAttribute('role', 'alert');
+    emailAlert.textContent =
+      'Please enter your email address along with your passcode to authenticate or claim this alias.';
+    emailInput.insertAdjacentElement('afterend', emailAlert);
+
+    function clearEmailError() {
+      emailInput.classList.remove('step10-field-error');
+      emailAlert.classList.remove('is-visible');
+    }
+
+    emailInput.addEventListener('input', clearEmailError);
+    passcodeInput.addEventListener('input', function () {
+      if (passcodeInput.value.trim().length === 0) {
+        clearEmailError();
+      }
+    });
+
+    // Capture submit before existing handler runs if Passcode is entered without Email
+    form.addEventListener(
+      'submit',
+      function (e) {
+        var passVal = passcodeInput.value.trim();
+        var emailVal = emailInput.value.trim();
+        if (passVal.length > 0 && !emailVal.includes('@')) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          emailInput.classList.add('step10-field-error');
+          emailAlert.classList.add('is-visible');
+          emailInput.focus();
+          return false;
+        }
+        clearEmailError();
+      },
+      true
+    );
+
+    // 2. Add discreet "Forgot Passcode?" link & compact recovery bar right below Passcode input
+    var forgotRow = document.createElement('div');
+    forgotRow.className = 'step10-forgot-row';
+
+    var forgotBtn = document.createElement('button');
+    forgotBtn.type = 'button';
+    forgotBtn.className = 'step10-forgot-link';
+    forgotBtn.textContent = 'Forgot Passcode?';
+    forgotRow.appendChild(forgotBtn);
+
+    var recoveryBar = document.createElement('div');
+    recoveryBar.className = 'step10-recovery-bar';
+    recoveryBar.innerHTML =
+      '<p class="step10-recovery-title">Recover Protected Pilgrim Alias Passcode</p>' +
+      '<div class="step10-recovery-grid">' +
+      '  <input type="text" class="step10-recovery-input" data-rec-alias placeholder="Your Pilgrim Alias" />' +
+      '  <input type="email" class="step10-recovery-input" data-rec-email placeholder="Registered Email Address" />' +
+      '  <button type="button" class="step10-recovery-btn" data-rec-submit>Send Temporary Passcode 印</button>' +
+      '</div>' +
+      '<div class="step10-recovery-status" data-rec-status></div>';
+
+    passcodeInput.insertAdjacentElement('afterend', forgotRow);
+    forgotRow.insertAdjacentElement('afterend', recoveryBar);
+
+    var recAliasInput = recoveryBar.querySelector('[data-rec-alias]');
+    var recEmailInput = recoveryBar.querySelector('[data-rec-email]');
+    var recSubmitBtn = recoveryBar.querySelector('[data-rec-submit]');
+    var recStatus = recoveryBar.querySelector('[data-rec-status]');
+
+    forgotBtn.addEventListener('click', function () {
+      var isOpen = recoveryBar.classList.toggle('is-open');
+      if (isOpen) {
+        if (aliasInput.value.trim() && !recAliasInput.value.trim()) {
+          recAliasInput.value = aliasInput.value.trim();
+        }
+        if (emailInput.value.trim() && !recEmailInput.value.trim()) {
+          recEmailInput.value = emailInput.value.trim();
+        }
+        recAliasInput.focus();
+      }
+    });
+
+    recSubmitBtn.addEventListener('click', async function () {
+      var targetAlias = (recAliasInput.value || aliasInput.value || '').trim();
+      var targetEmail = (recEmailInput.value || emailInput.value || '').trim();
+
+      if (!targetAlias || !targetEmail.includes('@')) {
+        recStatus.style.color = '#991b1b';
+        recStatus.textContent =
+          'Please enter both your Pilgrim Alias and your registered Email Address.';
+        return;
+      }
+
+      var creds = resolveSupabaseCredentials();
+      if (!creds.url || !creds.key) {
+        recStatus.style.color = '#991b1b';
+        recStatus.textContent =
+          'Unable to locate Supabase connection settings on this page.';
+        return;
+      }
+
+      recSubmitBtn.disabled = true;
+      recStatus.style.color = '#5c5346';
+      recStatus.textContent = 'Dispatching temporary passcode via sanctuary courier...';
+
+      try {
+        var res = await fetch(creds.url + '/rest/v1/rpc/request_alias_passcode_reset', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: creds.key,
+            Authorization: 'Bearer ' + creds.key
+          },
+          body: JSON.stringify({
+            p_alias: targetAlias,
+            p_email: targetEmail
+          })
+        });
+
+        var data = null;
+        try {
+          data = await res.json();
+        } catch (_err) {
+          data = null;
+        }
+
+        if (!res.ok) {
+          throw new Error((data && (data.message || data.error)) || 'Recovery request failed.');
+        }
+
+        recStatus.style.color = '#2c5e3b';
+        recStatus.textContent =
+          (data && data.message) ||
+          'If that Pilgrim Alias and Email match a protected registration, a temporary passcode has been sent to your inbox.';
+      } catch (err) {
+        recStatus.style.color = '#991b1b';
+        recStatus.textContent =
+          err && err.message
+            ? err.message
+            : 'Could not send reset email right now. Please verify the SQL upgrade was run in Supabase.';
+      } finally {
+        recSubmitBtn.disabled = false;
+      }
+    });
+  }
+
+  function initStep10ForumAuth() {
+    enhanceIdentityForm('new-topic-form');
+    enhanceIdentityForm('new-reply-form');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initStep10ForumAuth);
+  } else {
+    initStep10ForumAuth();
+  }
+})();
 </script>
