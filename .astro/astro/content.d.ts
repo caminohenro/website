@@ -141,30 +141,16 @@ declare module 'astro:content' {
 
 	type ContentEntryMap = {
 		"essays": {
-"2026-10-08-the-road-begins-at-the-end.md": {
-	id: "2026-10-08-the-road-begins-at-the-end.md";
-  slug: "2026-10-08-the-road-begins-at-the-end";
+"placeholder-essay-1.md": {
+	id: "placeholder-essay-1.md";
+  slug: "placeholder-essay-1";
   body: string;
   collection: "essays";
   data: InferEntrySchema<"essays">
 } & { render(): Render[".md"] };
-"2026-10-10-the-end-of-the-earth.md": {
-	id: "2026-10-10-the-end-of-the-earth.md";
-  slug: "2026-10-10-the-end-of-the-earth";
-  body: string;
-  collection: "essays";
-  data: InferEntrySchema<"essays">
-} & { render(): Render[".md"] };
-"2026-10-14-two-traditions-of-alms.md": {
-	id: "2026-10-14-two-traditions-of-alms.md";
-  slug: "2026-10-14-two-traditions-of-alms";
-  body: string;
-  collection: "essays";
-  data: InferEntrySchema<"essays">
-} & { render(): Render[".md"] };
-"2026-10-14-walking-with-kasa.md": {
-	id: "2026-10-14-walking-with-kasa.md";
-  slug: "2026-10-14-walking-with-kasa";
+"placeholder-essay-2.md": {
+	id: "placeholder-essay-2.md";
+  slug: "placeholder-essay-2";
   body: string;
   collection: "essays";
   data: InferEntrySchema<"essays">

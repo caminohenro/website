@@ -67,6 +67,104 @@ const categories = [
         </button>
       </div>
 
+      <!-- Subtle Subscribe to New Forum Posts Bar + Collapsible Drawer -->
+      <div class="board-subscribe-bar">
+        <button
+          type="button"
+          id="toggle-board-subscribe-btn"
+          class="ink-action-btn"
+          aria-expanded="false"
+          aria-controls="board-subscribe-drawer"
+        >
+          ✉ Subscribe to New Forum Posts 印
+        </button>
+      </div>
+
+      <div
+        id="board-subscribe-drawer"
+        class="forum-form-panel hidden-view"
+        aria-labelledby="board-subscribe-heading"
+      >
+        <div class="forum-form-header">
+          <div>
+            <span class="forum-form-eyebrow">回覧板 • COURTYARD DISPATCH ALERTS</span>
+            <h3 id="board-subscribe-heading" class="forum-form-title">
+              Subscribe to New Forum Posts
+            </h3>
+          </div>
+          <button
+            type="button"
+            id="close-board-subscribe-btn"
+            class="ink-action-btn forum-close-btn"
+          >
+            Close ✕
+          </button>
+        </div>
+
+        <p class="forum-form-note">
+          Receive an email notification whenever a new philosophical topic is inscribed in the courtyard. Your email address is kept 100% private.
+        </p>
+
+        <form id="board-subscribe-form" class="washi-form" novalidate>
+          <div class="form-grid-row">
+            <div class="form-field">
+              <label for="board-sub-name">Your Name or Pilgrim Alias *</label>
+              <input
+                type="text"
+                id="board-sub-name"
+                name="subscriber_name"
+                required
+                minlength="1"
+                maxlength="60"
+                placeholder="e.g. Clara (Porto)"
+              />
+            </div>
+
+            <div class="form-field">
+              <label for="board-sub-email">Your Email Address *</label>
+              <input
+                type="email"
+                id="board-sub-email"
+                name="subscriber_email"
+                required
+                maxlength="120"
+                placeholder="Private — never shown on the site"
+              />
+            </div>
+
+            <div class="form-field">
+              <label for="board-sub-category">Category Filter</label>
+              <select id="board-sub-category" name="category_filter">
+                <option value="All">All Categories</option>
+                <option value="Philosophy & Sufficiency">Philosophy &amp; Sufficiency</option>
+                <option value="Osettai & Hospitality">Osettai &amp; Hospitality</option>
+                <option value="Community & Book Initiatives">Community &amp; Book Initiatives</option>
+                <option value="Notes for the Road">Notes for the Road</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="board-subscribe-feedback" class="form-feedback" role="status" aria-live="polite"></div>
+
+          <div class="form-actions">
+            <button
+              type="button"
+              id="cancel-board-subscribe-btn"
+              class="ink-action-btn"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              id="submit-board-subscribe-btn"
+              class="ink-action-btn crimson-filled-btn"
+            >
+              Confirm Subscription 印
+            </button>
+          </div>
+        </form>
+      </div>
+
       <!-- Compact mode selector, inside the parchment and beneath the category/action row. -->
       <div class="compose-mode-control" aria-label="Message composer presentation">
         <span class="compose-mode-label">Compose</span>
@@ -193,6 +291,18 @@ const categories = [
               checked
             />
             <span>Remember my alias, email &amp; passcode on this device</span>
+          </label>
+        </div>
+
+        <div class="remember-identity-row">
+          <label class="remember-checkbox-label" for="topic-notify-replies">
+            <input
+              type="checkbox"
+              id="topic-notify-replies"
+              name="notify_replies"
+              checked
+            />
+            <span>Notify me by email when someone replies to this thread</span>
           </label>
         </div>
 
@@ -393,6 +503,18 @@ const categories = [
                 checked
               />
               <span>Remember my alias, email &amp; passcode on this device</span>
+            </label>
+          </div>
+
+          <div class="remember-identity-row">
+            <label class="remember-checkbox-label" for="reply-notify-replies">
+              <input
+                type="checkbox"
+                id="reply-notify-replies"
+                name="notify_replies"
+                checked
+              />
+              <span>Notify me by email when someone replies to this thread</span>
             </label>
           </div>
 
@@ -717,6 +839,13 @@ const categories = [
     gap: 0.4rem;
   }
 
+  .board-subscribe-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 0.65rem;
+  }
+
   .forum-status-bar {
     display: flex;
     flex-wrap: wrap;
@@ -982,6 +1111,11 @@ const categories = [
     background-color: rgba(216, 206, 184, 0.48);
     padding: 1.5rem;
     margin-bottom: 2rem;
+  }
+
+  #board-subscribe-drawer {
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
   }
 
   .forum-form-header {
@@ -1468,6 +1602,17 @@ const categories = [
     const newTopicFeedback = document.getElementById('new-topic-feedback');
     const submitNewTopicBtn = document.getElementById('submit-new-topic-btn');
 
+    const toggleBoardSubscribeBtn = document.getElementById('toggle-board-subscribe-btn');
+    const closeBoardSubscribeBtn = document.getElementById('close-board-subscribe-btn');
+    const cancelBoardSubscribeBtn = document.getElementById('cancel-board-subscribe-btn');
+    const boardSubscribeDrawer = document.getElementById('board-subscribe-drawer');
+    const boardSubscribeForm = document.getElementById('board-subscribe-form');
+    const boardSubscribeFeedback = document.getElementById('board-subscribe-feedback');
+    const submitBoardSubscribeBtn = document.getElementById('submit-board-subscribe-btn');
+    const boardSubNameInput = document.getElementById('board-sub-name');
+    const boardSubEmailInput = document.getElementById('board-sub-email');
+    const boardSubCategorySelect = document.getElementById('board-sub-category');
+
     const countIndicator = document.getElementById('forum-count-indicator');
     const listView = document.getElementById('forum-list-view');
     const threadsStreamContainer = document.getElementById('threads-stream-container');
@@ -1491,11 +1636,13 @@ const categories = [
     const topicEmailInput = document.getElementById('topic-email');
     const topicPasscodeInput = document.getElementById('topic-passcode');
     const topicRememberCheckbox = document.getElementById('topic-remember-identity');
+    const topicNotifyCheckbox = document.getElementById('topic-notify-replies');
 
     const replyAuthorInput = document.getElementById('reply-author');
     const replyEmailInput = document.getElementById('reply-email');
     const replyPasscodeInput = document.getElementById('reply-passcode');
     const replyRememberCheckbox = document.getElementById('reply-remember-identity');
+    const replyNotifyCheckbox = document.getElementById('reply-notify-replies');
 
     const composeModeOverlayBtn = document.getElementById('compose-mode-overlay-btn');
     const composeModeInlineBtn = document.getElementById('compose-mode-inline-btn');
@@ -1614,6 +1761,9 @@ const categories = [
         if (replyAuthorInput && parsed.author_name) replyAuthorInput.value = parsed.author_name;
         if (replyEmailInput && parsed.author_email) replyEmailInput.value = parsed.author_email;
         if (replyPasscodeInput && parsed.author_passcode) replyPasscodeInput.value = parsed.author_passcode;
+
+        if (boardSubNameInput && parsed.author_name && !boardSubNameInput.value) boardSubNameInput.value = parsed.author_name;
+        if (boardSubEmailInput && parsed.author_email && !boardSubEmailInput.value) boardSubEmailInput.value = parsed.author_email;
       } catch (err) {
         console.warn('Could not read saved forum identity from localStorage:', err);
       }
@@ -1651,6 +1801,119 @@ const categories = [
       });
       replyRememberCheckbox.addEventListener('change', function () {
         topicRememberCheckbox.checked = replyRememberCheckbox.checked;
+      });
+    }
+
+    // Board-Wide New Topic Subscription Drawer Toggle & Submission
+    function setBoardSubscribeDrawerOpen(isOpen) {
+      if (!boardSubscribeDrawer || !toggleBoardSubscribeBtn) return;
+      boardSubscribeDrawer.classList.toggle('hidden-view', !isOpen);
+      toggleBoardSubscribeBtn.setAttribute('aria-expanded', String(isOpen));
+      if (isOpen) {
+        loadSavedIdentity();
+        if (boardSubNameInput && !boardSubNameInput.value) {
+          boardSubNameInput.focus();
+        } else if (boardSubEmailInput) {
+          boardSubEmailInput.focus();
+        }
+      }
+    }
+
+    if (toggleBoardSubscribeBtn && boardSubscribeDrawer) {
+      toggleBoardSubscribeBtn.addEventListener('click', function () {
+        const isCurrentlyHidden = boardSubscribeDrawer.classList.contains('hidden-view');
+        setBoardSubscribeDrawerOpen(isCurrentlyHidden);
+      });
+    }
+    if (closeBoardSubscribeBtn) {
+      closeBoardSubscribeBtn.addEventListener('click', function () {
+        setBoardSubscribeDrawerOpen(false);
+      });
+    }
+    if (cancelBoardSubscribeBtn) {
+      cancelBoardSubscribeBtn.addEventListener('click', function () {
+        setBoardSubscribeDrawerOpen(false);
+      });
+    }
+
+    if (boardSubscribeForm) {
+      boardSubscribeForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const subName = boardSubNameInput ? boardSubNameInput.value.trim() : '';
+        const subEmail = boardSubEmailInput ? boardSubEmailInput.value.trim() : '';
+        const subCategory = boardSubCategorySelect ? boardSubCategorySelect.value.trim() : 'All';
+
+        if (subName.length < 1 || subName.length > 60) {
+          boardSubscribeFeedback.textContent = 'Please enter your Name or Pilgrim Alias (1–60 characters).';
+          boardSubscribeFeedback.className = 'form-feedback is-error';
+          return;
+        }
+        if (!subEmail.includes('@') || !subEmail.includes('.')) {
+          boardSubscribeFeedback.textContent = 'Please enter a valid email address.';
+          boardSubscribeFeedback.className = 'form-feedback is-error';
+          return;
+        }
+
+        if (submitBoardSubscribeBtn) {
+          submitBoardSubscribeBtn.disabled = true;
+          submitBoardSubscribeBtn.textContent = 'Subscribing...';
+        }
+        boardSubscribeFeedback.textContent = '';
+        boardSubscribeFeedback.className = 'form-feedback';
+
+        if (!isLiveSupabase) {
+          boardSubscribeFeedback.textContent =
+            '✓ Local Demo Mode: Subscription simulated for ' + subEmail + ' (' + subCategory + ').';
+          boardSubscribeFeedback.className = 'form-feedback is-success';
+          if (submitBoardSubscribeBtn) {
+            submitBoardSubscribeBtn.disabled = false;
+            submitBoardSubscribeBtn.textContent = 'Confirm Subscription 印';
+          }
+          return;
+        }
+
+        try {
+          const response = await fetch(`${supabaseUrl}/rest/v1/rpc/subscribe_to_forum_board`, {
+            method: 'POST',
+            headers: {
+              apikey: supabaseAnonKey,
+              Authorization: `Bearer ${supabaseAnonKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              p_name: subName,
+              p_email: subEmail,
+              p_category: subCategory || 'All',
+            }),
+          });
+
+          if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(errText || `HTTP ${response.status}`);
+          }
+
+          let result = null;
+          try {
+            result = await response.json();
+          } catch (_e) {
+            result = null;
+          }
+
+          boardSubscribeFeedback.textContent =
+            (result && result.message) ||
+            '✓ You are now subscribed to new forum topics.';
+          boardSubscribeFeedback.className = 'form-feedback is-success';
+        } catch (err) {
+          console.error('Failed to subscribe to forum board:', err);
+          boardSubscribeFeedback.textContent =
+            'Could not complete subscription. Please ensure supabase-notifications-complete.sql has been run in Supabase.';
+          boardSubscribeFeedback.className = 'form-feedback is-error';
+        } finally {
+          if (submitBoardSubscribeBtn) {
+            submitBoardSubscribeBtn.disabled = false;
+            submitBoardSubscribeBtn.textContent = 'Confirm Subscription 印';
+          }
+        }
       });
     }
 
@@ -2502,6 +2765,7 @@ const categories = [
         const author_email = topicEmailInput ? topicEmailInput.value.trim() : '';
         const author_passcode = topicPasscodeInput ? topicPasscodeInput.value.trim() : '';
         const shouldRemember = topicRememberCheckbox ? topicRememberCheckbox.checked : true;
+        const notify_replies = topicNotifyCheckbox ? Boolean(topicNotifyCheckbox.checked) : true;
         const title = titleEl ? titleEl.value.trim() : '';
         const body = bodyEl ? bodyEl.value.trim() : '';
 
@@ -2572,6 +2836,7 @@ const categories = [
             author_name: author_name,
             author_email: author_email || null,
             author_passcode: author_passcode || null,
+            notify_replies: notify_replies,
             body: body,
           };
 
@@ -2641,6 +2906,7 @@ const categories = [
         const author_email = replyEmailInput ? replyEmailInput.value.trim() : '';
         const author_passcode = replyPasscodeInput ? replyPasscodeInput.value.trim() : '';
         const shouldRemember = replyRememberCheckbox ? replyRememberCheckbox.checked : true;
+        const notify_replies = replyNotifyCheckbox ? Boolean(replyNotifyCheckbox.checked) : true;
         const body = bodyEl ? bodyEl.value.trim() : '';
 
         if (author_name.length < 1 || author_name.length > 60) {
@@ -2708,6 +2974,7 @@ const categories = [
             author_name: author_name,
             author_email: author_email || null,
             author_passcode: author_passcode || null,
+            notify_replies: notify_replies,
             body: body,
           };
 

@@ -4,16 +4,16 @@
       "title": "Trail Hosts & Roadside Angels",
       "entries": [
         {
-          "name": "Doña Carmen",
-          "locationOrRole": "Cee, Galicia, Spain",
+          "name": "<name>",
+          "locationOrRole": "<location_or_role>",
           "date": "2026-10-12",
-          "note": "For two crisp apples, hot mint tea by the stone wall, and a warm blessing during an autumn downpour."
+          "note": "<note>"
         },
         {
-          "name": "Hospitalero Mateo",
-          "locationOrRole": "Finisterra Municipal Albergue, Spain",
+          "name": "<name>",
+          "locationOrRole": "<location_or_role>",
           "date": "2026-10-10",
-          "note": "For keeping the drying room warm and sharing stories of winter walkers who turned back toward the east."
+          "note": "<note>"
         }
       ]
     },
@@ -21,16 +21,16 @@
       "title": "Osettai Supporters & Patrons",
       "entries": [
         {
-          "name": "Supporter M.",
-          "locationOrRole": "Santiago de Compostela, Spain",
+          "name": "<name>",
+          "locationOrRole": "<location_or_role>",
           "date": "2026-10-10",
-          "note": "For offering the very first Osettai contribution at the beginning of the eastward road."
+          "note": "<note>"
         },
         {
-          "name": "Anonymous Reader",
-          "locationOrRole": "Lisbon, Portugal",
+          "name": "<name>",
+          "locationOrRole": "<location_or_role>",
           "date": "2026-10-15",
-          "note": "For the kind words of encouragement and support for the pilgrimage archive."
+          "note": "<note>"
         }
       ]
     },
@@ -38,16 +38,16 @@
       "title": "Technical & Creative Collaborators",
       "entries": [
         {
-          "name": "Architecture & Scroll Design",
-          "locationOrRole": "Astro & Washi Emakimono System",
+          "name": "<name>",
+          "locationOrRole": "<location_or_role>",
           "date": "2026-10-10",
-          "note": "Crafted to ensure dispatches can be written and published from any trailside phone or village library across Eurasia."
+          "note": "<note>"
         },
         {
-          "name": "Open Source Cartography & Fonts",
-          "locationOrRole": "Shippori Mincho, Cormorant Garamond & EB Garamond",
+          "name": "<name>",
+          "locationOrRole": "<location_or_role>",
           "date": "2026-10-10",
-          "note": "For the typographic craft that brings traditional Japanese and European editorial print to the screen."
+          "note": "<note>"
         }
       ]
     }

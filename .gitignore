@@ -2,3 +2,6 @@ node_modules/
 dist/
 api-key.txt
 step*
+supabase*
+*dev-plan
+do-not-track/

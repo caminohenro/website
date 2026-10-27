@@ -32,18 +32,18 @@ const rawItems = Array.isArray(inventoryData)
 
 const items: GearItem[] = rawItems.map((item, idx) => ({
   id: item.id || 'item-' + idx,
-  name: item.name || 'Unnamed Gear',
-  japaneseName: item.japaneseName || '装備品',
+  name: item.name || '<item_name>',
+  japaneseName: item.japaneseName || '<jp_name>',
   slot: item.slot || 'Main Pack',
   weightGrams: Number(item.weightGrams || 0),
   condition: item.condition || 'Seasoned',
   icon: item.icon || '印',
-  shortSummary: item.shortSummary || '',
-  lore: item.lore || '',
+  shortSummary: item.shortSummary || '<short_summary>',
+  lore: item.lore || '<lore>',
   specs: item.specs || {
-    Material: 'Field-tested construction',
-    Origin: 'Eurasian Trail',
-    Role: 'Pilgrimage equipment',
+    Material: '<spec>',
+    Origin: '<spec>',
+    Role: '<spec>',
   },
 }));
 
@@ -361,6 +361,7 @@ const getConditionBadgeClasses = (condition: string) => {
   <div
     id="inventory-modal-backdrop"
     class="fixed inset-0 z-50 hidden items-center justify-center bg-[#1C1A17]/75 backdrop-blur-[2px] p-4 sm:p-6 overflow-y-auto"
+    style="overflow-y: auto; overscroll-behavior: contain; padding: 2rem 1rem;"
     role="dialog"
     aria-modal="true"
     aria-labelledby="modal-item-name"
@@ -369,6 +370,7 @@ const getConditionBadgeClasses = (condition: string) => {
     <div
       id="inventory-modal-panel"
       class="relative w-full max-w-2xl bg-[#E6DFCF] text-[#1C1A17] border-2 border-[#1C1A17] p-1.5 shadow-2xl my-auto"
+      style="max-height: 85vh; overflow-y: auto; -webkit-overflow-scrolling: touch;"
     >
       <div class="border-2 border-[#6E2B25] p-5 sm:p-8">
         <!-- Modal Top Bar -->
@@ -481,6 +483,11 @@ const getConditionBadgeClasses = (condition: string) => {
       });
 
       const backdrop = document.getElementById('inventory-modal-backdrop');
+      const panel = document.getElementById('inventory-modal-panel');
+      if (backdrop && backdrop.parentElement !== document.body) {
+        document.body.appendChild(backdrop);
+      }
+
       const closeBtn = document.getElementById('modal-close-btn');
       const slotEl = document.getElementById('modal-item-slot');
       const iconEl = document.getElementById('modal-item-icon');
@@ -575,10 +582,10 @@ const getConditionBadgeClasses = (condition: string) => {
 
         backdrop.classList.remove('hidden');
         backdrop.classList.add('flex');
-        document.body.style.overflow = 'hidden';
+        if (panel) panel.scrollTop = 0;
 
         if (closeBtn) {
-          closeBtn.focus();
+          closeBtn.focus({ preventScroll: true });
         }
       }
 
@@ -586,10 +593,9 @@ const getConditionBadgeClasses = (condition: string) => {
         if (!backdrop || backdrop.classList.contains('hidden')) return;
         backdrop.classList.add('hidden');
         backdrop.classList.remove('flex');
-        document.body.style.overflow = '';
 
         if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
-          lastFocusedElement.focus();
+          lastFocusedElement.focus({ preventScroll: true });
         }
       }
 
