@@ -458,6 +458,7 @@ h1.page-heading {
 }
 
 .scroll-stage {
+  transform: translateY(-20px);
   animation: stageFadeIn var(--fade-duration) ease-out both;
 }
 
@@ -509,8 +510,14 @@ h1.page-heading {
 }
 
 @keyframes stageFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes scrollUnfurlDown {
