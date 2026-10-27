@@ -881,3 +881,25 @@ header.site-header {
     transform: translateY(-100%);
   }
 }
+
+/* ==========================================================================
+   STEP 17: MOBILE SCROLL PHYSICS ENGINE OVERRIDES
+   ========================================================================== */
+@media (max-width: 680px) {
+  /* Disable automatic entrance animations on mobile for manual physics unfurl */
+  .scroll-stage, 
+  .washi-scroll, 
+  .scroll-roller-bottom {
+    animation: none !important;
+  }
+  
+  /* Ensure viewport fills and nothing clips the actual content naturally */
+  .scroll-stage, 
+  .washi-scroll {
+    min-height: 100dvh !important;
+  }
+  
+  .washi-scroll {
+    padding-bottom: 80px !important;
+  }
+}

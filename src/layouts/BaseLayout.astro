@@ -73,5 +73,157 @@ const {
         dimmer.style.setProperty('--edge-dim', edgeAlpha);
       });
     </script>
+  
+    <!-- MOBILE TOUCH PHYSICS ENGINE -->
+    <script is:inline>
+      (function() {
+        if (window.innerWidth > 680) return;
+        
+        const stage = document.querySelector('.scroll-stage');
+        const scroll = document.querySelector('.washi-scroll');
+        const bottomRoller = document.querySelector('.scroll-stage > .scroll-roller-bottom');
+        
+        if (!stage || !scroll || !bottomRoller) return;
+
+        // Tooltip Setup
+        const style = document.createElement('style');
+        style.innerHTML = `
+          @keyframes arrowBounce { 0% { transform: translateY(0); } 100% { transform: translateY(6px); } }
+          .physics-tooltip {
+            position: absolute; left: 50%; transform: translateX(-50%);
+            top: calc(100% + 15px); color: white; text-align: center;
+            opacity: 0; transition: opacity 0.5s ease; pointer-events: none;
+            white-space: nowrap; z-index: 20;
+          }
+          .physics-tooltip-arrow {
+            font-size: 1.2rem; margin-bottom: 4px;
+            animation: arrowBounce 0.7s infinite alternate ease-in-out;
+          }
+          .physics-tooltip-text {
+            font-family: 'EB Garamond', Georgia, serif; font-style: italic;
+            font-weight: 300; font-size: 1.1rem;
+          }
+        `;
+        document.head.appendChild(style);
+
+        const tooltip = document.createElement('div');
+        tooltip.className = 'physics-tooltip';
+        tooltip.innerHTML = '<div class="physics-tooltip-arrow">↓</div><div class="physics-tooltip-text">Drag to unfurl</div>';
+        bottomRoller.appendChild(tooltip);
+
+        // State Variables
+        let isUnfurled = false;
+        let hasDragged = false;
+        let offsetY = 0; // Negative value representing how much the scroll is furled up
+        let maxOffset = 0; // Max negative limit based on 30% of scroll height
+        let startY = 0;
+        let lastTouchY = 0;
+        let lastTime = 0;
+        let velocity = 0;
+        let animationFrame = null;
+
+        function applyTransform(y) {
+          const hidden = Math.abs(y);
+          scroll.style.clipPath = \`inset(0 -90px \${hidden}px -90px)\`;
+          bottomRoller.style.transform = \`translateY(\${y}px)\`;
+        }
+
+        function checkUnfurled() {
+          if (offsetY >= 0) {
+            offsetY = 0;
+            isUnfurled = true;
+            scroll.style.clipPath = 'none';
+            bottomRoller.style.transform = 'translateY(0)';
+          }
+        }
+
+        // Dynamically calculate hidden amount if content loads asynchronously (like Forum threads)
+        const observer = new ResizeObserver(() => {
+          if (isUnfurled || hasDragged) return;
+          const sh = scroll.scrollHeight;
+          if (sh > window.innerHeight) {
+            maxOffset = -(sh * 0.3); // Hide bottom 30% of the content
+            offsetY = maxOffset;
+            applyTransform(offsetY);
+          }
+        });
+        observer.observe(scroll);
+
+        // Fade in tooltip after 0.5s delay
+        setTimeout(() => {
+          if (!hasDragged && !isUnfurled && maxOffset < 0) {
+            tooltip.style.opacity = '1';
+          }
+        }, 500);
+
+        bottomRoller.addEventListener('touchstart', (e) => {
+          if (isUnfurled) return;
+          hasDragged = true;
+          tooltip.style.opacity = '0'; // Permanently hide tooltip on first touch
+          cancelAnimationFrame(animationFrame);
+          
+          startY = e.touches[0].clientY;
+          lastTouchY = startY;
+          lastTime = performance.now();
+          velocity = 0;
+        }, { passive: true });
+
+        bottomRoller.addEventListener('touchmove', (e) => {
+          if (isUnfurled) return;
+          e.preventDefault(); // Lock native scrolling while unfurling
+          
+          const touchY = e.touches[0].clientY;
+          const currentTime = performance.now();
+          const dt = currentTime - lastTime;
+          const deltaY = touchY - lastTouchY;
+
+          offsetY += deltaY;
+          if (offsetY > 0) offsetY = 0;
+          if (offsetY < maxOffset * 1.5) offsetY = maxOffset * 1.5; // Slight elastic resistance past max
+
+          if (dt > 0) {
+            velocity = deltaY / dt; // px per millisecond
+          }
+
+          lastTouchY = touchY;
+          lastTime = currentTime;
+          applyTransform(offsetY);
+        }, { passive: false });
+
+        bottomRoller.addEventListener('touchend', () => {
+          if (isUnfurled) return;
+          
+          const coast = () => {
+            offsetY += velocity * 16; // approximate 60fps frame delta
+            velocity *= 0.92; // Friction
+
+            // Coasting fully open
+            if (offsetY > 0) {
+              offsetY = 0;
+              applyTransform(offsetY);
+              checkUnfurled();
+              return;
+            }
+            
+            // Re-furl boundary checking
+            if (offsetY < maxOffset) {
+              offsetY += (maxOffset - offsetY) * 0.1; // Smooth snap back up
+              if (Math.abs(offsetY - maxOffset) < 1) offsetY = maxOffset;
+            }
+
+            applyTransform(offsetY);
+
+            // Terminate coasting when velocity is dead
+            if (Math.abs(velocity) < 0.1 && offsetY >= maxOffset) {
+              checkUnfurled();
+              return;
+            }
+            animationFrame = requestAnimationFrame(coast);
+          };
+          
+          animationFrame = requestAnimationFrame(coast);
+        });
+      })();
+    </script>
   </body>
 </html>
