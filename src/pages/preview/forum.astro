@@ -1,0 +1,3038 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import siteConfig from '../../data/siteConfig.json';
+
+const supabaseUrl = ""; // Stripped for Sneak Preview security
+const supabaseAnonKey = ""; // Stripped for Sneak Preview security
+
+const categories = [
+  "All Topics",
+  "Philosophy & Sufficiency",
+  "Osettai & Hospitality",
+  "Community & Book Initiatives",
+  "Notes for the Road"
+];
+---
+
+<BaseLayout
+  title="The Philosophical Forum | CAMINO HENRO"
+  description="Community dialogues on material security, Osettai, and the pilgrimage across Eurasia."
+>
+  <div
+    id="forum-root"
+    data-supabase-url={supabaseUrl}
+    data-supabase-key={supabaseAnonKey}
+  >
+    <!-- Scroll Title Header Block -->
+    <header class="scroll-title-block">
+      <div class="scroll-eyebrow">広場 • The Pilgrim's Courtyard</div>
+      <h1 class="page-heading">The Philosophical Forum</h1>
+      <p class="page-subtitle">
+        Community dialogues on material security, Osettai, and the pilgrimage
+      </p>
+    </header>
+
+    <!-- Ornamental Kanji Divider -->
+    <div class="page-break" aria-hidden="true">
+      <div class="line"></div>
+      <div class="kanji">語</div>
+      <div class="line"></div>
+    </div>
+
+    <!-- Category Filter Bar + "+ Inscribe New Topic" Action Button -->
+    <section class="forum-toolbar" aria-label="Forum Categories and Actions">
+      <div class="forum-Toolbar-row">
+        <div class="category-filter-bar" role="tablist" aria-label="Filter discussions by category">
+          {categories.map((cat, idx) => (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={idx === 0 ? "true" : "false"}
+              data-category={cat}
+              class={`ink-action-btn category-filter-btn ${idx === 0 ? "is-active" : ""}`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          id="toggle-new-topic-btn"
+          class="ink-action-btn crimson-filled-btn"
+          aria-expanded="false"
+          aria-controls="new-topic-drawer"
+        >
+          + Inscribe New Topic 印
+        </button>
+      </div>
+
+      <!-- Subtle Subscribe to New Forum Posts Bar + Collapsible Drawer -->
+      <div class="board-subscribe-bar">
+        <button
+          type="button"
+          id="toggle-board-subscribe-btn"
+          class="ink-action-btn"
+          aria-expanded="false"
+          aria-controls="board-subscribe-drawer"
+        >
+          ✉ Subscribe to New Forum Posts 印
+        </button>
+      </div>
+
+      <div
+        id="board-subscribe-drawer"
+        class="forum-form-panel hidden-view"
+        aria-labelledby="board-subscribe-heading"
+      >
+        <div class="forum-form-header">
+          <div>
+            <span class="forum-form-eyebrow">回覧板 • COURTYARD DISPATCH ALERTS</span>
+            <h3 id="board-subscribe-heading" class="forum-form-title">
+              Subscribe to New Forum Posts
+            </h3>
+          </div>
+          <button
+            type="button"
+            id="close-board-subscribe-btn"
+            class="ink-action-btn forum-close-btn"
+          >
+            Close ✕
+          </button>
+        </div>
+
+        <p class="forum-form-note">
+          Receive an email notification whenever a new philosophical topic is inscribed in the courtyard. Your email address is kept 100% private.
+        </p>
+
+        <form id="board-subscribe-form" class="washi-form" novalidate>
+          <div class="form-grid-row">
+            <div class="form-field">
+              <label for="board-sub-name">Your Name or Pilgrim Alias *</label>
+              <input
+                type="text"
+                id="board-sub-name"
+                name="subscriber_name"
+                required
+                minlength="1"
+                maxlength="60"
+                placeholder="e.g. Clara (Porto)"
+              />
+            </div>
+
+            <div class="form-field">
+              <label for="board-sub-email">Your Email Address *</label>
+              <input
+                type="email"
+                id="board-sub-email"
+                name="subscriber_email"
+                required
+                maxlength="120"
+                placeholder="Private — never shown on the site"
+              />
+            </div>
+
+            <div class="form-field">
+              <label for="board-sub-category">Category Filter</label>
+              <select id="board-sub-category" name="category_filter">
+                <option value="All">All Categories</option>
+                <option value="Philosophy & Sufficiency">Philosophy &amp; Sufficiency</option>
+                <option value="Osettai & Hospitality">Osettai &amp; Hospitality</option>
+                <option value="Community & Book Initiatives">Community &amp; Book Initiatives</option>
+                <option value="Notes for the Road">Notes for the Road</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="board-subscribe-feedback" class="form-feedback" role="status" aria-live="polite"></div>
+
+          <div class="form-actions">
+            <button
+              type="button"
+              id="cancel-board-subscribe-btn"
+              class="ink-action-btn"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              id="submit-board-subscribe-btn"
+              class="ink-action-btn crimson-filled-btn"
+            >
+              Confirm Subscription 印
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Compact mode selector, inside the parchment and beneath the category/action row. -->
+      <div class="compose-mode-control" aria-label="Message composer presentation">
+        <span class="compose-mode-label">Compose</span>
+        <div class="compose-mode-options" role="group" aria-label="Choose message-box layout">
+          <button type="button" id="compose-mode-overlay-btn" class="compose-mode-btn is-active" aria-label="Option 1: separate scrolls" title="Option 1: separate side scrolls" aria-pressed="true">1</button>
+          <button type="button" id="compose-mode-inline-btn" class="compose-mode-btn" aria-label="Option 2: expand the main scroll" title="Option 2: expand the main scroll" aria-pressed="false">2</button>
+          <button type="button" id="compose-mode-mixed-btn" class="compose-mode-btn" aria-label="Mixed: new topics in a side scroll, replies in the main scroll" title="Mixed: new topics in a side scroll; replies in the main scroll" aria-pressed="false">M</button>
+        </div>
+        <button type="button" class="compose-mode-info" aria-label="About message-box layouts" aria-describedby="compose-mode-tooltip">?</button>
+        <span id="compose-mode-tooltip" class="compose-mode-tooltip" role="tooltip">1: Topics and replies use separate scrolls. 2: Both forms open in the main scroll. M: New topics use a side scroll; replies open in the main scroll. Your choice is remembered on this device.</span>
+      </div>
+
+      <!-- Status & Mode Indicator Strip -->
+      <div class="forum-status-bar">
+        <span id="forum-status-indicator" class="forum-status-text">
+          {supabaseUrl && supabaseAnonKey
+            ? "● Connected to the Open Courtyard Ledger"
+            : "○ Sneak Preview Mode (Read & UI Demo Only — Submissions Disabled)"}
+        </span>
+        <span id="forum-count-indicator" class="forum-count-text">
+          Showing All Topics
+        </span>
+      </div>
+
+    </section>
+
+    <!-- Collapsible "New Discussion Topic" Washi Form -->
+    <div id="new-topic-inline-slot" class="composer-inline-slot">
+    <section
+      id="new-topic-drawer"
+      class="forum-form-panel hidden-view"
+      aria-labelledby="new-topic-heading"
+    >
+      <div class="forum-form-header">
+        <div>
+          <span class="forum-form-eyebrow">新規の問い • INSCRIBE A NEW INQUIRY</span>
+          <h2 id="new-topic-heading" class="forum-form-title">
+            Start a New Discussion Topic
+          </h2>
+        </div>
+        <button
+          type="button"
+          id="close-new-topic-btn"
+          class="ink-action-btn forum-close-btn"
+        >
+          Close ✕
+        </button>
+      </div>
+
+      <p class="forum-form-note">
+        No account or login screen is required. Post immediately as a guest, or enter an optional passcode to claim and protect your pilgrim alias with a verified badge (✓).
+      </p>
+
+      <form id="new-topic-form" class="washi-form" novalidate>
+        <!-- Honeypot field to silently block automated spam bots -->
+        <div class="honeypot-field" aria-hidden="true">
+          <label for="topic-website-url">Website URL (Leave empty)</label>
+          <input
+            type="text"
+            id="topic-website-url"
+            name="website_url"
+            tabindex="-1"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="form-grid-row">
+          <div class="form-field">
+            <label for="topic-category">Category *</label>
+            <select id="topic-category" name="category" required>
+              <option value="Philosophy & Sufficiency">Philosophy &amp; Sufficiency</option>
+              <option value="Osettai & Hospitality">Osettai &amp; Hospitality</option>
+              <option value="Community & Book Initiatives">Community &amp; Book Initiatives</option>
+              <option value="Notes for the Road">Notes for the Road</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label for="topic-author">Your Name or Pilgrim Alias *</label>
+            <input
+              type="text"
+              id="topic-author"
+              name="author_name"
+              required
+              minlength="1"
+              maxlength="60"
+              placeholder="e.g. Clara (Porto) or A Fellow Walker"
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="topic-email">Optional Email (Kept Private)</label>
+            <input
+              type="email"
+              id="topic-email"
+              name="author_email"
+              maxlength="120"
+              placeholder="Private — never shown on the site"
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="topic-passcode">Optional Alias Passcode (Claim or Unlock Name)</label>
+            <input
+              type="password"
+              id="topic-passcode"
+              name="author_passcode"
+              maxlength="120"
+              autocomplete="current-password"
+              placeholder="Set or enter passcode to protect your name"
+            />
+            <span class="field-helper-caption">
+              First time using a name with a passcode claims it. Next time, enter the same passcode to post under your name.
+            </span>
+          </div>
+        </div>
+
+        <div class="remember-identity-row">
+          <label class="remember-checkbox-label" for="topic-remember-identity">
+            <input
+              type="checkbox"
+              id="topic-remember-identity"
+              name="remember_identity"
+              checked
+            />
+            <span>Remember my alias, email &amp; passcode on this device</span>
+          </label>
+        </div>
+
+        <div class="remember-identity-row">
+          <label class="remember-checkbox-label" for="topic-notify-replies">
+            <input
+              type="checkbox"
+              id="topic-notify-replies"
+              name="notify_replies"
+              checked
+            />
+            <span>Notify me by email when someone replies to this thread</span>
+          </label>
+        </div>
+
+        <div class="form-field">
+          <label for="topic-title">Topic Title *</label>
+          <input
+            type="text"
+            id="topic-title"
+            name="title"
+            required
+            minlength="3"
+            maxlength="160"
+            placeholder="Summarize your philosophical question, story, or initiative..."
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="topic-body">Your Reflection / Question *</label>
+          <textarea
+            id="topic-body"
+            name="body"
+            rows="6"
+            required
+            minlength="5"
+            maxlength="5000"
+            placeholder="Write your thoughts in full. Paragraph breaks are preserved..."
+          ></textarea>
+        </div>
+
+        <div id="new-topic-feedback" class="form-feedback" role="status" aria-live="polite"></div>
+
+        <div class="form-actions">
+          <button
+            type="button"
+            id="cancel-new-topic-btn"
+            class="ink-action-btn"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            id="submit-new-topic-btn"
+            class="ink-action-btn crimson-filled-btn"
+          >
+            Inscribe Topic into Scroll 印
+          </button>
+        </div>
+      </form>
+    </section>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- MAIN VIEW 1: THREAD LIST VIEW (#forum-list-view)                   -->
+    <!-- ================================================================== -->
+    <section id="forum-list-view" aria-label="Discussion Threads">
+      <div id="threads-stream-container" class="threads-stream">
+        <div class="stream-item loading-placeholder">
+          <div class="stream-meta">UNROLLING COURTYARD LEDGER...</div>
+          <h3 class="stream-title">Gathering community dialogues...</h3>
+          <p class="stream-excerpt">
+            Please wait a moment while the latest reflections are retrieved.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================== -->
+    <!-- MAIN VIEW 2: SINGLE THREAD & REPLIES VIEW (#forum-thread-view)     -->
+    <!-- ================================================================== -->
+    <section
+      id="forum-thread-view"
+      class="hidden-view"
+      aria-label="Selected Discussion Thread and Replies"
+    >
+      <div class="thread-nav-bar">
+        <button
+          type="button"
+          id="back-to-list-btn"
+          class="ink-action-btn"
+        >
+          ← Back to All Forum Topics
+        </button>
+      </div>
+
+      <!-- Full Original Topic Article -->
+      <article id="active-thread-article" class="active-thread-box">
+        <div id="active-thread-meta" class="stream-meta"></div>
+        <h2 id="active-thread-title" class="active-thread-heading"></h2>
+        <div id="active-thread-body" class="active-thread-prose"></div>
+      </article>
+
+      <!-- Divider between OP and Replies -->
+      <div class="page-break" aria-hidden="true">
+        <div class="line"></div>
+        <div class="kanji">響</div>
+        <div class="line"></div>
+      </div>
+
+      <!-- Chronological Replies Section -->
+      <div class="replies-section">
+        <div class="replies-header">
+          <h3 class="replies-heading">Voices in Response</h3>
+          <span id="active-thread-reply-count" class="replies-badge">0 Replies</span>
+        </div>
+
+        <div id="replies-list-container" class="replies-list"></div>
+      </div>
+
+      <!-- Toggle for the reply form; remains visible while the form is closed -->
+      <button
+        type="button"
+        id="toggle-reply-form-btn"
+        class="ink-action-btn"
+        aria-expanded="false"
+        aria-controls="reply-form-box"
+      >
+        Reply to This Thread
+      </button>
+
+      <!-- Post a Reply to This Thread Form (closed by default) -->
+      <div id="reply-inline-slot" class="composer-inline-slot">
+      <div id="reply-form-box" class="reply-form-box hidden-view">
+        <div class="forum-form-header">
+          <div>
+            <span class="forum-form-eyebrow">返答 • ADD YOUR VOICE</span>
+            <h3 id="reply-form-heading" class="forum-form-title">Post a Reply to This Thread</h3>
+          </div>
+          <button
+            type="button"
+            id="close-reply-btn"
+            class="ink-action-btn forum-close-btn"
+            aria-label="Close reply form"
+          >
+            Close ✕
+          </button>
+        </div>
+
+        <form id="new-reply-form" class="washi-form" novalidate>
+          <!-- Honeypot field -->
+          <div class="honeypot-field" aria-hidden="true">
+            <label for="reply-website-url">Website URL (Leave empty)</label>
+            <input
+              type="text"
+              id="reply-website-url"
+              name="website_url"
+              tabindex="-1"
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="form-grid-row">
+            <div class="form-field">
+              <label for="reply-author">Your Name or Pilgrim Alias *</label>
+              <input
+                type="text"
+                id="reply-author"
+                name="author_name"
+                required
+                minlength="1"
+                maxlength="60"
+                placeholder="e.g. Kenji (Matsuyama)"
+              />
+            </div>
+
+            <div class="form-field">
+              <label for="reply-email">Optional Email (Kept Private)</label>
+              <input
+                type="email"
+                id="reply-email"
+                name="author_email"
+                maxlength="120"
+                placeholder="Never displayed publicly"
+              />
+            </div>
+
+            <div class="form-field">
+              <label for="reply-passcode">Optional Alias Passcode (Claim or Unlock Name)</label>
+              <input
+                type="password"
+                id="reply-passcode"
+                name="author_passcode"
+                maxlength="120"
+                autocomplete="current-password"
+                placeholder="Set or enter passcode to protect your name"
+              />
+              <span class="field-helper-caption">
+                First time using a name with a passcode claims it. Next time, enter the same passcode to post under your name.
+              </span>
+            </div>
+          </div>
+
+          <div class="remember-identity-row">
+            <label class="remember-checkbox-label" for="reply-remember-identity">
+              <input
+                type="checkbox"
+                id="reply-remember-identity"
+                name="remember_identity"
+                checked
+              />
+              <span>Remember my alias, email &amp; passcode on this device</span>
+            </label>
+          </div>
+
+          <div class="remember-identity-row">
+            <label class="remember-checkbox-label" for="reply-notify-replies">
+              <input
+                type="checkbox"
+                id="reply-notify-replies"
+                name="notify_replies"
+                checked
+              />
+              <span>Notify me by email when someone replies to this thread</span>
+            </label>
+          </div>
+
+          <div class="form-field">
+            <label for="reply-body">Reply Message *</label>
+            <textarea
+              id="reply-body"
+              name="body"
+              rows="4"
+              required
+              minlength="2"
+              maxlength="3000"
+              placeholder="Offer your reflection, answer, or roadside encouragement..."
+            ></textarea>
+          </div>
+
+          <div id="new-reply-feedback" class="form-feedback" role="status" aria-live="polite"></div>
+
+          <div class="form-actions">
+            <button
+              type="submit"
+              id="submit-new-reply-btn"
+              class="ink-action-btn crimson-filled-btn"
+            >
+              Inscribe Reply 印
+            </button>
+          </div>
+        </form>
+      </div>
+      </div>
+    </section>
+
+    <!-- The separate-scroll composer lives here and receives the existing form element when Option 1 is selected. -->
+    <div id="forum-compose-overlay" class="forum-compose-overlay hidden-view" aria-hidden="true">
+      <div id="forum-compose-scroll-stage" class="forum-compose-scroll-stage" aria-hidden="true">
+        <div class="scroll-roller-top" aria-hidden="true"></div>
+        <div id="forum-compose-scroll-paper" class="washi-scroll forum-compose-scroll-content"></div>
+        <div class="scroll-roller-bottom" aria-hidden="true"></div>
+      </div>
+    </div>
+
+      </div>
+</BaseLayout>
+
+<style is:global>
+  :root {
+    --washi-bg: #E6DFCF;
+    --washi-dark: #D8CEB8;
+    --ink-sumi: #1C1A17;
+    --ink-muted: #5A534A;
+    --accent-crimson: #6E2B25;
+    --accent-crimson-light: #8C3B33;
+    --parchment-light: #F4F1EA;
+    --admin-gold: #D4AF37;
+  }
+
+  /* Scroll Header & Dividers (matching Camino_Henro_Apple_Scroll_Preview-v2.html) */
+  .scroll-title-block {
+    text-align: center;
+    padding: 0.5rem 0 1.25rem;
+  }
+
+  .scroll-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--accent-crimson);
+    margin-bottom: 0.65rem;
+  }
+
+  .page-heading {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(2.15rem, 4.5vw, 3.1rem);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--ink-sumi);
+    line-height: 1.15;
+    margin: 0 0 0.6rem;
+  }
+
+  .page-subtitle {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--ink-muted);
+    max-width: 38rem;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .page-break {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: 2rem 0;
+    user-select: none;
+  }
+
+  .page-break .line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(110, 43, 37, 0.45) 20%,
+      rgba(110, 43, 37, 0.45) 80%,
+      transparent 100%
+    );
+  }
+
+  .page-break .kanji {
+    font-family: 'Shippori Mincho', 'Noto Serif JP', serif;
+    font-size: 0.95rem;
+    color: var(--accent-crimson);
+    padding: 0.2rem 0.5rem;
+    border: 1px solid rgba(110, 43, 37, 0.35);
+    background-color: rgba(216, 206, 184, 0.45);
+    line-height: 1;
+  }
+
+  /* Buttons (.ink-action-btn & filled crimson variant) */
+  .ink-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.55rem 0.95rem;
+    border: 1px solid rgba(28, 26, 23, 0.35);
+    background-color: rgba(216, 206, 184, 0.35);
+    color: var(--ink-sumi);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    line-height: 1.2;
+  }
+
+  .ink-action-btn:hover {
+    border-color: var(--accent-crimson);
+    color: var(--accent-crimson);
+    background-color: rgba(216, 206, 184, 0.75);
+  }
+
+  .ink-action-btn.is-active {
+    border-color: var(--accent-crimson);
+    background-color: var(--washi-dark);
+    color: var(--accent-crimson);
+    font-weight: 600;
+    box-shadow: inset 0 -2px 0 var(--accent-crimson);
+  }
+
+  .ink-action-btn.crimson-filled-btn {
+    background: var(--accent-crimson);
+    color: #F4F1EA;
+    border-color: var(--accent-crimson);
+    font-weight: 500;
+  }
+
+  .ink-action-btn.crimson-filled-btn:hover {
+    background: var(--accent-crimson-light);
+    border-color: var(--accent-crimson-light);
+    color: #F4F1EA;
+  }
+
+  .ink-action-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  /* ========================================================================== */
+  /* FEATURE 3: EYE-CATCHING ADMIN STAR & VERIFIED PILGRIM ROLE BADGES          */
+  /* ========================================================================== */
+  .author-badge-admin {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.42rem;
+    background-color: #6E2B25;
+    color: #F4F1EA;
+    border: 1px solid #D4AF37;
+    padding: 0.14rem 0.55rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: none;
+    box-shadow: 0 1px 3px rgba(28, 26, 23, 0.22), inset 0 0 0 1px rgba(212, 175, 55, 0.22);
+    line-height: 1.3;
+    vertical-align: middle;
+  }
+
+  .author-badge-admin::first-letter {
+    color: #D4AF37;
+  }
+
+  .admin-seal-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', 'Shippori Mincho', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    color: #D4AF37;
+    background-color: rgba(28, 26, 23, 0.32);
+    border-left: 1px solid rgba(212, 175, 55, 0.55);
+    padding: 0.05rem 0.35rem 0.05rem 0.42rem;
+    margin-left: 0.1rem;
+    text-transform: uppercase;
+  }
+
+  .author-badge-verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #1C1A17;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0.04em;
+    vertical-align: middle;
+  }
+
+  .verified-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.05rem;
+    height: 1.05rem;
+    font-size: 0.64rem;
+    font-weight: 700;
+    color: #6E2B25;
+    background-color: rgba(110, 43, 37, 0.12);
+    border: 1px solid rgba(110, 43, 37, 0.45);
+    line-height: 1;
+    cursor: help;
+  }
+
+  .author-badge-guest {
+    color: var(--ink-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-transform: none;
+  }
+
+  /* Forum Toolbar & Filter Bar */
+  .forum-toolbar {
+    margin-bottom: 1.75rem;
+  }
+
+  .forum-Toolbar-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(28, 26, 23, 0.16);
+  }
+
+  .category-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .board-subscribe-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 0.65rem;
+  }
+
+  .forum-status-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding-top: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.06em;
+  }
+
+  .forum-status-text {
+    color: var(--accent-crimson);
+  }
+
+  /* Stream Item styling (matching Camino_Henro_Apple_Scroll_Preview-v2.html) */
+  .threads-stream {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stream-item {
+    padding: 1.6rem 1.25rem;
+    border-bottom: 1px solid rgba(28, 26, 23, 0.15);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .stream-item:first-child {
+    border-top: 1px solid rgba(28, 26, 23, 0.15);
+  }
+
+  .stream-item:hover {
+    background-color: rgba(216, 206, 184, 0.45);
+  }
+
+  .stream-item.is-pinned-item {
+    border-left: 3px solid var(--accent-crimson);
+    background-color: rgba(216, 206, 184, 0.28);
+  }
+
+  .stream-item.is-pinned-item:hover {
+    background-color: rgba(216, 206, 184, 0.55);
+  }
+
+  .stream-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    margin-bottom: 0.55rem;
+  }
+
+  .pinned-stamp {
+    color: var(--accent-crimson);
+    font-weight: 700;
+    border: 1px solid rgba(110, 43, 37, 0.45);
+    background-color: rgba(110, 43, 37, 0.08);
+    padding: 0.1rem 0.4rem;
+  }
+
+  .category-tag {
+    color: var(--ink-sumi);
+    background-color: rgba(216, 206, 184, 0.7);
+    border: 1px solid rgba(28, 26, 23, 0.2);
+    padding: 0.1rem 0.45rem;
+  }
+
+  .reply-count-tag {
+    margin-left: auto;
+    color: var(--accent-crimson);
+    font-weight: 600;
+  }
+
+  .stream-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: var(--ink-sumi);
+    margin: 0 0 0.5rem;
+    line-height: 1.25;
+    transition: color 0.2s ease;
+  }
+
+  .stream-item:hover .stream-title {
+    color: var(--accent-crimson);
+  }
+
+  .stream-excerpt {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.08rem;
+    line-height: 1.65;
+    color: var(--ink-muted);
+    margin: 0 0 0.85rem;
+  }
+
+  .stream-read-link {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent-crimson);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .stream-item:hover .stream-read-link {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  /* Forms & Drawers */
+  .hidden-view {
+    display: none !important;
+  }
+
+  .composer-inline-slot {
+    height: 0;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Compact three-position toggle in its own toolbar row, inside the parchment. */
+  .compose-mode-control {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    width: fit-content;
+    max-width: 100%;
+    margin: 0.65rem 0 0 auto;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.28rem 0.35rem;
+    border: 1px solid rgba(110, 43, 37, 0.28);
+    border-radius: 999px;
+    background: rgba(246, 240, 226, 0.88);
+    box-shadow: 0 3px 12px rgba(35, 24, 16, 0.12);
+    backdrop-filter: blur(6px);
+  }
+
+  .compose-mode-label {
+    color: var(--ink-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding-left: 0.25rem;
+  }
+
+  .compose-mode-options {
+    display: flex;
+    gap: 2px;
+    padding: 2px;
+    border-radius: 999px;
+    background: rgba(110, 43, 37, 0.08);
+  }
+
+  .compose-mode-btn {
+    display: inline-grid;
+    place-items: center;
+    min-width: 25px;
+    height: 25px;
+    padding: 0 0.38rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+  }
+
+  .compose-mode-btn:hover,
+  .compose-mode-btn:focus-visible,
+  .compose-mode-info:hover,
+  .compose-mode-info:focus-visible {
+    outline: 2px solid rgba(110, 43, 37, 0.32);
+    outline-offset: 1px;
+  }
+
+  .compose-mode-btn.is-active,
+  .compose-mode-btn[aria-pressed="true"] {
+    color: var(--parchment-light);
+    background: var(--accent-crimson);
+    border-color: var(--accent-crimson);
+  }
+
+  .compose-mode-info {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 19px;
+    width: 19px;
+    height: 19px;
+    padding: 0;
+    border: 1px solid rgba(110, 43, 37, 0.35);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--ink-muted);
+    font-family: Georgia, serif;
+    font-size: 0.72rem;
+    cursor: help;
+  }
+
+  .compose-mode-tooltip {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 9px);
+    width: min(290px, calc(100vw - 24px));
+    padding: 0.65rem 0.75rem;
+    border: 1px solid rgba(110, 43, 37, 0.35);
+    border-radius: 8px;
+    background: var(--parchment-light, #f6f0e2);
+    color: var(--ink-sumi, #2c241f);
+    box-shadow: 0 8px 24px rgba(35, 24, 16, 0.18);
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 0.9rem;
+    line-height: 1.35;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(4px);
+    transition: opacity 150ms ease, transform 150ms ease, visibility 150ms ease;
+    pointer-events: none;
+  }
+
+  .compose-mode-info:hover ~ .compose-mode-tooltip,
+  .compose-mode-info:focus-visible ~ .compose-mode-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  @media (max-width: 480px) {
+    .compose-mode-label { display: none; }
+    .compose-mode-control { margin-top: 0.55rem; }
+  }
+
+  .honeypot-field {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .forum-form-panel,
+  .reply-form-box {
+    border: 1px solid var(--accent-crimson);
+    background-color: rgba(216, 206, 184, 0.48);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  #board-subscribe-drawer {
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .forum-form-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-bottom: 0.85rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid rgba(110, 43, 37, 0.25);
+  }
+
+  .forum-form-eyebrow {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent-crimson);
+    margin-bottom: 0.2rem;
+  }
+
+  .forum-form-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--ink-sumi);
+    margin: 0;
+  }
+
+  .forum-form-note {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1rem;
+    color: var(--ink-muted);
+    margin: 0 0 1.2rem;
+    line-height: 1.55;
+  }
+
+  .washi-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .form-grid-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .form-grid-two {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .form-field label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-sumi);
+    font-weight: 600;
+  }
+
+  .form-field input,
+  .form-field select,
+  .form-field textarea {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.05rem;
+    color: var(--ink-sumi);
+    background-color: var(--washi-bg);
+    border: 1px solid rgba(28, 26, 23, 0.3);
+    padding: 0.6rem 0.75rem;
+    border-radius: 0;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .form-field input:focus,
+  .form-field select:focus,
+  .form-field textarea:focus {
+    border-color: var(--accent-crimson);
+    box-shadow: 0 0 0 1px var(--accent-crimson);
+  }
+
+  .field-helper-caption {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 0.88rem;
+    line-height: 1.35;
+    color: var(--ink-muted);
+  }
+
+  .remember-identity-row {
+    display: flex;
+    align-items: center;
+    padding: 0.25rem 0;
+  }
+
+  .remember-checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--ink-sumi);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .remember-checkbox-label input[type="checkbox"] {
+    accent-color: var(--accent-crimson);
+    width: 0.95rem;
+    height: 0.95rem;
+    cursor: pointer;
+  }
+
+  .form-feedback {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    min-height: 1.2rem;
+  }
+
+  .form-feedback.is-error {
+    color: #8B1E1E;
+    font-weight: 600;
+  }
+
+  .form-feedback.is-success {
+    color: var(--accent-crimson);
+    font-weight: 600;
+  }
+
+  .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding-top: 0.4rem;
+  }
+
+  /* Single Thread & Replies View */
+  .thread-nav-bar {
+    margin-bottom: 1.5rem;
+  }
+
+  .active-thread-box {
+    border: 1px solid rgba(28, 26, 23, 0.25);
+    border-left: 3px solid var(--accent-crimson);
+    background-color: rgba(216, 206, 184, 0.35);
+    padding: 1.75rem;
+  }
+
+  .active-thread-heading {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(1.75rem, 3.5vw, 2.35rem);
+    font-weight: 700;
+    color: var(--ink-sumi);
+    line-height: 1.2;
+    margin: 0.35rem 0 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(28, 26, 23, 0.15);
+  }
+
+  .active-thread-prose {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.15rem;
+    line-height: 1.8;
+    color: var(--ink-sumi);
+  }
+
+  .active-thread-prose p {
+    margin: 0 0 1.1rem;
+  }
+
+  .active-thread-prose p:last-child {
+    margin-bottom: 0;
+  }
+
+  .replies-section {
+    margin-bottom: 2.25rem;
+  }
+
+  .replies-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(110, 43, 37, 0.35);
+  }
+
+  .replies-heading {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-sumi);
+    margin: 0;
+  }
+
+  .replies-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent-crimson);
+    font-weight: 600;
+  }
+
+  .replies-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .reply-card {
+    border: 1px solid rgba(28, 26, 23, 0.18);
+    background-color: rgba(230, 223, 207, 0.75);
+    padding: 1.25rem 1.4rem;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .reply-card.is-admin-reply {
+    border-left: 3px solid #6E2B25;
+    background-color: rgba(244, 241, 234, 0.9);
+    box-shadow: 0 2px 6px rgba(110, 43, 37, 0.08);
+  }
+
+  .reply-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--ink-muted);
+    margin-bottom: 0.65rem;
+    padding-bottom: 0.45rem;
+    border-bottom: 1px dashed rgba(28, 26, 23, 0.15);
+  }
+
+  .reply-card-body {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.08rem;
+    line-height: 1.7;
+    color: var(--ink-sumi);
+  }
+
+  .reply-card-body p {
+    margin: 0 0 0.75rem;
+  }
+
+  .reply-card-body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .empty-replies-box {
+    border: 1px dashed rgba(28, 26, 23, 0.25);
+    padding: 1.5rem;
+    text-align: center;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--ink-muted);
+  }
+
+  .kanji-seal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 1px solid var(--accent-crimson);
+    color: var(--accent-crimson);
+    font-family: 'Shippori Mincho', serif;
+    font-size: 0.85rem;
+  }
+
+  /* 3-Step Supabase Activation Box */
+  .supabase-setup-box {
+    border: 2px solid var(--accent-crimson);
+    background-color: var(--washi-dark);
+    padding: 1.75rem;
+    margin-top: 1rem;
+  }
+
+  .supabase-setup-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid rgba(110, 43, 37, 0.35);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+  }
+
+  .supabase-setup-eyebrow {
+    color: var(--accent-crimson);
+    font-weight: 700;
+  }
+
+  .supabase-setup-badge {
+    background-color: var(--accent-crimson);
+    color: #F4F1EA;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.65rem;
+  }
+
+  .supabase-setup-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--ink-sumi);
+    margin: 0 0 0.65rem;
+  }
+
+  .supabase-setup-intro {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.05rem;
+    line-height: 1.65;
+    color: var(--ink-sumi);
+    margin: 0 0 1.25rem;
+  }
+
+  .supabase-steps-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .supabase-step-card {
+    border: 1px solid rgba(28, 26, 23, 0.2);
+    background-color: var(--washi-bg);
+    padding: 1rem 1.2rem;
+  }
+
+  .supabase-step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--accent-crimson);
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+  }
+
+  .supabase-step-card p {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--ink-sumi);
+    margin: 0;
+  }
+
+  .supabase-step-card a {
+    color: var(--accent-crimson);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .supabase-step-card code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    background-color: var(--washi-dark);
+    padding: 0.1rem 0.35rem;
+  }
+
+  .supabase-code-snippet {
+    margin: 0.75rem 0 0;
+    padding: 0.85rem;
+    background-color: var(--ink-sumi);
+    color: var(--washi-bg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+
+  .supabase-code-snippet code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    const rootEl = document.getElementById('forum-root');
+    if (!rootEl) return;
+
+    const rawUrl = (rootEl.getAttribute('data-supabase-url') || '').trim();
+    const supabaseUrl = rawUrl.replace(/\/+$/, '');
+    const supabaseAnonKey = (rootEl.getAttribute('data-supabase-key') || '').trim();
+    const isLiveSupabase = Boolean(supabaseUrl && supabaseAnonKey);
+
+    const STORAGE_KEY_IDENTITY = 'camino_henro_forum_identity';
+
+    // Starter Philosophical Threads for Local Preview / Demo Mode (with author_role)
+    const demoStarterThreads = [
+      {
+        id: 'demo-thread-1',
+        category: 'Philosophy & Sufficiency',
+        title: 'On Sufficiency vs. Surplus: What Does It Require to Feel Secure?',
+        author_name: 'Henro (Pilgrim)',
+        author_role: 'admin',
+        body: 'Where do we draw the boundary between what is genuinely required to feel safe in the world and what we accumulate merely out of habit or fear?\n\nWalking eastward from the Atlantic cliffs with only what fits inside a small pack strips the question down to bone and breath: water, bread, dry shelter at nightfall, and the quiet trust that human society is not separate from Nature, but one of its living expressions.\n\nHave you experienced a moment in your own life when carrying or owning less unexpectedly deepened your sense of material security? Share your reflections below.',
+        is_pinned: true,
+        reply_count: 1,
+        created_at: new Date(Date.now() - 3 * 86400000).toISOString(),
+      },
+      {
+        id: 'demo-thread-2',
+        category: 'Osettai & Hospitality',
+        title: 'Traditions of Hospitality: Bridging Osettai (お接待) and Donativo',
+        author_name: 'Henro (Pilgrim)',
+        author_role: 'admin',
+        body: 'Both the European Camino de Santiago and the Shikoku Henro pilgrimage rest upon an ancient economy of trust. In Spain, hospitaleros welcome foot-weary strangers under the spirit of donativo; in Shikoku, locals offer green tea, citrus, or lodging as Osettai (お接待)—freely given alms offered in good faith so that giver and walker travel forward together in spirit (Dōgyō Ninin / 同行二人).\n\nHow can we preserve and practice uncalculated hospitality inside a modern commercial world that prices every interaction? Have you encountered or offered Osettai in unexpected places?',
+        is_pinned: true,
+        reply_count: 0,
+        created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
+      },
+      {
+        id: 'demo-thread-3',
+        category: 'Community & Book Initiatives',
+        title: 'Deliberating Future Works & Community Initiatives for the Archive',
+        author_name: 'Henro (Pilgrim)',
+        author_role: 'admin',
+        body: 'While daily subsistence on the trail comes solely from the road itself, Osettai contributions made through this digital scroll are dedicated to sustaining the archive, preparing a future printed edition of these philosophical dispatches, and supporting community-aligned initiatives.\n\nAs this courtyard grows, how would you like to see our shared platform evolve? Are there specific philosophical inquiries, translations, or physical book formats you feel we should prioritize when the time comes?',
+        is_pinned: true,
+        reply_count: 0,
+        created_at: new Date(Date.now() - 1 * 86400000).toISOString(),
+      },
+    ];
+
+    const demoStarterReplies = {
+      'demo-thread-1': [
+        {
+          id: 'demo-reply-101',
+          thread_id: 'demo-thread-1',
+          author_name: 'Mateo (Galicia)',
+          author_role: 'verified',
+          body: 'Buen Camino from Finisterra. For me, the realization came during a winter storm in O Cebreiro: security was never the weight of my wallet, but the warmth of a shared stove and a stranger handing over a bowl of caldo gallego without asking my name.',
+          created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
+        },
+      ],
+    };
+
+    // Local Demo Mode Passcode Registry (simulates public.forum_users in local preview)
+    const demoClaimedUsers = {
+      'mateo (galicia)': { passcode: 'mateo', role: 'verified' },
+    };
+
+    // State
+    let allThreads = [];
+    let currentCategory = 'All Topics';
+    let activeThreadId = null;
+
+    // DOM References
+    const categoryBtns = document.querySelectorAll('.category-filter-btn');
+    const toggleNewTopicBtn = document.getElementById('toggle-new-topic-btn');
+    const closeNewTopicBtn = document.getElementById('close-new-topic-btn');
+    const cancelNewTopicBtn = document.getElementById('cancel-new-topic-btn');
+    const newTopicDrawer = document.getElementById('new-topic-drawer');
+    const newTopicForm = document.getElementById('new-topic-form');
+    const newTopicFeedback = document.getElementById('new-topic-feedback');
+    const submitNewTopicBtn = document.getElementById('submit-new-topic-btn');
+
+    const toggleBoardSubscribeBtn = document.getElementById('toggle-board-subscribe-btn');
+    const closeBoardSubscribeBtn = document.getElementById('close-board-subscribe-btn');
+    const cancelBoardSubscribeBtn = document.getElementById('cancel-board-subscribe-btn');
+    const boardSubscribeDrawer = document.getElementById('board-subscribe-drawer');
+    const boardSubscribeForm = document.getElementById('board-subscribe-form');
+    const boardSubscribeFeedback = document.getElementById('board-subscribe-feedback');
+    const submitBoardSubscribeBtn = document.getElementById('submit-board-subscribe-btn');
+    const boardSubNameInput = document.getElementById('board-sub-name');
+    const boardSubEmailInput = document.getElementById('board-sub-email');
+    const boardSubCategorySelect = document.getElementById('board-sub-category');
+
+    const countIndicator = document.getElementById('forum-count-indicator');
+    const listView = document.getElementById('forum-list-view');
+    const threadsStreamContainer = document.getElementById('threads-stream-container');
+
+    const threadView = document.getElementById('forum-thread-view');
+    const backToListBtn = document.getElementById('back-to-list-btn');
+    const activeThreadMeta = document.getElementById('active-thread-meta');
+    const activeThreadTitle = document.getElementById('active-thread-title');
+    const activeThreadBody = document.getElementById('active-thread-body');
+    const activeThreadReplyCount = document.getElementById('active-thread-reply-count');
+    const repliesListContainer = document.getElementById('replies-list-container');
+    const replyFormBox = document.getElementById('reply-form-box');
+    const toggleReplyFormBtn = document.getElementById('toggle-reply-form-btn');
+    const closeReplyBtn = document.getElementById('close-reply-btn');
+
+    const newReplyForm = document.getElementById('new-reply-form');
+    const newReplyFeedback = document.getElementById('new-reply-feedback');
+    const submitNewReplyBtn = document.getElementById('submit-new-reply-btn');
+
+    const topicAuthorInput = document.getElementById('topic-author');
+    const topicEmailInput = document.getElementById('topic-email');
+    const topicPasscodeInput = document.getElementById('topic-passcode');
+    const topicRememberCheckbox = document.getElementById('topic-remember-identity');
+    const topicNotifyCheckbox = document.getElementById('topic-notify-replies');
+
+    const replyAuthorInput = document.getElementById('reply-author');
+    const replyEmailInput = document.getElementById('reply-email');
+    const replyPasscodeInput = document.getElementById('reply-passcode');
+    const replyRememberCheckbox = document.getElementById('reply-remember-identity');
+    const replyNotifyCheckbox = document.getElementById('reply-notify-replies');
+
+    const composeModeOverlayBtn = document.getElementById('compose-mode-overlay-btn');
+    const composeModeInlineBtn = document.getElementById('compose-mode-inline-btn');
+    const composeModeMixedBtn = document.getElementById('compose-mode-mixed-btn');
+    const composeModeHelp = document.getElementById('compose-mode-tooltip');
+    const composeOverlay = document.getElementById('forum-compose-overlay');
+    const composeOverlayStage = document.getElementById('forum-compose-scroll-stage');
+    const composeOverlayPaper = document.getElementById('forum-compose-scroll-paper');
+    const composeOverlayHomeAnchor = document.createComment('original composer overlay position');
+    if (composeOverlay && composeOverlay.parentNode) {
+      composeOverlay.parentNode.insertBefore(composeOverlayHomeAnchor, composeOverlay);
+    }
+    const newTopicInlineSlot = document.getElementById('new-topic-inline-slot');
+    const replyInlineSlot = document.getElementById('reply-inline-slot');
+
+    // Leave a home marker so a form can move into the overlay and then return to its exact location.
+    const newTopicHomeAnchor = document.createComment('original new-topic form position');
+    if (newTopicDrawer && newTopicDrawer.parentNode) {
+      newTopicDrawer.parentNode.insertBefore(newTopicHomeAnchor, newTopicDrawer);
+    }
+    const replyHomeAnchor = document.createComment('original reply form position');
+    if (replyFormBox && replyFormBox.parentNode) {
+      replyFormBox.parentNode.insertBefore(replyHomeAnchor, replyFormBox);
+    }
+
+    let composeMode = 'mixed';
+    let activeComposerType = null;
+    let activeComposerPresentation = null;
+    let lastComposerTrigger = null;
+    let composerTransitioning = false;
+    let composerOperationId = 0;
+    const prefersReducedMotion = Boolean(
+      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    );
+    // Animation tuning: edit these values (milliseconds) to adjust the two composer presentations.
+    const composerOverlayOpenDuration = prefersReducedMotion ? 1 : 900; // Small scroll unfurl
+    const composerOverlayCloseDuration = prefersReducedMotion ? 1 : 620; // Small scroll furl
+    const composerInlineOpenDuration = prefersReducedMotion ? 1 : 1100; // Main scroll expands more slowly
+    const composerInlineCloseDuration = prefersReducedMotion ? 1 : 900; // Main scroll collapses
+    const composerContentFadeDuration = prefersReducedMotion ? 1 : 220; // Text fade/float speed
+
+    try {
+      const savedComposeMode = window.localStorage.getItem('forum-compose-mode');
+      if (savedComposeMode === 'inline' || savedComposeMode === 'overlay' || savedComposeMode === 'mixed') {
+        composeMode = savedComposeMode;
+      }
+    } catch (_) {
+      // Storage may be unavailable in private browsing; the in-memory choice still works.
+    }
+
+    // Helpers
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function renderAuthorBadge(authorName, authorRole) {
+      const normalizedRole = String(authorRole || 'guest').toLowerCase().trim();
+      if (normalizedRole === 'admin') {
+        return `<span class="author-badge-admin">★ ${escapeHtml(authorName)} <span class="admin-seal-tag">ADMIN 印</span></span>`;
+      }
+      if (normalizedRole === 'verified') {
+        return `<span class="author-badge-verified">${escapeHtml(authorName)} <span class="verified-check" title="Protected Pilgrim Alias">✓</span></span>`;
+      }
+      return `<span class="author-badge-guest">${escapeHtml(authorName)}</span>`;
+    }
+
+    function formatDate(isoString) {
+      if (!isoString) return '';
+      const d = new Date(isoString);
+      if (Number.isNaN(d.getTime())) return isoString;
+      return d.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+      });
+    }
+
+    function makeExcerpt(text, maxLen) {
+      const clean = String(text || '').replace(/\s+/g, ' ').trim();
+      if (clean.length <= maxLen) return clean;
+      return clean.slice(0, maxLen).trim() + '…';
+    }
+
+    function renderParagraphs(text) {
+      const paragraphs = String(text || '')
+        .split(/\n{2,}|\r\n{2,}/)
+        .map((p) => p.trim())
+        .filter(Boolean);
+
+      if (paragraphs.length === 0) {
+        return '<p>' + escapeHtml(text) + '</p>';
+      }
+
+      return paragraphs
+        .map((p) => '<p>' + escapeHtml(p).replace(/\n/g, '<br />') + '</p>')
+        .join('');
+    }
+
+    // Load & Save Pilgrim Identity in localStorage (Step 8A)
+    function loadSavedIdentity() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_IDENTITY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') return;
+
+        if (topicAuthorInput && parsed.author_name) topicAuthorInput.value = parsed.author_name;
+        if (topicEmailInput && parsed.author_email) topicEmailInput.value = parsed.author_email;
+        if (topicPasscodeInput && parsed.author_passcode) topicPasscodeInput.value = parsed.author_passcode;
+
+        if (replyAuthorInput && parsed.author_name) replyAuthorInput.value = parsed.author_name;
+        if (replyEmailInput && parsed.author_email) replyEmailInput.value = parsed.author_email;
+        if (replyPasscodeInput && parsed.author_passcode) replyPasscodeInput.value = parsed.author_passcode;
+
+        if (boardSubNameInput && parsed.author_name && !boardSubNameInput.value) boardSubNameInput.value = parsed.author_name;
+        if (boardSubEmailInput && parsed.author_email && !boardSubEmailInput.value) boardSubEmailInput.value = parsed.author_email;
+      } catch (err) {
+        console.warn('Could not read saved forum identity from localStorage:', err);
+      }
+    }
+
+    function handleIdentityPersistence(author_name, author_email, author_passcode, shouldRemember) {
+      try {
+        if (shouldRemember) {
+          localStorage.setItem(
+            STORAGE_KEY_IDENTITY,
+            JSON.stringify({
+              author_name: author_name || '',
+              author_email: author_email || '',
+              author_passcode: author_passcode || '',
+            })
+          );
+          if (topicAuthorInput) topicAuthorInput.value = author_name || '';
+          if (topicEmailInput) topicEmailInput.value = author_email || '';
+          if (topicPasscodeInput) topicPasscodeInput.value = author_passcode || '';
+          if (replyAuthorInput) replyAuthorInput.value = author_name || '';
+          if (replyEmailInput) replyEmailInput.value = author_email || '';
+          if (replyPasscodeInput) replyPasscodeInput.value = author_passcode || '';
+        } else {
+          localStorage.removeItem(STORAGE_KEY_IDENTITY);
+        }
+      } catch (err) {
+        console.warn('Could not persist forum identity to localStorage:', err);
+      }
+    }
+
+    // Sync the two "Remember me" checkboxes so toggling one updates the other
+    if (topicRememberCheckbox && replyRememberCheckbox) {
+      topicRememberCheckbox.addEventListener('change', function () {
+        replyRememberCheckbox.checked = topicRememberCheckbox.checked;
+      });
+      replyRememberCheckbox.addEventListener('change', function () {
+        topicRememberCheckbox.checked = replyRememberCheckbox.checked;
+      });
+    }
+
+    // Board-Wide New Topic Subscription Drawer Toggle & Submission
+    function setBoardSubscribeDrawerOpen(isOpen) {
+      if (!boardSubscribeDrawer || !toggleBoardSubscribeBtn) return;
+      boardSubscribeDrawer.classList.toggle('hidden-view', !isOpen);
+      toggleBoardSubscribeBtn.setAttribute('aria-expanded', String(isOpen));
+      if (isOpen) {
+        loadSavedIdentity();
+        if (boardSubNameInput && !boardSubNameInput.value) {
+          boardSubNameInput.focus();
+        } else if (boardSubEmailInput) {
+          boardSubEmailInput.focus();
+        }
+      }
+    }
+
+    if (toggleBoardSubscribeBtn && boardSubscribeDrawer) {
+      toggleBoardSubscribeBtn.addEventListener('click', function () {
+        const isCurrentlyHidden = boardSubscribeDrawer.classList.contains('hidden-view');
+        setBoardSubscribeDrawerOpen(isCurrentlyHidden);
+      });
+    }
+    if (closeBoardSubscribeBtn) {
+      closeBoardSubscribeBtn.addEventListener('click', function () {
+        setBoardSubscribeDrawerOpen(false);
+      });
+    }
+    if (cancelBoardSubscribeBtn) {
+      cancelBoardSubscribeBtn.addEventListener('click', function () {
+        setBoardSubscribeDrawerOpen(false);
+      });
+    }
+
+    if (boardSubscribeForm) {
+      boardSubscribeForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const subName = boardSubNameInput ? boardSubNameInput.value.trim() : '';
+        const subEmail = boardSubEmailInput ? boardSubEmailInput.value.trim() : '';
+        const subCategory = boardSubCategorySelect ? boardSubCategorySelect.value.trim() : 'All';
+
+        if (subName.length < 1 || subName.length > 60) {
+          boardSubscribeFeedback.textContent = 'Please enter your Name or Pilgrim Alias (1–60 characters).';
+          boardSubscribeFeedback.className = 'form-feedback is-error';
+          return;
+        }
+        if (!subEmail.includes('@') || !subEmail.includes('.')) {
+          boardSubscribeFeedback.textContent = 'Please enter a valid email address.';
+          boardSubscribeFeedback.className = 'form-feedback is-error';
+          return;
+        }
+
+        if (submitBoardSubscribeBtn) {
+          submitBoardSubscribeBtn.disabled = true;
+          submitBoardSubscribeBtn.textContent = 'Subscribing...';
+        }
+        boardSubscribeFeedback.textContent = '';
+        boardSubscribeFeedback.className = 'form-feedback';
+
+        if (!isLiveSupabase) {
+          boardSubscribeFeedback.textContent =
+            '✓ Local Demo Mode: Subscription simulated for ' + subEmail + ' (' + subCategory + ').';
+          boardSubscribeFeedback.className = 'form-feedback is-success';
+          if (submitBoardSubscribeBtn) {
+            submitBoardSubscribeBtn.disabled = false;
+            submitBoardSubscribeBtn.textContent = 'Confirm Subscription 印';
+          }
+          return;
+        }
+
+        try {
+          const response = await fetch(`${supabaseUrl}/rest/v1/rpc/subscribe_to_forum_board`, {
+            method: 'POST',
+            headers: {
+              apikey: supabaseAnonKey,
+              Authorization: `Bearer ${supabaseAnonKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              p_name: subName,
+              p_email: subEmail,
+              p_category: subCategory || 'All',
+            }),
+          });
+
+          if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(errText || `HTTP ${response.status}`);
+          }
+
+          let result = null;
+          try {
+            result = await response.json();
+          } catch (_e) {
+            result = null;
+          }
+
+          boardSubscribeFeedback.textContent =
+            (result && result.message) ||
+            '✓ You are now subscribed to new forum topics.';
+          boardSubscribeFeedback.className = 'form-feedback is-success';
+        } catch (err) {
+          console.error('Failed to subscribe to forum board:', err);
+          boardSubscribeFeedback.textContent =
+            'Could not complete subscription. Please ensure supabase-notifications-complete.sql has been run in Supabase.';
+          boardSubscribeFeedback.className = 'form-feedback is-error';
+        } finally {
+          if (submitBoardSubscribeBtn) {
+            submitBoardSubscribeBtn.disabled = false;
+            submitBoardSubscribeBtn.textContent = 'Confirm Subscription 印';
+          }
+        }
+      });
+    }
+
+    // Extract friendly ALIAS_PROTECTED error message from Supabase response
+    function extractProtectionErrorMessage(errText) {
+      const raw = String(errText || '');
+      if (raw.includes('ALIAS_PROTECTED:')) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.message) {
+            return parsed.message.replace(/^.*ALIAS_PROTECTED:\s*/i, '');
+          }
+        } catch (_e) {
+          // Fallback regex extraction if not JSON
+        }
+        const match = raw.match(/ALIAS_PROTECTED:\s*([^"\\]+)/i);
+        if (match && match[1]) {
+          return match[1].trim();
+        }
+        return 'This pilgrim alias is protected. Please enter the correct passcode for this name, or choose another alias.';
+      }
+      return null;
+    }
+
+    // Simulate alias verification & role assignment in Local Preview / Demo Mode
+    function verifyDemoAliasAndRole(authorName, authorPasscode) {
+      const aliasKey = String(authorName || '').toLowerCase().trim();
+      const passcode = String(authorPasscode || '').trim();
+
+      // Anti-Impersonation rule for Henro / Admin
+      if (
+        aliasKey.includes('henro') ||
+        aliasKey.includes('admin') ||
+        aliasKey.includes('カミノ遍路')
+      ) {
+        if (passcode !== 'henro') {
+          return {
+            ok: false,
+            error:
+              "The name Henro is reserved. In Local Demo Mode, enter passcode 'henro' to test posting with the ★ ADMIN badge, or choose another alias.",
+          };
+        }
+        return { ok: true, role: 'admin' };
+      }
+
+      // Check existing claimed demo alias
+      if (demoClaimedUsers[aliasKey]) {
+        if (passcode !== demoClaimedUsers[aliasKey].passcode) {
+          return {
+            ok: false,
+            error:
+              'This pilgrim alias is already claimed and protected. Please enter its passcode to post, or choose a different alias.',
+          };
+        }
+        return { ok: true, role: demoClaimedUsers[aliasKey].role };
+      }
+
+      // New alias with a passcode (3+ chars) claims 'verified' status
+      if (passcode.length >= 3) {
+        demoClaimedUsers[aliasKey] = { passcode: passcode, role: 'verified' };
+        return { ok: true, role: 'verified' };
+      }
+
+      return { ok: true, role: 'guest' };
+    }
+
+    // Composer presentation helpers. The forms themselves are moved, not cloned,
+    // so their IDs, validation, identity fields, and submit listeners stay intact.
+    function getComposerPanel(type) {
+      return type === 'topic' ? newTopicDrawer : replyFormBox;
+    }
+
+    function getComposerAnchor(type) {
+      return type === 'topic' ? newTopicHomeAnchor : replyHomeAnchor;
+    }
+
+    function getComposerSlot(type) {
+      return type === 'topic' ? newTopicInlineSlot : replyInlineSlot;
+    }
+
+    function getComposerHeadingId(type) {
+      return type === 'topic' ? 'new-topic-heading' : 'reply-form-heading';
+    }
+
+    function restoreComposerHome(type) {
+      const panel = getComposerPanel(type);
+      const anchor = getComposerAnchor(type);
+      if (!panel || !anchor || !anchor.parentNode) return;
+      if (panel.parentNode !== anchor.parentNode) {
+        anchor.parentNode.insertBefore(panel, anchor.nextSibling);
+      }
+    }
+
+    function restoreComposeOverlayHome() {
+      if (!composeOverlay || !composeOverlayHomeAnchor || !composeOverlayHomeAnchor.parentNode) return;
+      if (composeOverlay.parentNode !== composeOverlayHomeAnchor.parentNode) {
+        composeOverlayHomeAnchor.parentNode.insertBefore(composeOverlay, composeOverlayHomeAnchor.nextSibling);
+      }
+    }
+
+    function positionComposeOverlay(trigger) {
+      if (!composeOverlayStage || !trigger) return;
+      const rect = trigger.getBoundingClientRect();
+      const viewportWidth = document.documentElement.clientWidth;
+      const viewportHeight = window.innerHeight;
+      const mobile = viewportWidth <= 680;
+      const overlayWidth = Math.min(mobile ? viewportWidth - 20 : 620, viewportWidth - 20);
+      let left;
+      if (mobile) {
+        left = 10;
+      } else {
+        left = rect.right + 18;
+        if (left + overlayWidth > viewportWidth - 10) {
+          left = rect.left - overlayWidth - 18;
+        }
+        left = Math.max(10, Math.min(left, viewportWidth - overlayWidth - 10));
+      }
+      const expectedContentHeight = Math.min(viewportHeight - 80, Math.max(viewportHeight * 0.72, 260));
+      const maxTop = Math.max(10, viewportHeight - expectedContentHeight - 50);
+      const top = Math.max(10, Math.min(rect.top - 10, maxTop));
+      composeOverlayStage.style.width = `${overlayWidth}px`;
+      composeOverlayStage.style.left = `${left}px`;
+      composeOverlayStage.style.top = `${top}px`;
+    }
+
+    // Drag a separate composer by its top roller. Pointer events support mouse and touch.
+    const composeOverlayHandle = composeOverlayStage
+      ? composeOverlayStage.querySelector('.scroll-roller-top')
+      : null;
+    if (composeOverlayHandle && composeOverlayStage) {
+      let dragState = null;
+      composeOverlayHandle.style.touchAction = 'none';
+      composeOverlayHandle.style.cursor = 'grab';
+
+      composeOverlayHandle.addEventListener('pointerdown', (event) => {
+        if (activeComposerPresentation !== 'overlay' || event.button > 0) return;
+        const rect = composeOverlayStage.getBoundingClientRect();
+        dragState = {
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          startY: event.clientY,
+          left: rect.left,
+          top: rect.top,
+        };
+        composeOverlayHandle.style.cursor = 'grabbing';
+        composeOverlayStage.classList.add('is-dragging');
+        try { composeOverlayHandle.setPointerCapture(event.pointerId); } catch (_) {}
+        event.preventDefault();
+      });
+
+      composeOverlayHandle.addEventListener('pointermove', (event) => {
+        if (!dragState || dragState.pointerId !== event.pointerId) return;
+        const maxLeft = Math.max(0, window.innerWidth - composeOverlayStage.offsetWidth);
+        const maxTop = Math.max(0, window.innerHeight - composeOverlayStage.offsetHeight);
+        const left = Math.max(0, Math.min(maxLeft, dragState.left + event.clientX - dragState.startX));
+        const top = Math.max(0, Math.min(maxTop, dragState.top + event.clientY - dragState.startY));
+        composeOverlayStage.style.left = `${left}px`;
+        composeOverlayStage.style.top = `${top}px`;
+      });
+
+      const endOverlayDrag = (event) => {
+        if (!dragState || (event && dragState.pointerId !== event.pointerId)) return;
+        dragState = null;
+        composeOverlayHandle.style.cursor = 'grab';
+        composeOverlayStage.classList.remove('is-dragging');
+      };
+      composeOverlayHandle.addEventListener('pointerup', endOverlayDrag);
+      composeOverlayHandle.addEventListener('pointercancel', endOverlayDrag);
+      composeOverlayHandle.addEventListener('lostpointercapture', endOverlayDrag);
+    }
+
+    async function openInlineComposer(type, panel, operationId) {
+      const slot = getComposerSlot(type);
+      if (!slot) return;
+      panel.classList.remove('hidden-view');
+      slot.style.height = '0px';
+      slot.style.overflow = 'hidden';
+      void slot.offsetHeight;
+
+      const marginBottom = parseFloat(window.getComputedStyle(panel).marginBottom) || 0;
+      const expandedHeight = panel.offsetHeight + marginBottom;
+      const slotAnimation = slot.animate(
+        [{ height: '0px' }, { height: `${expandedHeight}px` }],
+        { duration: composerInlineOpenDuration, easing: 'cubic-bezier(0.33, 1, 0.62, 1)', fill: 'both' }
+      );
+      const contentAnimation = panel.animate(
+        [
+          { opacity: 0, transform: 'translateY(-14px)' },
+          { opacity: 1, transform: 'translateY(0)' }
+        ],
+        { duration: composerContentFadeDuration, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'both' }
+      );
+      await Promise.all([
+        slotAnimation.finished.catch(() => {}),
+        contentAnimation.finished.catch(() => {})
+      ]);
+      slotAnimation.cancel();
+      contentAnimation.cancel();
+      if (operationId !== composerOperationId) return;
+      slot.style.height = 'auto';
+      slot.style.overflow = 'visible';
+      panel.style.opacity = '';
+      panel.style.transform = '';
+    }
+
+    function updateComposeModeUI() {
+      const buttons = [
+        [composeModeOverlayBtn, 'overlay'],
+        [composeModeInlineBtn, 'inline'],
+        [composeModeMixedBtn, 'mixed'],
+      ];
+      buttons.forEach(([button, mode]) => {
+        if (!button) return;
+        const selected = composeMode === mode;
+        button.classList.toggle('is-active', selected);
+        button.setAttribute('aria-pressed', String(selected));
+      });
+      if (composeModeHelp) {
+        composeModeHelp.textContent = '(1): Topics and replies use separate scrolls. (2): Both forms open in the main scroll. (M): New topics use a side scroll; replies open in the main scroll. Your choice is remembered on this device.';
+      }
+    }
+
+    async function openComposer(type, trigger) {
+      const panel = getComposerPanel(type);
+      if (!panel || composerTransitioning) return;
+      if (activeComposerType && activeComposerType !== type) {
+        await closeComposer(activeComposerType, { restoreFocus: false, clearFeedback: false });
+      }
+
+      activeComposerType = type;
+      activeComposerPresentation = composeMode === 'mixed'
+        ? (type === 'topic' ? 'overlay' : 'inline')
+        : composeMode;
+      const operationId = ++composerOperationId;
+      lastComposerTrigger = trigger || lastComposerTrigger;
+      const anchor = getComposerAnchor(type);
+
+      if (activeComposerPresentation === 'overlay') {
+        document.querySelector('header.site-header')?.classList.add('is-hidden');
+        // Move the fixed overlay to <body> so the main scroll's transforms/overflow cannot clip it.
+        if (composeOverlay && composeOverlay.parentNode !== document.body) {
+          document.body.appendChild(composeOverlay);
+        }
+        if (composeOverlayPaper && panel.parentNode !== composeOverlayPaper) {
+          composeOverlayPaper.appendChild(panel);
+        }
+        panel.classList.remove('hidden-view');
+        if (composeOverlay) {
+          composeOverlay.classList.remove('hidden-view');
+          composeOverlay.setAttribute('aria-hidden', 'false');
+        }
+        if (composeOverlayStage) {
+          composeOverlayStage.setAttribute('aria-hidden', 'false');
+          composeOverlayStage.setAttribute('aria-labelledby', getComposerHeadingId(type));
+          composeOverlayStage.classList.remove('is-closing');
+          composeOverlayStage.style.setProperty('--composer-scroll-unfurl-duration', `${composerOverlayOpenDuration}ms`);
+          composeOverlayStage.style.height = '';
+          composeOverlayStage.style.opacity = '';
+          composeOverlayStage.style.transform = '';
+          positionComposeOverlay(lastComposerTrigger);
+          composeOverlayStage.style.animation = 'none';
+          void composeOverlayStage.offsetHeight;
+          composeOverlayStage.style.animation = '';
+        }
+        if (composeOverlayPaper) {
+          composeOverlayPaper.style.animation = 'none';
+          void composeOverlayPaper.offsetHeight;
+          composeOverlayPaper.style.animation = '';
+        }
+      } else {
+        if (anchor && anchor.parentNode && panel.parentNode !== anchor.parentNode) {
+          restoreComposerHome(type);
+        }
+        if (composeOverlay) {
+          composeOverlay.classList.add('hidden-view');
+          composeOverlay.setAttribute('aria-hidden', 'true');
+        }
+        if (composeOverlayStage) composeOverlayStage.setAttribute('aria-hidden', 'true');
+        await openInlineComposer(type, panel, operationId);
+      }
+
+      if (type === 'topic') {
+        if (toggleNewTopicBtn) toggleNewTopicBtn.setAttribute('aria-expanded', 'true');
+      } else if (toggleReplyFormBtn) {
+        toggleReplyFormBtn.textContent = 'Hide Reply Form';
+        toggleReplyFormBtn.setAttribute('aria-expanded', 'true');
+      }
+      loadSavedIdentity();
+      const focusTarget = type === 'topic'
+        ? ((!topicAuthorInput || topicAuthorInput.value) ? document.getElementById('topic-title') : topicAuthorInput)
+        : replyAuthorInput;
+      if (focusTarget) focusTarget.focus({ preventScroll: activeComposerPresentation === 'overlay' });
+    }
+
+    async function closeComposer(type, options = {}) {
+      const panel = getComposerPanel(type);
+      const { restoreFocus = false, clearFeedback = true } = options;
+      if (!panel) return;
+      if (activeComposerType !== type) {
+        panel.classList.add('hidden-view');
+        return;
+      }
+      if (composerTransitioning) return;
+      composerTransitioning = true;
+      const operationId = ++composerOperationId;
+      const presentation = activeComposerPresentation;
+      const slot = getComposerSlot(type);
+      const animations = [];
+      const closeDuration = presentation === 'overlay' ? composerOverlayCloseDuration : composerInlineCloseDuration;
+
+      if (presentation === 'overlay' && composeOverlay && composeOverlayStage && composeOverlayPaper) {
+        document.querySelector('header.site-header')?.classList.remove('is-hidden');
+        composeOverlayStage.classList.add('is-closing');
+        const paperStyle = window.getComputedStyle(composeOverlayPaper);
+        const currentMaxHeight = paperStyle.maxHeight === 'none'
+          ? `${composeOverlayPaper.getBoundingClientRect().height}px`
+          : paperStyle.maxHeight;
+        const currentMinHeight = paperStyle.minHeight;
+        const currentHeight = Math.max(composeOverlayStage.getBoundingClientRect().height, 1);
+        composeOverlayPaper.style.setProperty('--scroll-furl-from-max-height', currentMaxHeight);
+        composeOverlayPaper.style.setProperty('--scroll-furl-from-min-height', currentMinHeight);
+        composeOverlayPaper.style.animation = `scrollFurlUp ${closeDuration}ms cubic-bezier(0.4, 0, 0.8, 0.2) forwards`;
+        animations.push(composeOverlayStage.animate(
+          [
+            { height: `${currentHeight}px`, opacity: 1, transform: 'translateY(0)' },
+            { height: '0px', opacity: 0, transform: 'translateY(-8px)' }
+          ],
+          { duration: closeDuration, easing: 'cubic-bezier(0.4, 0, 0.8, 0.2)', fill: 'both' }
+        ));
+      } else if (slot) {
+        const currentHeight = slot.getBoundingClientRect().height || panel.offsetHeight;
+        [...slot.getAnimations(), ...panel.getAnimations()].forEach((animation) => animation.cancel());
+        slot.style.height = `${currentHeight}px`;
+        slot.style.overflow = 'hidden';
+        void slot.offsetHeight;
+        animations.push(slot.animate(
+          [{ height: `${currentHeight}px` }, { height: '0px' }],
+          { duration: closeDuration, easing: 'cubic-bezier(0.4, 0, 0.8, 0.2)', fill: 'both' }
+        ));
+        animations.push(panel.animate(
+          [
+            { opacity: 1, transform: 'translateY(0)' },
+            { opacity: 0, transform: 'translateY(-12px)' }
+          ],
+          { duration: Math.max(1, closeDuration - 80), easing: 'cubic-bezier(0.4, 0, 0.8, 0.2)', fill: 'both' }
+        ));
+      }
+
+      await Promise.all(animations.map((animation) => animation.finished.catch(() => {})));
+      if (operationId !== composerOperationId) return;
+      animations.forEach((animation) => animation.cancel());
+      panel.classList.add('hidden-view');
+      panel.style.opacity = '';
+      panel.style.transform = '';
+      if (slot) {
+        slot.style.height = '0px';
+        slot.style.overflow = 'hidden';
+      }
+      if (presentation === 'overlay') {
+        restoreComposerHome(type);
+        if (composeOverlay) {
+          composeOverlay.classList.add('hidden-view');
+          composeOverlay.setAttribute('aria-hidden', 'true');
+        }
+        if (composeOverlayStage) {
+          composeOverlayStage.classList.remove('is-closing');
+          composeOverlayStage.setAttribute('aria-hidden', 'true');
+          composeOverlayStage.style.height = '';
+          composeOverlayStage.style.opacity = '';
+          composeOverlayStage.style.transform = '';
+          composeOverlayStage.style.animation = '';
+        }
+        if (composeOverlayPaper) {
+          composeOverlayPaper.style.animation = '';
+          composeOverlayPaper.style.removeProperty('--scroll-furl-from-max-height');
+          composeOverlayPaper.style.removeProperty('--scroll-furl-from-min-height');
+        }
+        restoreComposeOverlayHome();
+      }
+
+      if (type === 'topic') {
+        if (toggleNewTopicBtn) toggleNewTopicBtn.setAttribute('aria-expanded', 'false');
+        if (clearFeedback && newTopicFeedback) {
+          newTopicFeedback.textContent = '';
+          newTopicFeedback.className = 'form-feedback';
+        }
+      } else if (toggleReplyFormBtn) {
+        toggleReplyFormBtn.textContent = 'Reply to This Thread';
+        toggleReplyFormBtn.setAttribute('aria-expanded', 'false');
+        if (clearFeedback && newReplyFeedback) {
+          newReplyFeedback.textContent = '';
+          newReplyFeedback.className = 'form-feedback';
+        }
+      }
+      activeComposerType = null;
+      activeComposerPresentation = null;
+      composerTransitioning = false;
+      if (restoreFocus && lastComposerTrigger && typeof lastComposerTrigger.focus === 'function') {
+        lastComposerTrigger.focus({ preventScroll: true });
+      }
+    }
+
+    async function setComposeMode(mode) {
+      if (!['overlay', 'inline', 'mixed'].includes(mode)) return;
+      if (composeMode === mode || composerTransitioning) return;
+      const wasOpen = activeComposerType;
+      const trigger = lastComposerTrigger;
+      composeMode = mode;
+      updateComposeModeUI();
+      try { window.localStorage.setItem('forum-compose-mode', composeMode); } catch (_) {}
+      if (wasOpen) {
+        await closeComposer(wasOpen, { restoreFocus: false, clearFeedback: false });
+        await openComposer(wasOpen, trigger);
+      }
+    }
+
+    if (composeModeOverlayBtn) {
+      composeModeOverlayBtn.addEventListener('click', () => { void setComposeMode('overlay'); });
+    }
+    if (composeModeInlineBtn) {
+      composeModeInlineBtn.addEventListener('click', () => { void setComposeMode('inline'); });
+    }
+    if (composeModeMixedBtn) {
+      composeModeMixedBtn.addEventListener('click', () => { void setComposeMode('mixed'); });
+    }
+    updateComposeModeUI();
+    window.addEventListener('resize', function () {
+      if (activeComposerType && activeComposerPresentation === 'overlay') {
+        positionComposeOverlay(lastComposerTrigger);
+      }
+    });
+
+    // Reply form toggle
+    function setReplyFormOpen(isOpen, options = {}) {
+      if (!replyFormBox || !toggleReplyFormBtn) return;
+      if (isOpen) {
+        void openComposer('reply', toggleReplyFormBtn);
+      } else {
+        void closeComposer('reply', options);
+      }
+      toggleReplyFormBtn.textContent = isOpen ? 'Hide Reply Form' : 'Reply to This Thread';
+      toggleReplyFormBtn.setAttribute('aria-expanded', String(isOpen));
+    }
+
+    if (toggleReplyFormBtn) {
+      toggleReplyFormBtn.addEventListener('click', function () {
+        setReplyFormOpen(activeComposerType !== 'reply', { restoreFocus: false });
+      });
+    }
+
+    if (closeReplyBtn) {
+      closeReplyBtn.addEventListener('click', function () {
+        setReplyFormOpen(false, { restoreFocus: true });
+      });
+    }
+
+    // New-topic drawer toggle
+    async function setNewTopicDrawerOpen(isOpen, options = {}) {
+      if (!newTopicDrawer || !toggleNewTopicBtn) return;
+      toggleNewTopicBtn.setAttribute('aria-expanded', String(isOpen));
+      if (isOpen) {
+        void openComposer('topic', toggleNewTopicBtn);
+      } else {
+        await closeComposer('topic', options);
+      }
+    }
+
+    if (toggleNewTopicBtn) {
+      toggleNewTopicBtn.addEventListener('click', function () {
+        setNewTopicDrawerOpen(activeComposerType !== 'topic', { restoreFocus: false });
+      });
+    }
+    if (closeNewTopicBtn) {
+      closeNewTopicBtn.addEventListener('click', function () {
+        setNewTopicDrawerOpen(false, { restoreFocus: true });
+      });
+    }
+    if (cancelNewTopicBtn) {
+      cancelNewTopicBtn.addEventListener('click', function () {
+        setNewTopicDrawerOpen(false, { restoreFocus: true });
+      });
+    }
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key !== 'Escape' || !activeComposerType || composerTransitioning) return;
+      const type = activeComposerType;
+      void closeComposer(type, { restoreFocus: true });
+    });
+
+    // Fetch Threads from Supabase (including author_role) or Demo Mode
+    async function loadThreads() {
+      if (!isLiveSupabase) {
+        allThreads = demoStarterThreads.slice();
+        renderThreadList();
+        return;
+      }
+
+      try {
+        const endpoint = `${supabaseUrl}/rest/v1/forum_threads?select=id,category,title,author_name,author_role,body,is_pinned,reply_count,created_at&order=is_pinned.desc,created_at.desc`;
+        const response = await fetch(endpoint, {
+          method: 'GET',
+          headers: {
+            apikey: supabaseAnonKey,
+            Authorization: `Bearer ${supabaseAnonKey}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Supabase HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        allThreads = Array.isArray(data) ? data : [];
+        renderThreadList();
+      } catch (err) {
+        console.error('Error loading threads from Supabase:', err);
+        allThreads = demoStarterThreads.slice();
+        renderThreadList();
+      }
+    }
+
+    // Animate list/thread/category changes while keeping the main parchment's bottom roller
+    // visually anchored in the viewport. If this feels disorienting on a device, disable
+    // followMainScrollRoller below and use the fallback scroll-to-top behavior instead.
+    const followMainScrollRoller = true;
+    let mainViewAnimationId = 0;
+
+    function getMainScrollBottomRoller() {
+      return document.querySelector('.scroll-stage > .scroll-roller-bottom, .scroll-stage .scroll-roller-bottom:not(.forum-compose-scroll-stage .scroll-roller-bottom)');
+    }
+
+    function animateMainViewChange(view, mutate, duration = 520) {
+      const bottomRoller = getMainScrollBottomRoller();
+      const initialRollerTop = bottomRoller ? bottomRoller.getBoundingClientRect().top : null;
+      const oldHeight = view ? view.getBoundingClientRect().height : 0;
+      const token = ++mainViewAnimationId;
+      mutate();
+      if (!view) return;
+      const newHeight = view.getBoundingClientRect().height;
+      const targetHeight = Math.max(0, newHeight);
+      view.style.overflow = 'clip';
+      view.style.height = `${oldHeight}px`;
+      view.style.opacity = '0.88';
+      view.style.transform = 'translateY(5px)';
+      void view.offsetHeight;
+      const animation = view.animate([
+        { height: `${oldHeight}px`, opacity: 0.88, transform: 'translateY(5px)' },
+        { height: `${targetHeight}px`, opacity: 1, transform: 'translateY(0)' }
+      ], { duration: prefersReducedMotion ? 1 : duration, easing: 'cubic-bezier(0.33, 1, 0.62, 1)', fill: 'both' });
+
+      let frame = 0;
+      const followRoller = () => {
+        if (token !== mainViewAnimationId) return;
+        if (followMainScrollRoller && bottomRoller && initialRollerTop !== null) {
+          const currentTop = bottomRoller.getBoundingClientRect().top;
+          const delta = currentTop - initialRollerTop;
+          if (Math.abs(delta) > 0.5) {
+            window.scrollTo({
+              top: window.scrollY + delta,
+              behavior: 'instant'
+            });
+          }
+        }
+        frame = window.requestAnimationFrame(followRoller);
+      };
+      if (followMainScrollRoller) frame = window.requestAnimationFrame(followRoller);
+      animation.finished.catch(() => {}).then(() => {
+        if (token !== mainViewAnimationId) return;
+        window.cancelAnimationFrame(frame);
+        animation.cancel();
+        view.style.height = '';
+        view.style.overflow = '';
+        view.style.opacity = '';
+        view.style.transform = '';
+        if (!followMainScrollRoller) {
+          // Fallback experiment: reset the page to the top after content changes.
+          window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+        }
+      });
+    }
+
+    // Render Thread List View (#forum-list-view) using renderAuthorBadge()
+    function renderThreadList() {
+      if (!threadsStreamContainer) return;
+
+      const filtered =
+        currentCategory === 'All Topics'
+          ? allThreads
+          : allThreads.filter((t) => t.category === currentCategory);
+
+      if (countIndicator) {
+        const label = currentCategory === 'All Topics' ? 'All Topics' : currentCategory;
+        countIndicator.textContent = `${label} (${filtered.length} ${filtered.length === 1 ? 'Thread' : 'Threads'})`;
+      }
+
+      if (filtered.length === 0) {
+        threadsStreamContainer.innerHTML = `
+          <div class="stream-item">
+            <div class="stream-meta">EMPTY COURTYARD SECTION</div>
+            <h3 class="stream-title">No discussions inscribed in "${escapeHtml(currentCategory)}" yet</h3>
+            <p class="stream-excerpt">
+              Be the first pilgrim to open a dialogue in this category by clicking "+ Inscribe New Topic 印" above.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      threadsStreamContainer.innerHTML = filtered
+        .map((thread) => {
+          const pinnedBadge = thread.is_pinned
+            ? '<span class="pinned-stamp">[PINNED 印]</span>'
+            : '';
+          const replyCount = Number(thread.reply_count || 0);
+          const replyLabel = replyCount === 1 ? '1 Reply' : `${replyCount} Replies`;
+          const excerpt = makeExcerpt(thread.body, 180);
+          const authorBadgeHtml = renderAuthorBadge(thread.author_name, thread.author_role);
+
+          return `
+            <article
+              class="stream-item ${thread.is_pinned ? 'is-pinned-item' : ''}"
+              data-thread-id="${escapeHtml(thread.id)}"
+              tabindex="0"
+              role="button"
+              aria-label="Open discussion: ${escapeHtml(thread.title)}"
+            >
+              <div class="stream-meta">
+                ${pinnedBadge}
+                <span class="category-tag">${escapeHtml(thread.category)}</span>
+                <span>BY ${authorBadgeHtml}</span>
+                <span>•</span>
+                <time datetime="${escapeHtml(thread.created_at)}">${escapeHtml(formatDate(thread.created_at))}</time>
+                <span class="reply-count-tag">💬 ${escapeHtml(replyLabel)}</span>
+              </div>
+              <h3 class="stream-title">${escapeHtml(thread.title)}</h3>
+              <p class="stream-excerpt">${escapeHtml(excerpt)}</p>
+              <span class="stream-read-link">Unroll Discussion ➔</span>
+            </article>
+          `;
+        })
+        .join('');
+
+      // Attach click & keyboard listeners to each .stream-item
+      const items = threadsStreamContainer.querySelectorAll('.stream-item[data-thread-id]');
+      items.forEach((item) => {
+        item.addEventListener('click', function () {
+          const id = item.getAttribute('data-thread-id');
+          if (id) openThreadView(id);
+        });
+        item.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            const id = item.getAttribute('data-thread-id');
+            if (id) openThreadView(id);
+          }
+        });
+      });
+    }
+
+    // Category Filter Buttons
+    categoryBtns.forEach((btn) => {
+      btn.addEventListener('click', function () {
+        const selectedCat = btn.getAttribute('data-category') || 'All Topics';
+        currentCategory = selectedCat;
+
+        categoryBtns.forEach((b) => {
+          const isMatch = b.getAttribute('data-category') === selectedCat;
+          b.classList.toggle('is-active', isMatch);
+          b.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+        });
+
+        // If user is currently inside a single thread, return to list view
+        if (activeThreadId !== null) {
+          closeThreadView(); // Includes the animated return to the filtered list.
+        } else {
+          animateMainViewChange(listView, () => renderThreadList(), 620);
+        }
+      });
+    });
+
+    // Open Single Thread & Replies View (#forum-thread-view)
+    async function openThreadView(threadId) {
+      const thread = allThreads.find((t) => String(t.id) === String(threadId));
+      if (!thread) return;
+
+      activeThreadId = thread.id;
+
+      // Start each opened thread with the reply form closed, including any active overlay.
+      if (activeComposerType === 'reply') {
+        void closeComposer('reply', { restoreFocus: false, clearFeedback: false });
+      } else if (replyFormBox) {
+        replyFormBox.classList.add('hidden-view');
+        if (replyInlineSlot) {
+          replyInlineSlot.style.height = '0px';
+          replyInlineSlot.style.overflow = 'hidden';
+        }
+      }
+      if (toggleReplyFormBtn) {
+        toggleReplyFormBtn.textContent = 'Reply to This Thread';
+        toggleReplyFormBtn.setAttribute('aria-expanded', 'false');
+      }
+
+      // Populate thread details using renderAuthorBadge()
+      if (activeThreadMeta) {
+        const pinnedHtml = thread.is_pinned ? '<span class="pinned-stamp">[PINNED 印]</span>' : '';
+        const authorBadgeHtml = renderAuthorBadge(thread.author_name, thread.author_role);
+        activeThreadMeta.innerHTML = `
+          ${pinnedHtml}
+          <span class="category-tag">${escapeHtml(thread.category)}</span>
+          <span>INSCRIBED BY ${authorBadgeHtml}</span>
+          <span>•</span>
+          <time datetime="${escapeHtml(thread.created_at)}">${escapeHtml(formatDate(thread.created_at))}</time>
+        `;
+      }
+      if (activeThreadTitle) {
+        activeThreadTitle.textContent = thread.title;
+      }
+      if (activeThreadBody) {
+        activeThreadBody.innerHTML = renderParagraphs(thread.body);
+      }
+
+      // Switch views with the same measured-height/fade treatment as Option 2.
+      const switchViews = () => {
+        if (listView) listView.classList.add('hidden-view');
+        if (threadView) threadView.classList.remove('hidden-view');
+      };
+      if (threadView) animateMainViewChange(threadView, switchViews, 620);
+      else switchViews();
+
+      loadSavedIdentity();
+
+      if (newReplyFeedback) {
+        newReplyFeedback.textContent = '';
+        newReplyFeedback.className = 'form-feedback';
+      }
+
+      await loadRepliesForThread(thread.id);
+    }
+
+    function closeThreadView() {
+      activeThreadId = null;
+      const switchViews = () => {
+        if (threadView) threadView.classList.add('hidden-view');
+        if (listView) listView.classList.remove('hidden-view');
+        renderThreadList();
+      };
+      if (listView) animateMainViewChange(listView, switchViews, 620);
+      else switchViews();
+    }
+
+    if (backToListBtn) {
+      backToListBtn.addEventListener('click', function () {
+        closeThreadView();
+      });
+    }
+
+    // Fetch Replies for a Thread (including author_role)
+    async function loadRepliesForThread(threadId) {
+      if (!repliesListContainer) return;
+
+      repliesListContainer.innerHTML = `
+        <div class="empty-replies-box">Unrolling responses...</div>
+      `;
+
+      if (!isLiveSupabase) {
+        const list = demoStarterReplies[threadId] || [];
+        renderRepliesList(list);
+        return;
+      }
+
+      try {
+        const endpoint = `${supabaseUrl}/rest/v1/forum_replies?thread_id=eq.${encodeURIComponent(threadId)}&select=id,author_name,author_role,body,created_at&order=created_at.asc`;
+        const response = await fetch(endpoint, {
+          method: 'GET',
+          headers: {
+            apikey: supabaseAnonKey,
+            Authorization: `Bearer ${supabaseAnonKey}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Supabase HTTP ${response.status}`);
+        }
+
+        const replies = await response.json();
+        renderRepliesList(Array.isArray(replies) ? replies : []);
+      } catch (err) {
+        console.error('Error fetching replies:', err);
+        const fallback = demoStarterReplies[threadId] || [];
+        renderRepliesList(fallback);
+      }
+    }
+
+    // Render Replies List using renderAuthorBadge() and .is-admin-reply
+    function renderRepliesList(replies) {
+      if (!repliesListContainer) return;
+
+      if (activeThreadReplyCount) {
+        const count = replies.length;
+        activeThreadReplyCount.textContent = count === 1 ? '1 Reply' : `${count} Replies`;
+      }
+
+      if (replies.length === 0) {
+        repliesListContainer.innerHTML = `
+          <div class="empty-replies-box">
+            No replies have been inscribed yet. Be the first to respond below.
+          </div>
+        `;
+        return;
+      }
+
+      repliesListContainer.innerHTML = replies
+        .map((reply) => {
+          const role = String(reply.author_role || 'guest').toLowerCase().trim();
+          const isAdminClass = role === 'admin' ? 'is-admin-reply' : '';
+          const authorBadgeHtml = renderAuthorBadge(reply.author_name, role);
+
+          return `
+            <div class="reply-card ${isAdminClass}">
+              <div class="reply-card-meta">
+                ${authorBadgeHtml}
+                <time datetime="${escapeHtml(reply.created_at)}">${escapeHtml(formatDate(reply.created_at))}</time>
+              </div>
+              <div class="reply-card-body">
+                ${renderParagraphs(reply.body)}
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    // Handle "New Discussion Topic" Form Submission
+    if (newTopicForm) {
+      newTopicForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const honeypot = document.getElementById('topic-website-url');
+        if (honeypot && honeypot.value.trim() !== '') {
+          newTopicForm.reset();
+          await setNewTopicDrawerOpen(false, { restoreFocus: false });
+          return;
+        }
+
+        const categoryEl = document.getElementById('topic-category');
+        const titleEl = document.getElementById('topic-title');
+        const bodyEl = document.getElementById('topic-body');
+
+        const category = categoryEl ? categoryEl.value.trim() : 'Philosophy & Sufficiency';
+        const author_name = topicAuthorInput ? topicAuthorInput.value.trim() : '';
+        const author_email = topicEmailInput ? topicEmailInput.value.trim() : '';
+        const author_passcode = topicPasscodeInput ? topicPasscodeInput.value.trim() : '';
+        const shouldRemember = topicRememberCheckbox ? topicRememberCheckbox.checked : true;
+        const notify_replies = topicNotifyCheckbox ? Boolean(topicNotifyCheckbox.checked) : true;
+        const title = titleEl ? titleEl.value.trim() : '';
+        const body = bodyEl ? bodyEl.value.trim() : '';
+
+        if (author_name.length < 1 || author_name.length > 60) {
+          newTopicFeedback.textContent = 'Please enter your Name or Pilgrim Alias (1–60 characters).';
+          newTopicFeedback.className = 'form-feedback is-error';
+          return;
+        }
+        if (title.length < 3 || title.length > 160) {
+          newTopicFeedback.textContent = 'Please enter a Topic Title between 3 and 160 characters.';
+          newTopicFeedback.className = 'form-feedback is-error';
+          return;
+        }
+        if (body.length < 5 || body.length > 5000) {
+          newTopicFeedback.textContent = 'Please write a Reflection between 5 and 5,000 characters.';
+          newTopicFeedback.className = 'form-feedback is-error';
+          return;
+        }
+
+        submitNewTopicBtn.disabled = true;
+        submitNewTopicBtn.textContent = 'Inscribing...';
+        newTopicFeedback.textContent = '';
+        newTopicFeedback.className = 'form-feedback';
+
+        if (!isLiveSupabase) {
+          const demoCheck = verifyDemoAliasAndRole(author_name, author_passcode);
+          if (!demoCheck.ok) {
+            newTopicFeedback.textContent = demoCheck.error;
+            newTopicFeedback.className = 'form-feedback is-error';
+            submitNewTopicBtn.disabled = false;
+            submitNewTopicBtn.textContent = 'Inscribe Topic into Scroll 印';
+            return;
+          }
+
+          handleIdentityPersistence(author_name, author_email, author_passcode, shouldRemember);
+
+          const createdDemoThread = {
+            id: 'demo-thread-' + Date.now(),
+            category: category,
+            title: title,
+            author_name: author_name,
+            author_role: demoCheck.role,
+            body: body,
+            is_pinned: false,
+            reply_count: 0,
+            created_at: new Date().toISOString(),
+          };
+          allThreads.unshift(createdDemoThread);
+          demoStarterReplies[createdDemoThread.id] = [];
+
+          if (titleEl) titleEl.value = '';
+          if (bodyEl) bodyEl.value = '';
+          loadSavedIdentity();
+
+          submitNewTopicBtn.disabled = false;
+          submitNewTopicBtn.textContent = 'Inscribe Topic into Scroll 印';
+          await setNewTopicDrawerOpen(false, { restoreFocus: false });
+          renderThreadList();
+          openThreadView(createdDemoThread.id);
+          return;
+        }
+
+        try {
+          const endpoint = `${supabaseUrl}/rest/v1/forum_threads?select=id,category,title,author_name,author_role,body,is_pinned,reply_count,created_at`;
+          const payload = {
+            category: category,
+            title: title,
+            author_name: author_name,
+            author_email: author_email || null,
+            author_passcode: author_passcode || null,
+            notify_replies: notify_replies,
+            body: body,
+          };
+
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              apikey: supabaseAnonKey,
+              Authorization: `Bearer ${supabaseAnonKey}`,
+              'Content-Type': 'application/json',
+              Prefer: 'return=representation',
+            },
+            body: JSON.stringify(payload),
+          });
+
+          if (!response.ok) {
+            const errText = await response.text();
+            const friendlyProtectionError = extractProtectionErrorMessage(errText);
+            if (friendlyProtectionError) {
+              newTopicFeedback.textContent = friendlyProtectionError;
+              newTopicFeedback.className = 'form-feedback is-error';
+              return;
+            }
+            throw new Error(errText || `HTTP ${response.status}`);
+          }
+
+          handleIdentityPersistence(author_name, author_email, author_passcode, shouldRemember);
+
+          const inserted = await response.json();
+          const newThread = Array.isArray(inserted) && inserted[0] ? inserted[0] : null;
+
+          if (titleEl) titleEl.value = '';
+          if (bodyEl) bodyEl.value = '';
+          loadSavedIdentity();
+          await setNewTopicDrawerOpen(false, { restoreFocus: false });
+
+          await loadThreads();
+          if (newThread && newThread.id) {
+            openThreadView(newThread.id);
+          }
+        } catch (err) {
+          console.error('Failed to post new topic:', err);
+          newTopicFeedback.textContent =
+            'Could not inscribe topic. Please verify your Supabase connection or try again.';
+          newTopicFeedback.className = 'form-feedback is-error';
+        } finally {
+          submitNewTopicBtn.disabled = false;
+          submitNewTopicBtn.textContent = 'Inscribe Topic into Scroll 印';
+        }
+      });
+    }
+
+    // Handle "Post a Reply to This Thread" Form Submission
+    if (newReplyForm) {
+      newReplyForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (!activeThreadId) return;
+
+        const honeypot = document.getElementById('reply-website-url');
+        if (honeypot && honeypot.value.trim() !== '') {
+          newReplyForm.reset();
+          return;
+        }
+
+        const bodyEl = document.getElementById('reply-body');
+
+        const author_name = replyAuthorInput ? replyAuthorInput.value.trim() : '';
+        const author_email = replyEmailInput ? replyEmailInput.value.trim() : '';
+        const author_passcode = replyPasscodeInput ? replyPasscodeInput.value.trim() : '';
+        const shouldRemember = replyRememberCheckbox ? replyRememberCheckbox.checked : true;
+        const notify_replies = replyNotifyCheckbox ? Boolean(replyNotifyCheckbox.checked) : true;
+        const body = bodyEl ? bodyEl.value.trim() : '';
+
+        if (author_name.length < 1 || author_name.length > 60) {
+          newReplyFeedback.textContent = 'Please enter your Name or Pilgrim Alias (1–60 characters).';
+          newReplyFeedback.className = 'form-feedback is-error';
+          return;
+        }
+        if (body.length < 2 || body.length > 3000) {
+          newReplyFeedback.textContent = 'Please enter a reply between 2 and 3,000 characters.';
+          newReplyFeedback.className = 'form-feedback is-error';
+          return;
+        }
+
+        submitNewReplyBtn.disabled = true;
+        submitNewReplyBtn.textContent = 'Inscribing Reply...';
+        newReplyFeedback.textContent = '';
+        newReplyFeedback.className = 'form-feedback';
+
+        if (!isLiveSupabase) {
+          const demoCheck = verifyDemoAliasAndRole(author_name, author_passcode);
+          if (!demoCheck.ok) {
+            newReplyFeedback.textContent = demoCheck.error;
+            newReplyFeedback.className = 'form-feedback is-error';
+            submitNewReplyBtn.disabled = false;
+            submitNewReplyBtn.textContent = 'Inscribe Reply 印';
+            return;
+          }
+
+          handleIdentityPersistence(author_name, author_email, author_passcode, shouldRemember);
+
+          const demoReply = {
+            id: 'demo-reply-' + Date.now(),
+            thread_id: activeThreadId,
+            author_name: author_name,
+            author_role: demoCheck.role,
+            body: body,
+            created_at: new Date().toISOString(),
+          };
+          if (!demoStarterReplies[activeThreadId]) {
+            demoStarterReplies[activeThreadId] = [];
+          }
+          demoStarterReplies[activeThreadId].push(demoReply);
+
+          const parentThread = allThreads.find((t) => String(t.id) === String(activeThreadId));
+          if (parentThread) {
+            parentThread.reply_count = Number(parentThread.reply_count || 0) + 1;
+          }
+
+          renderRepliesList(demoStarterReplies[activeThreadId]);
+          if (bodyEl) bodyEl.value = '';
+          loadSavedIdentity();
+
+          newReplyFeedback.textContent = '✓ Reply inscribed into the thread.';
+          newReplyFeedback.className = 'form-feedback is-success';
+          submitNewReplyBtn.disabled = false;
+          submitNewReplyBtn.textContent = 'Inscribe Reply 印';
+          setReplyFormOpen(false, { restoreFocus: false, clearFeedback: false });
+          return;
+        }
+
+        try {
+          const endpoint = `${supabaseUrl}/rest/v1/forum_replies?select=id,author_name,author_role,body,created_at`;
+          const payload = {
+            thread_id: activeThreadId,
+            author_name: author_name,
+            author_email: author_email || null,
+            author_passcode: author_passcode || null,
+            notify_replies: notify_replies,
+            body: body,
+          };
+
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              apikey: supabaseAnonKey,
+              Authorization: `Bearer ${supabaseAnonKey}`,
+              'Content-Type': 'application/json',
+              Prefer: 'return=representation',
+            },
+            body: JSON.stringify(payload),
+          });
+
+          if (!response.ok) {
+            const errText = await response.text();
+            const friendlyProtectionError = extractProtectionErrorMessage(errText);
+            if (friendlyProtectionError) {
+              newReplyFeedback.textContent = friendlyProtectionError;
+              newReplyFeedback.className = 'form-feedback is-error';
+              return;
+            }
+            throw new Error(errText || `HTTP ${response.status}`);
+          }
+
+          handleIdentityPersistence(author_name, author_email, author_passcode, shouldRemember);
+
+          // Increment local thread reply_count and re-fetch replies chronologically
+          const parentThread = allThreads.find((t) => String(t.id) === String(activeThreadId));
+          if (parentThread) {
+            parentThread.reply_count = Number(parentThread.reply_count || 0) + 1;
+          }
+
+          if (bodyEl) bodyEl.value = '';
+          loadSavedIdentity();
+          await loadRepliesForThread(activeThreadId);
+          newReplyFeedback.textContent = '✓ Your reply has been inscribed into the thread.';
+          newReplyFeedback.className = 'form-feedback is-success';
+          setReplyFormOpen(false, { restoreFocus: false, clearFeedback: false });
+        } catch (err) {
+          console.error('Failed to post reply:', err);
+          newReplyFeedback.textContent =
+            'Could not post reply. Please verify your connection and try again.';
+          newReplyFeedback.className = 'form-feedback is-error';
+        } finally {
+          submitNewReplyBtn.disabled = false;
+          submitNewReplyBtn.textContent = 'Inscribe Reply 印';
+        }
+      });
+    }
+
+    // Pre-fill saved identity and initialize Forum on Page Load
+    loadSavedIdentity();
+    loadThreads();
+  })();
+</script>
+
+<style>
+  .sneak-preview-banner {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6E2B25;
+    background: rgba(110, 43, 37, 0.1);
+    border: 1px dashed rgba(110, 43, 37, 0.45);
+    padding: 0.6rem 0.9rem;
+    margin-bottom: 1.25rem;
+    text-align: center;
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    // Insert a subtle Sneak Preview notice inside the forum toolbar
+    const toolbar = document.querySelector('.forum-toolbar');
+    if (toolbar) {
+      const banner = document.createElement('div');
+      banner.className = 'sneak-preview-banner';
+      banner.textContent = '印 Sneak Preview Mode — Feel free to test the categories, threads, and scroll animations. Posting is disabled until launch.';
+      toolbar.insertBefore(banner, toolbar.firstChild);
+    }
+
+    // Intercept all form submissions in the capture phase so no messages are posted or sent
+    const previewForms = [
+      { formId: 'new-topic-form', feedbackId: 'new-topic-feedback' },
+      { formId: 'new-reply-form', feedbackId: 'new-reply-feedback' },
+      { formId: 'board-subscribe-form', feedbackId: 'board-subscribe-feedback' }
+    ];
+
+    previewForms.forEach(({ formId, feedbackId }) => {
+      const formEl = document.getElementById(formId);
+      const feedbackEl = document.getElementById(feedbackId);
+      if (!formEl) return;
+
+      formEl.addEventListener(
+        'submit',
+        function (e) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          if (feedbackEl) {
+            feedbackEl.textContent =
+              '🔒 Sneak Preview Mode: Sending messages and subscriptions is disabled in this preview for security.';
+            feedbackEl.className = 'form-feedback is-error';
+          }
+          return false;
+        },
+        true
+      );
+    });
+  })();
+</script>
+

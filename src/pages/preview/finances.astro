@@ -1,0 +1,324 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import finances from '../../data/finances.json';
+import siteConfig from '../../data/siteConfig.json';
+
+const currency = finances.currencySymbol || '€';
+const startingReserve = Number(finances.startingReserve || 0);
+const entries = Array.isArray(finances.entries) ? finances.entries : [];
+
+// Automatic build-time calculations
+const totalOsettai = entries
+  .filter((entry) => entry.type === 'osettai')
+  .reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
+
+const totalExpenses = entries
+  .filter((entry) => entry.type === 'expense')
+  .reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
+
+const currentReserves = startingReserve + totalOsettai - totalExpenses;
+
+const expenseDates = new Set(
+  entries
+    .filter((entry) => entry.type === 'expense' && entry.date)
+    .map((entry) => entry.date)
+);
+const uniqueDays = expenseDates.size > 0 ? expenseDates.size : 1;
+const dailyBurnRate = totalExpenses / uniqueDays;
+
+const categoryTotals: Record<string, { amount: number; percentage: number }> = {};
+entries
+  .filter((entry) => entry.type === 'expense')
+  .forEach((entry) => {
+    const category = entry.category || 'Uncategorized';
+    if (!categoryTotals[category]) {
+      categoryTotals[category] = { amount: 0, percentage: 0 };
+    }
+    categoryTotals[category].amount += Number(entry.amount || 0);
+  });
+
+Object.keys(categoryTotals).forEach((category) => {
+  categoryTotals[category].percentage =
+    totalExpenses > 0
+      ? (categoryTotals[category].amount / totalExpenses) * 100
+      : 0;
+});
+
+const sortedCategories = Object.entries(categoryTotals).sort(
+  (a, b) => b[1].amount - a[1].amount
+);
+
+const sortedEntries = [...entries].sort((a, b) =>
+  String(b.date || '').localeCompare(String(a.date || ''))
+);
+
+const formatAmount = (value: number) =>
+  currency +
+  value.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+---
+
+<BaseLayout
+  title="Open Financial Ledger | CAMINO HENRO"
+  description="Transparent Daifukucho-style financial ledger recording every Osettai contribution and trail expenditure from Spain to Japan."
+>
+  <!-- Editorial Header -->
+  <!-- STANDARDIZED_SCROLL_HEADER_START -->
+<div class="scroll-title-block">
+  <div class="scroll-eyebrow">会計報告 • Daifukucho Open Ledger</div>
+  <h1 class="page-heading">Open Financial Ledger</h1>
+  <div class="page-subtitle">Transparent accounting of platform patronage, off-trail infrastructure, and the future printed book fund</div>
+</div>
+
+<div class="page-break">
+  <div class="line"></div>
+  <div class="kanji">帳</div>
+  <div class="line"></div>
+</div>
+<!-- STANDARDIZED_SCROLL_HEADER_END -->
+
+  <!-- 3 Prominent Summary Blocks -->
+  <section class="py-8 border-b border-[#1C1A17]/15">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <!-- 1. Current Trail Reserves -->
+      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/55 p-5 flex flex-col justify-between">
+        <div>
+          <span class="font-mono text-[11px] uppercase tracking-widest text-[#524D46] block mb-1">
+            Current Trail Reserves
+          </span>
+          <p class="font-mono text-2xl sm:text-3xl font-bold text-[#6E2B25] my-2">
+            {formatAmount(currentReserves)}
+          </p>
+        </div>
+        <p class="font-mono text-[11px] text-[#524D46] pt-3 border-t border-[#1C1A17]/15">
+          Start ({formatAmount(startingReserve)}) + Osettai ({formatAmount(totalOsettai)}) − Spent ({formatAmount(totalExpenses)})
+        </p>
+      </div>
+
+      <!-- 2. Total Osettai Received -->
+      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-5 flex flex-col justify-between">
+        <div>
+          <span class="font-mono text-[11px] uppercase tracking-widest text-[#524D46] block mb-1">
+            Total Osettai Received
+          </span>
+          <p class="font-mono text-2xl sm:text-3xl font-bold text-[#1C1A17] my-2">
+            +{formatAmount(totalOsettai)}
+          </p>
+        </div>
+        <p class="font-mono text-[11px] text-[#524D46] pt-3 border-t border-[#1C1A17]/15">
+          {entries.filter((e) => e.type === 'osettai').length} recorded patronage offerings
+        </p>
+      </div>
+
+      <!-- 3. Total Trail Expenditures -->
+      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-5 flex flex-col justify-between">
+        <div>
+          <span class="font-mono text-[11px] uppercase tracking-widest text-[#524D46] block mb-1">
+            Total Trail Expenditures
+          </span>
+          <p class="font-mono text-2xl sm:text-3xl font-bold text-[#6E2B25] my-2">
+            -{formatAmount(totalExpenses)}
+          </p>
+        </div>
+        <p class="font-mono text-[11px] text-[#524D46] pt-3 border-t border-[#1C1A17]/15">
+          Daily Avg Burn: <strong class="text-[#1C1A17]">{formatAmount(dailyBurnRate)}/day</strong> ({expenseDates.size} active {expenseDates.size === 1 ? 'day' : 'days'})
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Category Breakdown Bar -->
+  <section class="py-8 border-b border-[#1C1A17]/15">
+    <div class="flex items-baseline justify-between mb-5">
+      <h2 class="font-heading text-xl sm:text-2xl font-semibold uppercase tracking-wider text-[#1C1A17]">
+        Expenditure Breakdown by Category
+      </h2>
+      <span class="font-jp text-xs text-[#524D46] tracking-widest">費目別内訳</span>
+    </div>
+
+    {sortedCategories.length > 0 ? (
+      <div class="space-y-4">
+        {sortedCategories.map(([categoryName, stats]) => (
+          <div>
+            <div class="flex justify-between items-baseline font-mono text-xs mb-1.5">
+              <span class="text-[#1C1A17] font-medium uppercase tracking-wider">
+                {categoryName}
+              </span>
+              <span class="text-[#524D46]">
+                <strong class="text-[#1C1A17]">{formatAmount(stats.amount)}</strong>{' '}
+                ({stats.percentage.toFixed(1)}%)
+              </span>
+            </div>
+            <div class="w-full h-2.5 bg-[#D8CEB8] border border-[#1C1A17]/20 overflow-hidden">
+              <div
+                class="h-full bg-[#6E2B25]"
+                style={'width: ' + Math.min(100, Math.max(2, stats.percentage)).toFixed(1) + '%;'}
+              ></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p class="font-mono text-xs text-[#524D46] py-4">
+        No trail expenditures have been recorded yet.
+      </p>
+    )}
+  </section>
+
+  <!-- Filterable Itemized Ledger Table -->
+  <section class="py-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      <div>
+        <h2 class="font-heading text-xl sm:text-2xl font-semibold uppercase tracking-wider text-[#1C1A17]">
+          Itemized Account Ledger
+        </h2>
+        <p class="font-mono text-xs text-[#524D46]">
+          Showing chronological entries in reverse order
+        </p>
+      </div>
+
+      <!-- Client-Side Filter Buttons -->
+      <div class="flex flex-wrap items-center gap-2 font-mono text-xs" role="group" aria-label="Filter ledger entries">
+        <button
+          type="button"
+          data-filter="all"
+          class="ledger-filter-btn bg-[#6E2B25] text-[#E6DFCF] border border-[#6E2B25] px-3 py-1.5 uppercase tracking-wider transition-colors"
+        >
+          All Entries ({sortedEntries.length})
+        </button>
+        <button
+          type="button"
+          data-filter="osettai"
+          class="ledger-filter-btn bg-transparent text-[#1C1A17] border border-[#1C1A17]/30 hover:border-[#6E2B25] px-3 py-1.5 uppercase tracking-wider transition-colors"
+        >
+          Osettai (+)
+        </button>
+        <button
+          type="button"
+          data-filter="expense"
+          class="ledger-filter-btn bg-transparent text-[#1C1A17] border border-[#1C1A17]/30 hover:border-[#6E2B25] px-3 py-1.5 uppercase tracking-wider transition-colors"
+        >
+          Expenses (-)
+        </button>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto border border-[#1C1A17]/20 bg-[#D8CEB8]/25">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-[#6E2B25] bg-[#D8CEB8]/60 font-mono text-[11px] uppercase tracking-wider text-[#524D46]">
+            <th class="py-3 px-4">Date</th>
+            <th class="py-3 px-4">Location</th>
+            <th class="py-3 px-4">Category</th>
+            <th class="py-3 px-4">Description</th>
+            <th class="py-3 px-4 text-right">Amount</th>
+          </tr>
+        </thead>
+        <tbody id="ledger-table-body" class="divide-y divide-[#1C1A17]/15 text-sm">
+          {sortedEntries.length > 0 ? (
+            sortedEntries.map((entry) => {
+              const isOsettai = entry.type === 'osettai';
+              const formattedVal =
+                (isOsettai ? '+' : '-') + formatAmount(Number(entry.amount || 0));
+
+              return (
+                <tr
+                  data-entry-type={entry.type}
+                  class="ledger-row hover:bg-[#D8CEB8]/40 transition-colors"
+                >
+                  <td class="py-3.5 px-4 font-mono text-xs text-[#524D46] whitespace-nowrap">
+                    {entry.date}
+                  </td>
+                  <td class="py-3.5 px-4 font-body text-[#1C1A17] whitespace-nowrap">
+                    {entry.location}
+                  </td>
+                  <td class="py-3.5 px-4 font-mono text-xs">
+                    <span
+                      class={
+                        isOsettai
+                          ? 'px-2 py-0.5 border border-[#1C1A17]/30 bg-[#E6DFCF] text-[#1C1A17]'
+                          : 'px-2 py-0.5 border border-[#6E2B25]/40 bg-[#E6DFCF] text-[#6E2B25]'
+                      }
+                    >
+                      {entry.category}
+                    </span>
+                  </td>
+                  <td class="py-3.5 px-4 font-body text-[#1C1A17]/90">
+                    {entry.description}
+                  </td>
+                  <td
+                    class={
+                      'py-3.5 px-4 font-mono text-xs font-medium text-right whitespace-nowrap ' +
+                      (isOsettai ? 'text-[#1C1A17]' : 'text-[#6E2B25]')
+                    }
+                  >
+                    {formattedVal}
+                  </td>
+                </tr>
+              );
+            })
+          ) : (
+            <tr>
+              <td
+                colspan="5"
+                class="py-8 px-4 text-center font-mono text-xs text-[#524D46]"
+              >
+                No financial entries recorded in the ledger yet.
+              </td>
+            </tr>
+          )}
+          <tr id="ledger-filter-empty" class="hidden">
+            <td
+              colspan="5"
+              class="py-8 px-4 text-center font-mono text-xs text-[#524D46]"
+            >
+              No matching entries for this filter.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <script is:inline>
+    (function () {
+      const filterButtons = document.querySelectorAll('.ledger-filter-btn');
+      const rows = document.querySelectorAll('.ledger-row');
+      const emptyFilterRow = document.getElementById('ledger-filter-empty');
+
+      filterButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+          const selectedType = button.getAttribute('data-filter') || 'all';
+
+          filterButtons.forEach(function (btn) {
+            btn.className =
+              'ledger-filter-btn bg-transparent text-[#1C1A17] border border-[#1C1A17]/30 hover:border-[#6E2B25] px-3 py-1.5 uppercase tracking-wider transition-colors';
+          });
+          button.className =
+            'ledger-filter-btn bg-[#6E2B25] text-[#E6DFCF] border border-[#6E2B25] px-3 py-1.5 uppercase tracking-wider transition-colors';
+
+          let visibleCount = 0;
+          rows.forEach(function (row) {
+            const rowType = row.getAttribute('data-entry-type');
+            if (selectedType === 'all' || rowType === selectedType) {
+              row.classList.remove('hidden');
+              visibleCount++;
+            } else {
+              row.classList.add('hidden');
+            }
+          });
+
+          if (emptyFilterRow) {
+            if (visibleCount === 0 && rows.length > 0) {
+              emptyFilterRow.classList.remove('hidden');
+            } else {
+              emptyFilterRow.classList.add('hidden');
+            }
+          }
+        });
+      });
+    })();
+  </script>
+</BaseLayout>

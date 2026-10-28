@@ -1,0 +1,1935 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import siteConfig from '../../data/siteConfig.json';
+
+const supabaseUrl = ''; // Stripped for Sneak Preview security
+const supabaseAnonKey = ''; // Stripped for Sneak Preview security
+---
+
+<BaseLayout title="Pilgrim's Gallery | CAMINO HENRO">
+  <section
+    class="gallery-scroll-container"
+    id="gallery-app"
+    data-supabase-url={supabaseUrl}
+    data-supabase-key={supabaseAnonKey}
+  >
+    <!-- Standardized Forum-Style Scroll Header -->
+    <div class="scroll-title-block">
+      <div class="scroll-eyebrow">写生帖 • Trail Sightings Along the Way</div>
+      <h1 class="page-heading">The Pilgrim's Gallery</h1>
+      <div class="page-subtitle">Photographs of Henro captured by strangers, hosts, and fellow walkers across Eurasia</div>
+    </div>
+    <div class="page-break">
+      <div class="line"></div>
+      <div class="kanji">影</div>
+      <div class="line"></div>
+    </div>
+
+    <!-- Top Toolbar -->
+    <div class="gallery-toolbar">
+      <div class="gallery-Stats">
+        <span class="sightings-seal">目撃</span>
+        <span id="sightings-count-label" class="sightings-count-text">Loading sightings ledger...</span>
+        <span id="gallery-mode-pill" class="gallery-mode-pill" hidden>Sample Archive</span>
+      </div>
+
+      <button
+        type="button"
+        id="toggle-submit-drawer-btn"
+        class="ink-action-btn"
+        aria-expanded="false"
+        aria-controls="photo-submission-drawer"
+      >
+        + Submit a Photo of Henro 印
+      </button>
+    </div>
+
+    <!-- Collapsible Washi Photo Submission Drawer -->
+    <div id="photo-submission-drawer" class="submission-drawer" hidden>
+      <div class="submission-drawer-inner">
+        <div class="drawer-header">
+          <div>
+            <div class="drawer-eyebrow">奉納写真 • Record an Encounter</div>
+            <h2 class="drawer-title">Submit a Trail Sighting of Henro</h2>
+            <p class="drawer-desc">
+              Did you cross paths with Henro on the road, share a meal, or spot his straw sedge hat passing through your village?
+              Upload your photograph below. Every submission is compressed automatically in your browser and reviewed by Henro before appearing in the public scroll.
+            </p>
+          </div>
+          <button type="button" id="close-submit-drawer-btn" class="drawer-close-btn" aria-label="Close submission form">
+            ✕
+          </button>
+        </div>
+
+        <form id="gallery-submission-form" class="submission-form" novalidate>
+          <!-- Honeypot field for bots -->
+          <div class="hp-trap" aria-hidden="true">
+            <label for="website_url">Leave this field blank</label>
+            <input type="text" id="website_url" name="website_url" tabindex="-1" autocomplete="off" />
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-field">
+              <label for="photographer_name">Your Name or Trail Alias <span class="req">*</span></label>
+              <input
+                type="text"
+                id="photographer_name"
+                name="photographer_name"
+                required
+                maxlength="80"
+                placeholder="e.g., Mateo (Hospitalero in Cee)"
+              />
+            </div>
+
+            <div class="form-field">
+              <label for="photographer_email">Optional Email <span class="muted">(kept strictly private)</span></label>
+              <input
+                type="email"
+                id="photographer_email"
+                name="photographer_email"
+                maxlength="120"
+                placeholder="So Henro can thank you personally"
+              />
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-field">
+              <label for="location">Where did you cross paths with Henro? <span class="req">*</span></label>
+              <input
+                type="text"
+                id="location"
+                name="location"
+                required
+                minlength="2"
+                maxlength="120"
+                placeholder="e.g., Cee, Galicia, Spain"
+              />
+            </div>
+
+            <div class="form-field">
+              <label for="date_taken">Date Taken</label>
+              <input
+                type="date"
+                id="date_taken"
+                name="date_taken"
+              />
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="caption">Brief Story or Note from the Encounter <span class="muted">(optional, up to 1,500 chars)</span></label>
+            <textarea
+              id="caption"
+              name="caption"
+              rows="3"
+              maxlength="1500"
+              placeholder="Tell the story behind this photograph—the weather, what you talked about, or where Henro was headed next..."
+            ></textarea>
+          </div>
+
+          <div class="upload-zone-wrapper">
+            <div class="upload-field-col">
+              <label for="photo_file" class="upload-label">
+                Select Photograph <span class="req">*</span>
+              </label>
+              <input
+                type="file"
+                id="photo_file"
+                name="photo_file"
+                accept="image/*"
+                required
+                class="file-input"
+              />
+              <p id="compression-status" class="compression-meta">
+                Select any photo from your phone or camera. It will be automatically resized to 1280px JPEG (~120KB) for reliable trail-side upload.
+              </p>
+            </div>
+
+            <div id="photo-preview-box" class="photo-preview-box" hidden>
+              <div class="preview-frame">
+                <img id="photo-preview-img" src="" alt="Square thumbnail preview of your sighting" />
+              </div>
+              <span class="preview-caption">Square Grid Preview</span>
+            </div>
+          </div>
+
+          <div id="submission-feedback" class="submission-feedback" hidden></div>
+
+          <div class="form-actions">
+            <button type="button" id="cancel-submit-btn" class="secondary-ink-btn">
+              Cancel
+            </button>
+            <button type="submit" id="submit-photo-btn" class="ink-action-btn">
+              Send Photograph to the Waiting Ledger 印
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Warm Confirmation Banner (shown after successful upload) -->
+    <div id="submission-confirmation-banner" class="confirmation-banner" hidden>
+      <div class="confirmation-seal">印</div>
+      <div class="confirmation-text">
+        Thank you for sharing this moment from the road. Your photograph has been placed in the waiting ledger and will appear in the gallery once approved by Henro.
+      </div>
+      <button type="button" id="dismiss-confirmation-btn" class="confirmation-dismiss" aria-label="Dismiss message">✕</button>
+    </div>
+
+    <!-- Instagram-Style 3-Column Square Thumbnail Grid -->
+    <div id="gallery-grid" class="gallery-grid" aria-live="polite"></div>
+
+    <!-- Empty State (if needed) -->
+    <div id="gallery-empty-state" class="gallery-empty-state" hidden>
+      <p>No sightings have been inscribed in the public scroll yet. Be the first to share a photograph of Henro along the trail.</p>
+    </div>
+
+    </section>
+
+  <!-- Smooth Enlargement Lightbox Modal -->
+  <div
+    id="gallery-lightbox"
+    class="lightbox-backdrop"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="lightbox-location-date"
+    hidden
+  >
+    <div class="lightbox-card" id="lightbox-card">
+      <div class="lightbox-stage">
+        <img id="lightbox-img" src="" alt="" />
+      </div>
+
+      <div class="lightbox-footer">
+        <div class="lightbox-meta-top">
+          <div id="lightbox-location-date" class="lightbox-eyebrow"></div>
+          <div id="lightbox-photographer" class="lightbox-attribution"></div>
+        </div>
+
+        <p id="lightbox-caption" class="lightbox-story"></p>
+
+        <div class="lightbox-controls">
+          <div class="lightbox-nav-group">
+            <button type="button" id="lightbox-prev-btn" class="lightbox-nav-btn" aria-label="Previous photograph">
+              ← Previous
+            </button>
+            <span id="lightbox-counter" class="lightbox-counter">1 / 3</span>
+            <button type="button" id="lightbox-next-btn" class="lightbox-nav-btn" aria-label="Next photograph">
+              Next →
+            </button>
+          </div>
+
+          <button type="button" id="lightbox-close-btn" class="lightbox-close-btn">
+            Close [ESC]
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style is:global>
+  .gallery-scroll-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2.25rem 1.25rem 4.5rem;
+    color: #1C1A17;
+  }
+
+  /* Standardized Forum-Style Scroll Header */
+  .scroll-title-block {
+    text-align: center;
+    margin-bottom: 1.4rem;
+  }
+
+  .scroll-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #8B261D;
+    margin-bottom: 0.55rem;
+  }
+
+  .page-heading {
+    font-family: 'Cinzel', 'Shippori Mincho', Georgia, serif;
+    font-size: clamp(1.95rem, 4.2vw, 2.85rem);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #1C1A17;
+    margin: 0 0 0.55rem;
+    line-height: 1.18;
+  }
+
+  .page-subtitle {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: clamp(1.06rem, 2vw, 1.25rem);
+    font-style: italic;
+    color: #4A443B;
+    max-width: 650px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+
+  .page-break {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1.5rem 0 2rem;
+  }
+
+  .page-break .line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(28, 26, 23, 0.35), transparent);
+  }
+
+  .page-break .kanji {
+    font-family: 'Shippori Mincho', 'Noto Serif JP', serif;
+    font-size: 1.25rem;
+    color: #8B261D;
+    padding: 0 0.35rem;
+    user-select: none;
+  }
+
+  /* Top Toolbar */
+  .gallery-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 1.15rem;
+    margin-bottom: 1.35rem;
+    background: rgba(230, 223, 207, 0.78);
+    border: 1px solid rgba(28, 26, 23, 0.22);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+
+  .gallery-Stats {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+  }
+
+  .sightings-seal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.18rem 0.45rem;
+    font-family: 'Shippori Mincho', serif;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #F4EFE6;
+    background: #8B261D;
+    border: 1px solid #5E1913;
+    letter-spacing: 0.08em;
+  }
+
+  .sightings-count-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.83rem;
+    color: #2C2823;
+    letter-spacing: 0.04em;
+  }
+
+  .gallery-mode-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid rgba(110, 43, 37, 0.45);
+    color: #6E2B25;
+    background: rgba(139, 38, 29, 0.08);
+  }
+
+  .ink-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.65rem 1.2rem;
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 0.84rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #F5F0E6;
+    background: linear-gradient(180deg, #8B261D 0%, #6E2B25 100%);
+    border: 1px solid #4A1814;
+    box-shadow: 0 2px 8px rgba(110, 43, 37, 0.28);
+    cursor: pointer;
+    transition: transform 0.18s ease, background 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .ink-action-btn:hover:not(:disabled) {
+    background: linear-gradient(180deg, #9E2D23 0%, #7C2F28 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(110, 43, 37, 0.38);
+  }
+
+  .ink-action-btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  .ink-action-btn.compact {
+    padding: 0.52rem 0.95rem;
+    font-size: 0.76rem;
+  }
+
+  .secondary-ink-btn {
+    padding: 0.62rem 1.05rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #3A342D;
+    background: transparent;
+    border: 1px solid rgba(28, 26, 23, 0.35);
+    cursor: pointer;
+    transition: background 0.18s ease;
+  }
+
+  .secondary-ink-btn:hover {
+    background: rgba(28, 26, 23, 0.07);
+  }
+
+  /* Collapsible Submission Drawer */
+  .submission-drawer {
+    margin-bottom: 1.65rem;
+    background: #EAE2D1;
+    border: 1px solid #6E2B25;
+    box-shadow: 0 12px 32px rgba(28, 26, 23, 0.16);
+    animation: drawerSlideDown 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes drawerSlideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .submission-drawer-inner {
+    padding: 1.5rem 1.45rem;
+  }
+
+  .drawer-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid rgba(28, 26, 23, 0.16);
+  }
+
+  .drawer-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.73rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #8B261D;
+    margin-bottom: 0.25rem;
+  }
+
+  .drawer-title {
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 1.32rem;
+    margin: 0 0 0.4rem;
+    color: #1C1A17;
+  }
+
+  .drawer-desc {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.04rem;
+    line-height: 1.48;
+    color: #423C34;
+    margin: 0;
+  }
+
+  .drawer-close-btn {
+    background: transparent;
+    border: 1px solid rgba(28, 26, 23, 0.25);
+    color: #3A342D;
+    width: 32px;
+    height: 32px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .drawer-close-btn:hover {
+    background: rgba(139, 38, 29, 0.1);
+    color: #8B261D;
+  }
+
+  .hp-trap {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .submission-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .form-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.36rem;
+  }
+
+  .form-field label,
+  .upload-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #2B2620;
+  }
+
+  .form-field .req,
+  .upload-label .req {
+    color: #8B261D;
+  }
+
+  .form-field .muted {
+    font-weight: 400;
+    color: #6B6257;
+  }
+
+  .form-field input,
+  .form-field textarea {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.05rem;
+    padding: 0.58rem 0.75rem;
+    background: #F6F1E6;
+    border: 1px solid rgba(28, 26, 23, 0.3);
+    color: #1C1A17;
+    outline: none;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .form-field input:focus,
+  .form-field textarea:focus {
+    border-color: #8B261D;
+    box-shadow: 0 0 0 2px rgba(139, 38, 29, 0.14);
+  }
+
+  .upload-zone-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    padding: 1rem;
+    background: rgba(246, 241, 230, 0.72);
+    border: 1px dashed rgba(110, 43, 37, 0.55);
+    flex-wrap: wrap;
+  }
+
+  .upload-field-col {
+    flex: 1 1 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .file-input {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: #2B2620;
+  }
+
+  .compression-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.73rem;
+    color: #5B5349;
+    margin: 0;
+    line-height: 1.45;
+  }
+
+  .photo-preview-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .preview-frame {
+    width: 112px;
+    height: 112px;
+    border: 1px solid #6E2B25;
+    background: #D8CEB8;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  }
+
+  .preview-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .preview-caption {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6E2B25;
+  }
+
+  .submission-feedback {
+    padding: 0.75rem 0.95rem;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.02rem;
+    border: 1px solid rgba(139, 38, 29, 0.45);
+    background: rgba(139, 38, 29, 0.08);
+    color: #6E2B25;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding-top: 0.35rem;
+  }
+
+  /* Confirmation Banner */
+  .confirmation-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.95rem;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1.5rem;
+    background: #EDE5D4;
+    border: 1px solid #6E2B25;
+    border-left: 5px solid #8B261D;
+    box-shadow: 0 6px 20px rgba(28, 26, 23, 0.12);
+  }
+
+  .confirmation-seal {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #8B261D;
+    color: #F6F1E6;
+    font-family: 'Shippori Mincho', serif;
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  .confirmation-text {
+    flex: 1;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.1rem;
+    line-height: 1.45;
+    color: #1C1A17;
+  }
+
+  .confirmation-dismiss {
+    background: transparent;
+    border: none;
+    color: #5A5248;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0.25rem 0.45rem;
+  }
+
+  /* Instagram-Style 3-Column Square Thumbnail Grid */
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .gallery-tile {
+    aspect-ratio: 1 / 1;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(28, 26, 23, 0.22);
+    background: #D8CEB8;
+    cursor: pointer;
+    padding: 0;
+    display: block;
+    width: 100%;
+    text-align: left;
+  }
+
+  .gallery-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .gallery-tile-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0.85rem;
+    background: linear-gradient(
+      180deg,
+      rgba(12, 11, 10, 0) 38%,
+      rgba(12, 11, 10, 0.72) 78%,
+      rgba(12, 11, 10, 0.9) 100%
+    );
+    opacity: 0;
+    transition: opacity 0.28s ease;
+    pointer-events: none;
+  }
+
+  .gallery-tile:hover img,
+  .gallery-tile:focus-visible img {
+    transform: scale(1.05);
+  }
+
+  .gallery-tile:hover .gallery-tile-overlay,
+  .gallery-tile:focus-visible .gallery-tile-overlay {
+    opacity: 1;
+  }
+
+  .tile-location {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.73rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #F5EFE2;
+    margin-bottom: 0.2rem;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+  }
+
+  .tile-photographer {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 0.95rem;
+    font-style: italic;
+    color: #DFD5C3;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+  }
+
+  .gallery-empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    border: 1px dashed rgba(28, 26, 23, 0.25);
+    background: rgba(230, 223, 207, 0.45);
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.15rem;
+    color: #4A443B;
+  }
+
+  /* Smooth Enlargement Lightbox Modal */
+  .lightbox-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(8, 9, 12, 0.88);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    overflow-y: auto;
+  }
+
+  .lightbox-backdrop[hidden] {
+    display: none !important;
+  }
+
+  .lightbox-card {
+    max-width: 820px;
+    width: 92vw;
+    background: #E6DFCF;
+    border: 1px solid #6E2B25;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.95);
+    opacity: 0;
+    transform: scale(0.88) translateY(14px);
+    transition:
+      opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+  }
+
+  .lightbox-backdrop.is-open .lightbox-card {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+
+  .lightbox-stage {
+    background: #121110;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem;
+    border-bottom: 1px solid rgba(110, 43, 37, 0.45);
+  }
+
+  .lightbox-stage img {
+    display: block;
+    max-height: 68vh;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    margin: 0 auto;
+    object-fit: contain;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.65);
+  }
+
+  .lightbox-footer {
+    padding: 1.25rem 1.5rem 1.35rem;
+    color: #1C1A17;
+  }
+
+  .lightbox-meta-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.65rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid rgba(28, 26, 23, 0.15);
+  }
+
+  .lightbox-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8B261D;
+  }
+
+  .lightbox-attribution {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.76rem;
+    color: #4A433A;
+  }
+
+  .lightbox-story {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.15rem;
+    line-height: 1.58;
+    color: #221F1B;
+    margin: 0 0 1.15rem;
+    white-space: pre-line;
+  }
+
+  .lightbox-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .lightbox-nav-group {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .lightbox-nav-btn,
+  .lightbox-close-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.45rem 0.85rem;
+    border: 1px solid rgba(28, 26, 23, 0.35);
+    background: #F3EDE0;
+    color: #1C1A17;
+    cursor: pointer;
+    transition: background 0.18s ease, border-color 0.18s ease;
+  }
+
+  .lightbox-nav-btn:hover,
+  .lightbox-close-btn:hover {
+    background: #8B261D;
+    border-color: #6E2B25;
+    color: #F6F1E6;
+  }
+
+  .lightbox-counter {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    color: #5A5248;
+    min-width: 48px;
+    text-align: center;
+  }
+
+  /* Inline Pilgrim Admin Moderation Drawer */
+  .admin-moderation-footer {
+    margin-top: 3.25rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(28, 26, 23, 0.16);
+    text-align: center;
+  }
+
+  .admin-toggle-link {
+    background: transparent;
+    border: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #6E2B25;
+    opacity: 0.75;
+    cursor: pointer;
+    padding: 0.35rem 0.65rem;
+    transition: opacity 0.2s ease;
+  }
+
+  .admin-toggle-link:hover {
+    opacity: 1;
+    text-decoration: underline;
+  }
+
+  .admin-drawer {
+    margin-top: 1rem;
+    text-align: left;
+    background: #EAE2D1;
+    border: 1px solid #6E2B25;
+    padding: 1.25rem;
+    box-shadow: 0 10px 30px rgba(28, 26, 23, 0.15);
+  }
+
+  .admin-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .admin-eyebrow {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #8B261D;
+  }
+
+  .admin-title {
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 1.1rem;
+    margin: 0.2rem 0 0;
+    color: #1C1A17;
+  }
+
+  .admin-auth-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+  }
+
+  .admin-auth-bar input {
+    flex: 1 1 220px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    padding: 0.5rem 0.75rem;
+    background: #F6F1E6;
+    border: 1px solid rgba(28, 26, 23, 0.32);
+    color: #1C1A17;
+  }
+
+  .admin-status-msg {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    padding: 0.6rem 0.8rem;
+    margin-bottom: 0.9rem;
+    background: rgba(28, 26, 23, 0.06);
+    border-left: 3px solid #8B261D;
+    color: #2B2620;
+  }
+
+  .admin-pending-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .pending-card {
+    display: grid;
+    grid-template-columns: 110px 1fr auto;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.85rem;
+    background: #F5EFE2;
+    border: 1px solid rgba(28, 26, 23, 0.22);
+  }
+
+  .pending-thumb {
+    width: 110px;
+    height: 110px;
+    object-fit: cover;
+    border: 1px solid #6E2B25;
+    background: #D8CEB8;
+  }
+
+  .pending-meta h4 {
+    margin: 0 0 0.25rem;
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 0.98rem;
+    color: #1C1A17;
+  }
+
+  .pending-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.73rem;
+    color: #6E2B25;
+    margin-bottom: 0.4rem;
+  }
+
+  .pending-caption {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 0.98rem;
+    color: #332E28;
+    margin: 0;
+  }
+
+  .pending-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .approve-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.73rem;
+    font-weight: 600;
+    padding: 0.48rem 0.75rem;
+    background: #2E5A36;
+    color: #F5EFE2;
+    border: 1px solid #1E3D24;
+    cursor: pointer;
+  }
+
+  .approve-btn:hover {
+    background: #386D42;
+  }
+
+  .delete-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.73rem;
+    padding: 0.45rem 0.75rem;
+    background: transparent;
+    color: #8B261D;
+    border: 1px solid #8B261D;
+    cursor: pointer;
+  }
+
+  .delete-btn:hover {
+    background: #8B261D;
+    color: #F5EFE2;
+  }
+
+  @media (max-width: 720px) {
+    .gallery-grid {
+      gap: 6px;
+    }
+
+    .form-grid-2 {
+      grid-template-columns: 1fr;
+    }
+
+    .pending-card {
+      grid-template-columns: 1fr;
+    }
+
+    .pending-actions {
+      flex-direction: row;
+    }
+
+    .gallery-tile-overlay {
+      opacity: 1;
+      padding: 0.45rem;
+      background: linear-gradient(180deg, transparent 50%, rgba(12, 11, 10, 0.82) 100%);
+    }
+
+    .tile-location {
+      font-size: 0.62rem;
+    }
+
+    .tile-photographer {
+      font-size: 0.76rem;
+    }
+  }
+</style>
+
+<script>
+  const appEl = document.getElementById('gallery-app');
+  const supabaseUrl = (appEl?.dataset.supabaseUrl || '').replace(/\/+$/, '');
+  const supabaseKey = appEl?.dataset.supabaseKey || '';
+
+  // Create clean vintage sepia postcard SVG illustrations for immediate local demo fallback
+  function createSepiaPostcardDataUri(title, place, kanji, motifType) {
+    let motifSvg = '';
+    if (motifType === 'lighthouse') {
+      motifSvg = `
+        <path d="M90 610 Q280 575 490 605 T900 590 L900 760 L0 760 L0 620 Z" fill="#3a2e25" opacity="0.88"/>
+        <rect x="418" y="340" width="54" height="255" fill="#2c221b"/>
+        <polygon points="410,340 480,340 465,295 425,295" fill="#6E2B25"/>
+        <circle cx="445" cy="316" r="14" fill="#F3E5AB"/>
+        <path d="M445 316 L120 210 L120 285 Z" fill="url(#beamGrad)" opacity="0.42"/>
+        <path d="M445 316 L820 215 L820 290 Z" fill="url(#beamGrad)" opacity="0.42"/>
+        <g transform="translate(275, 515)">
+          <polygon points="0,0 38,-22 76,0" fill="#1C1A17"/>
+          <line x1="38" y1="0" x2="38" y2="75" stroke="#1C1A17" stroke-width="11" stroke-linecap="round"/>
+          <line x1="64" y1="-8" x2="58" y2="78" stroke="#1C1A17" stroke-width="4.5"/>
+        </g>
+      `;
+    } else if (motifType === 'harbor') {
+      motifSvg = `
+        <path d="M0 520 Q260 485 540 525 T900 500 L900 760 L0 760 Z" fill="#47392e" opacity="0.72"/>
+        <path d="M0 610 Q320 590 640 620 T900 605 L900 760 L0 760 Z" fill="#2b221b" opacity="0.92"/>
+        <g transform="translate(470, 470)">
+          <polygon points="0,0 44,-26 88,0" fill="#1C1A17"/>
+          <rect x="28" y="2" width="32" height="58" rx="6" fill="#1C1A17"/>
+          <line x1="44" y1="60" x2="36" y2="122" stroke="#1C1A17" stroke-width="8"/>
+          <line x1="48" y1="60" x2="58" y2="122" stroke="#1C1A17" stroke-width="8"/>
+          <line x1="78" y1="-10" x2="72" y2="124" stroke="#1C1A17" stroke-width="5"/>
+        </g>
+      `;
+    } else {
+      motifSvg = `
+        <path d="M0 595 L900 595 L900 760 L0 760 Z" fill="#2c231c"/>
+        <polygon points="290,595 345,270 400,595" fill="#3d3027"/>
+        <polygon points="500,595 555,270 610,595" fill="#3d3027"/>
+        <polygon points="390,595 450,330 510,595" fill="#4b3c31"/>
+        <g transform="translate(415, 480)">
+          <polygon points="0,0 36,-21 72,0" fill="#1C1A17"/>
+          <line x1="36" y1="0" x2="36" y2="95" stroke="#1C1A17" stroke-width="12"/>
+          <line x1="62" y1="-6" x2="58" y2="96" stroke="#1C1A17" stroke-width="4.5"/>
+        </g>
+      `;
+    }
+
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 760" width="900" height="760">
+      <defs>
+        <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#DFD3BD"/>
+          <stop offset="60%" stop-color="#C9B79C"/>
+          <stop offset="100%" stop-color="#9F886C"/>
+        </linearGradient>
+        <linearGradient id="beamGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#F6E8B1" stop-opacity="0.8"/>
+          <stop offset="100%" stop-color="#F6E8B1" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <rect width="900" height="760" fill="url(#skyGrad)"/>
+      <rect x="28" y="28" width="844" height="704" fill="none" stroke="#5A3E2B" stroke-width="2" opacity="0.55"/>
+      <rect x="38" y="38" width="824" height="684" fill="none" stroke="#6E2B25" stroke-width="1" opacity="0.4"/>
+      <circle cx="670" cy="210" r="78" fill="#8B261D" opacity="0.72"/>
+      ${motifSvg}
+      <text x="76" y="118" font-family="Georgia, serif" font-size="56" fill="#6E2B25" opacity="0.32">${kanji}</text>
+      <text x="76" y="672" font-family="monospace" font-size="20" letter-spacing="4" fill="#F4EFE6">${place}</text>
+      <text x="76" y="702" font-family="Georgia, serif" font-style="italic" font-size="22" fill="#DFD3BD">${title}</text>
+    </svg>`;
+
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+  }
+
+  const SAMPLE_DEMO_SIGHTINGS = [
+    {
+      id: 'demo-finisterra-001',
+      photographer_name: 'Elena & Marco (Walkers from Milan)',
+      location: 'Cabo Finisterre, Galicia, Spain',
+      date_taken: '2025-05-04',
+      caption: 'We reached the lighthouse just as the Atlantic fog parted at dusk. A quiet pilgrim in a traditional woven sugegasa hat and white oi-zuru vest stood beside the 0.00 km stone marker looking east toward Eurasia. We shared almonds and hot tea before he began his first steps inland.',
+      image_data: createSepiaPostcardDataUri(
+        'Dusk at the Zero Kilometre Stone',
+        'CABO FINISTERRE • GALICIA',
+        '岬',
+        'lighthouse'
+      ),
+      status: 'approved',
+      created_at: '2025-05-04T19:30:00Z'
+    },
+    {
+      id: 'demo-cee-002',
+      photographer_name: 'Mateo Varela (Hospitalero)',
+      location: 'Cee, Galicia, Spain',
+      date_taken: '2025-05-05',
+      caption: 'Spotted Henro crossing the stone waterfront in Cee early in the morning rain. Most pilgrims walk toward the ocean, so seeing his bamboo staff and sedge hat moving steadily in the opposite direction stopped half the café in its tracks. He stamped his scroll and left a handwritten haiku.',
+      image_data: createSepiaPostcardDataUri(
+        'Walking East Against the Tide',
+        'CEE ESTUARY • GALICIA',
+        '湊',
+        'harbor'
+      ),
+      status: 'approved',
+      created_at: '2025-05-05T09:15:00Z'
+    },
+    {
+      id: 'demo-santiago-003',
+      photographer_name: 'Sora Takahashi',
+      location: 'Praza do Obradoiro, Santiago de Compostela',
+      date_taken: '2025-05-09',
+      caption: 'At sunrise beneath the spires of the Cathedral in Santiago, I noticed the unmistakable silhouette of a Shikoku Henro pilgrim bowing quietly before continuing east toward the Pyrenees. Never imagined I would hear the soft ring of a kongozue staff on Galician cobblestones.',
+      image_data: createSepiaPostcardDataUri(
+        'Dawn Bow Before the Eastward Road',
+        'SANTIAGO DE COMPOSTELA • SPAIN',
+        '堂',
+        'cathedral'
+      ),
+      status: 'approved',
+      created_at: '2025-05-09T07:45:00Z'
+    }
+  ];
+
+  // State
+  let currentPhotos = [];
+  let activeLightboxIndex = 0;
+  let compressedDataUrl = '';
+  const LOCAL_PENDING_KEY = 'camino_henro_local_pending_photos_v1';
+  const LOCAL_APPROVED_KEY = 'camino_henro_local_approved_photos_v1';
+
+  // DOM Elements
+  const gridEl = document.getElementById('gallery-grid');
+  const emptyStateEl = document.getElementById('gallery-empty-state');
+  const countLabelEl = document.getElementById('sightings-count-label');
+  const modePillEl = document.getElementById('gallery-mode-pill');
+
+  // Drawer DOM
+  const toggleSubmitBtn = document.getElementById('toggle-submit-drawer-btn');
+  const closeSubmitBtn = document.getElementById('close-submit-drawer-btn');
+  const cancelSubmitBtn = document.getElementById('cancel-submit-btn');
+  const submissionDrawer = document.getElementById('photo-submission-drawer');
+  const submissionForm = document.getElementById('gallery-submission-form');
+  const dateTakenInput = document.getElementById('date_taken');
+  const fileInput = document.getElementById('photo_file');
+  const compressionStatusEl = document.getElementById('compression-status');
+  const previewBoxEl = document.getElementById('photo-preview-box');
+  const previewImgEl = document.getElementById('photo-preview-img');
+  const feedbackEl = document.getElementById('submission-feedback');
+  const submitPhotoBtn = document.getElementById('submit-photo-btn');
+  const confirmationBanner = document.getElementById('submission-confirmation-banner');
+  const dismissConfirmationBtn = document.getElementById('dismiss-confirmation-btn');
+
+  // Lightbox DOM
+  const lightboxEl = document.getElementById('gallery-lightbox');
+  if (lightboxEl && lightboxEl.parentElement !== document.body) {
+    document.body.appendChild(lightboxEl);
+  }
+  const lightboxImg = document.getElementById('lightbox-img');
+  const lightboxLocDate = document.getElementById('lightbox-location-date');
+  const lightboxPhotographer = document.getElementById('lightbox-photographer');
+  const lightboxCaption = document.getElementById('lightbox-caption');
+  const lightboxCounter = document.getElementById('lightbox-counter');
+  const lightboxPrevBtn = document.getElementById('lightbox-prev-btn');
+  const lightboxNextBtn = document.getElementById('lightbox-next-btn');
+  const lightboxCloseBtn = document.getElementById('lightbox-close-btn');
+
+  // Admin DOM
+  const toggleAdminBtn = document.getElementById('toggle-admin-drawer-btn');
+  const closeAdminBtn = document.getElementById('close-admin-drawer-btn');
+  const adminDrawer = document.getElementById('admin-moderation-drawer');
+  const adminUnlockForm = document.getElementById('admin-unlock-form');
+  const adminPasscodeInput = document.getElementById('admin-passcode-input');
+  const adminStatusMsg = document.getElementById('admin-status-msg');
+  const adminPendingList = document.getElementById('admin-pending-list');
+
+  // Set default date_taken to today
+  if (dateTakenInput && !dateTakenInput.value) {
+    dateTakenInput.value = new Date().toISOString().split('T')[0];
+  }
+
+  function escapeHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function formatDisplayDate(dateStr) {
+    if (!dateStr) return 'Along the Way';
+    const parsed = new Date(dateStr + 'T00:00:00');
+    if (Number.isNaN(parsed.getTime())) return dateStr;
+    return parsed.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  }
+
+  function getLocalApprovedPhotos() {
+    try {
+      return JSON.parse(localStorage.getItem(LOCAL_APPROVED_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  function getLocalPendingPhotos() {
+    try {
+      return JSON.parse(localStorage.getItem(LOCAL_PENDING_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  function saveLocalPendingPhotos(list) {
+    try {
+      localStorage.setItem(LOCAL_PENDING_KEY, JSON.stringify(list));
+    } catch (e) {
+      console.warn('Could not save pending photo in localStorage:', e);
+    }
+  }
+
+  function saveLocalApprovedPhotos(list) {
+    try {
+      localStorage.setItem(LOCAL_APPROVED_KEY, JSON.stringify(list));
+    } catch (e) {
+      console.warn('Could not save approved photo in localStorage:', e);
+    }
+  }
+
+  // ==========================================================================
+  // FETCH & RENDER GALLERY GRID
+  // ==========================================================================
+  async function loadGalleryPhotos() {
+    let livePhotos = null;
+
+    if (supabaseUrl && supabaseKey) {
+      try {
+        const queryUrl =
+          `${supabaseUrl}/rest/v1/gallery_submissions?select=id,photographer_name,location,date_taken,caption,image_data,status,created_at&status=eq.approved&order=date_taken.desc,created_at.desc`;
+        const res = await fetch(queryUrl, {
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`
+          }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            livePhotos = data;
+          }
+        }
+      } catch (err) {
+        console.warn('Supabase gallery fetch fallback triggered:', err);
+      }
+    }
+
+    if (livePhotos && livePhotos.length > 0) {
+      currentPhotos = livePhotos;
+      if (modePillEl) modePillEl.hidden = true;
+    } else {
+      const localApproved = getLocalApprovedPhotos();
+      currentPhotos = [...localApproved, ...SAMPLE_DEMO_SIGHTINGS];
+      if (modePillEl) modePillEl.hidden = false;
+    }
+
+    renderGalleryGrid();
+  }
+
+  function renderGalleryGrid() {
+    if (!gridEl) return;
+
+    const total = currentPhotos.length;
+    if (countLabelEl) {
+      countLabelEl.textContent = `${total} ${total === 1 ? 'Sighting' : 'Sightings'} Recorded`;
+    }
+
+    if (total === 0) {
+      gridEl.innerHTML = '';
+      if (emptyStateEl) emptyStateEl.hidden = false;
+      return;
+    }
+
+    if (emptyStateEl) emptyStateEl.hidden = true;
+
+    gridEl.innerHTML = currentPhotos
+      .map((item, idx) => {
+        const safeLoc = escapeHtml(item.location);
+        const safeName = escapeHtml(item.photographer_name);
+        const safeSrc = escapeHtml(item.image_data);
+        return `
+          <button
+            type="button"
+            class="gallery-tile"
+            data-index="${idx}"
+            aria-label="View sighting from ${safeLoc} captured by ${safeName}"
+          >
+            <img
+              src="${safeSrc}"
+              alt="Sighting of Henro in ${safeLoc} by ${safeName}"
+              loading="lazy"
+            />
+            <div class="gallery-tile-overlay">
+              <div class="tile-location">${safeLoc}</div>
+              <div class="tile-photographer">by ${safeName}</div>
+            </div>
+          </button>
+        `;
+      })
+      .join('');
+
+    gridEl.querySelectorAll('.gallery-tile').forEach((tile) => {
+      tile.addEventListener('click', () => {
+        const idx = Number(tile.getAttribute('data-index') || '0');
+        openLightbox(idx);
+      });
+    });
+  }
+
+  // ==========================================================================
+  // LIGHTBOX MODAL WITH SMOOTH ENLARGEMENT ANIMATION
+  // ==========================================================================
+  function updateLightboxContent() {
+    const item = currentPhotos[activeLightboxIndex];
+    if (!item || !lightboxEl) return;
+
+    if (lightboxImg) {
+      lightboxImg.src = item.image_data;
+      lightboxImg.alt = `Sighting of Henro in ${item.location} captured by ${item.photographer_name}`;
+    }
+    if (lightboxLocDate) {
+      lightboxLocDate.textContent = `${item.location} • ${formatDisplayDate(item.date_taken)}`;
+    }
+    if (lightboxPhotographer) {
+      lightboxPhotographer.textContent = `Captured by ${item.photographer_name}`;
+    }
+    if (lightboxCaption) {
+      lightboxCaption.textContent = item.caption || 'Recorded along the Camino Henro trail.';
+    }
+    if (lightboxCounter) {
+      lightboxCounter.textContent = `${activeLightboxIndex + 1} / ${currentPhotos.length}`;
+    }
+  }
+
+  function openLightbox(index) {
+    if (!lightboxEl || currentPhotos.length === 0) return;
+    activeLightboxIndex = (index + currentPhotos.length) % currentPhotos.length;
+    updateLightboxContent();
+
+    lightboxEl.hidden = false;
+    document.body.style.overflow = 'hidden';
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        lightboxEl.classList.add('is-open');
+      });
+    });
+  }
+
+  function closeLightbox() {
+    if (!lightboxEl || lightboxEl.hidden) return;
+    lightboxEl.classList.remove('is-open');
+    document.body.style.overflow = '';
+
+    setTimeout(() => {
+      lightboxEl.hidden = true;
+    }, 280);
+  }
+
+  function stepLightbox(delta) {
+    if (currentPhotos.length === 0) return;
+    activeLightboxIndex = (activeLightboxIndex + delta + currentPhotos.length) % currentPhotos.length;
+    updateLightboxContent();
+  }
+
+  lightboxPrevBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    stepLightbox(-1);
+  });
+
+  lightboxNextBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    stepLightbox(1);
+  });
+
+  lightboxCloseBtn?.addEventListener('click', closeLightbox);
+
+  lightboxEl?.addEventListener('click', (e) => {
+    if (e.target === lightboxEl) {
+      closeLightbox();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (!lightboxEl || lightboxEl.hidden) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') stepLightbox(-1);
+    if (e.key === 'ArrowRight') stepLightbox(1);
+  });
+
+  // ==========================================================================
+  // CLIENT-SIDE HTML5 CANVAS AUTO-COMPRESSOR (~120KB JPEG)
+  // ==========================================================================
+  function compressImageFileToDataUrl(file, maxDimension = 1280, quality = 0.80) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Could not read the selected image file.'));
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onerror = () => reject(new Error('Selected file is not a valid photograph.'));
+        img.onload = () => {
+          let width = img.naturalWidth || img.width;
+          let height = img.naturalHeight || img.height;
+
+          if (width > maxDimension || height > maxDimension) {
+            if (width >= height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Browser canvas context unavailable.'));
+            return;
+          }
+
+          ctx.fillStyle = '#E6DFCF';
+          ctx.fillRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          const approxKb = Math.round((dataUrl.length * 3) / 4 / 1024);
+          resolve({ dataUrl, width, height, approxKb });
+        };
+        img.src = String(event.target?.result || '');
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  fileInput?.addEventListener('change', async () => {
+    const file = fileInput.files?.[0];
+    if (!file) {
+      compressedDataUrl = '';
+      if (previewBoxEl) previewBoxEl.hidden = true;
+      return;
+    }
+
+    if (compressionStatusEl) {
+      compressionStatusEl.textContent = 'Preparing & compressing photograph on canvas...';
+    }
+
+    try {
+      const result = await compressImageFileToDataUrl(file, 1280, 0.80);
+      compressedDataUrl = result.dataUrl;
+
+      if (previewImgEl) {
+        previewImgEl.src = compressedDataUrl;
+      }
+      if (previewBoxEl) {
+        previewBoxEl.hidden = false;
+      }
+      if (compressionStatusEl) {
+        compressionStatusEl.textContent =
+          `Ready to upload: ${result.width}×${result.height}px compressed JPEG (~${result.approxKb} KB).`;
+      }
+    } catch (err) {
+      compressedDataUrl = '';
+      if (previewBoxEl) previewBoxEl.hidden = true;
+      if (compressionStatusEl) {
+        compressionStatusEl.textContent = err.message || 'Could not process selected photo.';
+      }
+    }
+  });
+
+  // ==========================================================================
+  // SUBMISSION DRAWER TOGGLE & FORM POST
+  // ==========================================================================
+  function setSubmissionDrawerOpen(isOpen) {
+    if (!submissionDrawer || !toggleSubmitBtn) return;
+    submissionDrawer.hidden = !isOpen;
+    toggleSubmitBtn.setAttribute('aria-expanded', String(isOpen));
+  }
+
+  toggleSubmitBtn?.addEventListener('click', () => {
+    const isCurrentlyHidden = submissionDrawer?.hidden;
+    setSubmissionDrawerOpen(Boolean(isCurrentlyHidden));
+  });
+
+  closeSubmitBtn?.addEventListener('click', () => setSubmissionDrawerOpen(false));
+  cancelSubmitBtn?.addEventListener('click', () => setSubmissionDrawerOpen(false));
+
+  dismissConfirmationBtn?.addEventListener('click', () => {
+    if (confirmationBanner) confirmationBanner.hidden = true;
+  });
+
+  function showFormFeedback(message) {
+    if (!feedbackEl) return;
+    feedbackEl.textContent = message;
+    feedbackEl.hidden = !message;
+  }
+
+  submissionForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    showFormFeedback('');
+
+    const formData = new FormData(submissionForm);
+    const honeypot = String(formData.get('website_url') || '').trim();
+    if (honeypot) return;
+
+    const photographer_name = String(formData.get('photographer_name') || '').trim();
+    const photographer_email = String(formData.get('photographer_email') || '').trim();
+    const location = String(formData.get('location') || '').trim();
+    const date_taken = String(formData.get('date_taken') || '').trim() || new Date().toISOString().split('T')[0];
+    const caption = String(formData.get('caption') || '').trim();
+
+    if (!photographer_name) {
+      showFormFeedback('Please enter your name or trail alias.');
+      return;
+    }
+    if (location.length < 2) {
+      showFormFeedback('Please enter the location where you crossed paths with Henro.');
+      return;
+    }
+    if (!compressedDataUrl) {
+      showFormFeedback('Please select a photograph of Henro to upload.');
+      return;
+    }
+
+    if (submitPhotoBtn) submitPhotoBtn.disabled = true;
+
+    const payload = {
+      photographer_name,
+      photographer_email: photographer_email || null,
+      location,
+      date_taken,
+      caption: caption || null,
+      image_data: compressedDataUrl,
+      status: 'pending'
+    };
+
+    try {
+      let savedRemotely = false;
+
+      if (supabaseUrl && supabaseKey) {
+        const res = await fetch(`${supabaseUrl}/rest/v1/gallery_submissions`, {
+          method: 'POST',
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=minimal'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          savedRemotely = true;
+        } else {
+          const errText = await res.text();
+          console.warn('Supabase POST returned non-OK, storing in local waiting ledger:', errText);
+        }
+      }
+
+      if (!savedRemotely) {
+        const localPending = getLocalPendingPhotos();
+        localPending.unshift({
+          id: 'local-' + Date.now(),
+          ...payload,
+          created_at: new Date().toISOString()
+        });
+        saveLocalPendingPhotos(localPending);
+      }
+
+      submissionForm.reset();
+      if (dateTakenInput) {
+        dateTakenInput.value = new Date().toISOString().split('T')[0];
+      }
+      compressedDataUrl = '';
+      if (previewBoxEl) previewBoxEl.hidden = true;
+      if (compressionStatusEl) {
+        compressionStatusEl.textContent =
+          'Select any photo from your phone or camera. It will be automatically resized to 1280px JPEG (~120KB) for reliable trail-side upload.';
+      }
+
+      setSubmissionDrawerOpen(false);
+      if (confirmationBanner) {
+        confirmationBanner.hidden = false;
+        confirmationBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    } catch (err) {
+      showFormFeedback(err.message || 'An error occurred while submitting your photograph.');
+    } finally {
+      if (submitPhotoBtn) submitPhotoBtn.disabled = false;
+    }
+  });
+
+  // ==========================================================================
+  // INLINE PILGRIM ADMIN MODERATION DRAWER
+  // ==========================================================================
+  toggleAdminBtn?.addEventListener('click', () => {
+    if (!adminDrawer) return;
+    adminDrawer.hidden = !adminDrawer.hidden;
+  });
+
+  closeAdminBtn?.addEventListener('click', () => {
+    if (adminDrawer) adminDrawer.hidden = true;
+  });
+
+  function setAdminStatus(msg) {
+    if (!adminStatusMsg) return;
+    adminStatusMsg.textContent = msg;
+    adminStatusMsg.hidden = !msg;
+  }
+
+  async function fetchAndRenderPendingSubmissions(passcode) {
+    if (!adminPendingList) return;
+    setAdminStatus('Checking waiting ledger...');
+    adminPendingList.innerHTML = '';
+
+    let pendingItems = [];
+    let usedSupabaseRpc = false;
+
+    if (supabaseUrl && supabaseKey) {
+      try {
+        const res = await fetch(`${supabaseUrl}/rest/v1/rpc/admin_list_pending_photos`, {
+          method: 'POST',
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ p_admin_passcode: passcode })
+        });
+
+        if (res.ok) {
+          pendingItems = await res.json();
+          usedSupabaseRpc = true;
+        } else {
+          const errJson = await res.json().catch(() => ({}));
+          if (errJson?.message?.toLowerCase().includes('passcode')) {
+            setAdminStatus('Invalid Admin Passcode.');
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Admin RPC fallback to local waiting ledger:', err);
+      }
+    }
+
+    if (!usedSupabaseRpc) {
+      if (passcode !== 'henro') {
+        setAdminStatus('Invalid Admin Passcode (use "henro" in local demo mode).');
+        return;
+      }
+      pendingItems = getLocalPendingPhotos();
+    }
+
+    if (!Array.isArray(pendingItems) || pendingItems.length === 0) {
+      setAdminStatus('No pending photo submissions waiting for review.');
+      return;
+    }
+
+    setAdminStatus(`Found ${pendingItems.length} pending ${pendingItems.length === 1 ? 'submission' : 'submissions'} awaiting moderation.`);
+
+    adminPendingList.innerHTML = pendingItems
+      .map((item) => {
+        const safeId = escapeHtml(item.id);
+        const safeLoc = escapeHtml(item.location);
+        const safeName = escapeHtml(item.photographer_name);
+        const safeEmail = item.photographer_email ? ` • ${escapeHtml(item.photographer_email)}` : '';
+        const safeDate = escapeHtml(formatDisplayDate(item.date_taken));
+        const safeCaption = escapeHtml(item.caption || 'No story attached.');
+        const safeSrc = escapeHtml(item.image_data);
+
+        return `
+          <div class="pending-card" data-photo-id="${safeId}">
+            <img class="pending-thumb" src="${safeSrc}" alt="Pending submission from ${safeLoc}" />
+            <div class="pending-meta">
+              <h4>${safeLoc}</h4>
+              <div class="pending-sub">By ${safeName}${safeEmail} • ${safeDate}</div>
+              <p class="pending-caption">${safeCaption}</p>
+            </div>
+            <div class="pending-actions">
+              <button type="button" class="approve-btn" data-action="approved" data-id="${safeId}">
+                [Approve &amp; Publish 印]
+              </button>
+              <button type="button" class="delete-btn" data-action="delete" data-id="${safeId}">
+                [Delete ✕]
+              </button>
+            </div>
+          </div>
+        `;
+      })
+      .join('');
+
+    adminPendingList.querySelectorAll('button[data-action]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const photoId = btn.getAttribute('data-id') || '';
+        const action = btn.getAttribute('data-action') || '';
+        await moderatePhotoSubmission(passcode, photoId, action, usedSupabaseRpc);
+      });
+    });
+  }
+
+  async function moderatePhotoSubmission(passcode, photoId, newStatus, useRemoteRpc) {
+    setAdminStatus(`Processing ${newStatus === 'approved' ? 'approval' : 'deletion'}...`);
+
+    if (useRemoteRpc && supabaseUrl && supabaseKey) {
+      try {
+        const res = await fetch(`${supabaseUrl}/rest/v1/rpc/admin_moderate_photo`, {
+          method: 'POST',
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            p_admin_passcode: passcode,
+            p_photo_id: photoId,
+            p_new_status: newStatus
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          setAdminStatus(errData.message || 'Moderation action failed.');
+          return;
+        }
+      } catch (err) {
+        setAdminStatus(err.message || 'Network error during moderation.');
+        return;
+      }
+    } else {
+      const pending = getLocalPendingPhotos();
+      const target = pending.find((p) => String(p.id) === String(photoId));
+      const remaining = pending.filter((p) => String(p.id) !== String(photoId));
+      saveLocalPendingPhotos(remaining);
+
+      if (newStatus === 'approved' && target) {
+        const approved = getLocalApprovedPhotos();
+        approved.unshift({ ...target, status: 'approved' });
+        saveLocalApprovedPhotos(approved);
+      }
+    }
+
+    await fetchAndRenderPendingSubmissions(passcode);
+    await loadGalleryPhotos();
+  }
+
+  adminUnlockForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const passcode = String(adminPasscodeInput?.value || '').trim();
+    if (!passcode) {
+      setAdminStatus('Please enter your Admin Passcode.');
+      return;
+    }
+    await fetchAndRenderPendingSubmissions(passcode);
+  });
+
+  // Initial load
+  loadGalleryPhotos();
+</script>
+
+<style>
+  .sneak-preview-banner {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8B261D;
+    background: rgba(139, 38, 29, 0.08);
+    border: 1px dashed rgba(139, 38, 29, 0.45);
+    padding: 0.65rem 1rem;
+    margin-bottom: 1.25rem;
+    text-align: center;
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    const toolbar = document.querySelector('.gallery-toolbar');
+    if (toolbar && toolbar.parentNode) {
+      const banner = document.createElement('div');
+      banner.className = 'sneak-preview-banner';
+      banner.textContent = '印 Sneak Preview Mode — Click any thumbnail to test the lightbox or open the submission drawer. Photo uploads are disabled until launch.';
+      toolbar.parentNode.insertBefore(banner, toolbar);
+    }
+
+    // Clear any local storage photos so only the 3 curated sepia postcards display
+    try {
+      localStorage.removeItem('camino_henro_local_pending_photos_v1');
+      localStorage.removeItem('camino_henro_local_approved_photos_v1');
+    } catch (_) {}
+
+    // Prevent actual file reading / canvas compression in Sneak Preview mode
+    const fileInput = document.getElementById('photo_file');
+    const compressionStatusEl = document.getElementById('compression-status');
+    if (fileInput) {
+      fileInput.addEventListener(
+        'click',
+        function (e) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          if (compressionStatusEl) {
+            compressionStatusEl.textContent =
+              '🔒 Sneak Preview Mode: File selection and photo uploads are disabled in this preview for security.';
+            compressionStatusEl.style.color = '#8B261D';
+          }
+          return false;
+        },
+        true
+      );
+    }
+
+    // Prevent form submission from storing or sending anything
+    const submissionForm = document.getElementById('gallery-submission-form');
+    const feedbackEl = document.getElementById('submission-feedback');
+    if (submissionForm) {
+      submissionForm.addEventListener(
+        'submit',
+        function (e) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          if (feedbackEl) {
+            feedbackEl.textContent =
+              '🔒 Sneak Preview Mode: Photo submissions are disabled in this preview for security.';
+            feedbackEl.hidden = false;
+          }
+          return false;
+        },
+        true
+      );
+    }
+  })();
+</script>
+
