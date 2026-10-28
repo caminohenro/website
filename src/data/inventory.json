@@ -6,49 +6,49 @@
       "japaneseName": "笠",
       "slot": "Equipped",
       "weightGrams": 380,
-      "condition": "Seasoned",
-      "shortSummary": "<short_summary>",
-      "lore": "<lore>"
+      "condition": "Worn",
+      "shortSummary": "Henro's trusted companion",
+      "lore": "Henro found Kasa in Buxan, Fisterra, at the amazing Mi Mansion Perogrulla.\nApparently, Kasa had already travelled with a japanese pilgrim all the way from Japan... on foot! That story was a major source of motivation for Henro to actually begin to this trip. He later decided he should bring the hat back home, too."
     },
     {
       "id": "gear-sandals",
-      "name": "<item_name>",
-      "japaneseName": "<jp_name>",
+      "name": "Earth Runners",
+      "japaneseName": "靴",
       "slot": "Equipped",
       "weightGrams": 340,
-      "condition": "Worn",
-      "shortSummary": "<short_summary>",
-      "lore": "<lore>"
+      "condition": "Pristine",
+      "shortSummary": "Huarache outdoor sandals",
+      "lore": "Perfect for running outside, inspired by the american natives' sandal design. You can swim in a river without worrying about wet socks. Easier to slip on and off than boots. "
     },
     {
       "id": "gear-kongozue",
-      "name": "<item_name>",
-      "japaneseName": "<jp_name>",
+      "name": "Bamboo cane",
+      "japaneseName": "竹",
       "slot": "Equipped",
       "weightGrams": 450,
       "condition": "Seasoned",
-      "shortSummary": "<short_summary>",
-      "lore": "<lore>"
+      "shortSummary": "Walking canes help take some weight off your knees.",
+      "lore": "Without these canes, Henro would probably not have lasted long. \nGiven to Henro in the small village of Montán, at the place called Terra de Luz, which serves pilgrims food on a donativo basis. Henro traded his old cane, that was getting too short from use, for a bigger one."
     },
     {
       "id": "gear-rucksack",
-      "name": "<item_name>",
-      "japaneseName": "<jp_name>",
+      "name": "Osprey backpack",
+      "japaneseName": "鞄",
       "slot": "Main Pack",
       "weightGrams": 890,
       "condition": "Seasoned",
-      "shortSummary": "<short_summary>",
-      "lore": "<lore>"
+      "shortSummary": "A quality backpack to be Henro's home",
+      "lore": "The backpack of Henro's girlfriend. His own backpack was not as good, so he asked to bring hers on his journey. \nBefore that, it belonged to a friend of hers who also gave it to her. Henro is the third proud owner of this backpack."
     },
     {
       "id": "gear-bivy-quilt",
-      "name": "<item_name>",
-      "japaneseName": "<jp_name>",
+      "name": "Robens sleeping bag",
+      "japaneseName": ".",
       "slot": "Shelter & Sleep",
-      "weightGrams": 920,
+      "weightGrams": 500,
       "condition": "Pristine",
-      "shortSummary": "<short_summary>",
-      "lore": "<lore>"
+      "shortSummary": "Comfort temperature: 1ºC",
+      "lore": "Purchased specifically for the journey, this lightweight feather backpack was chosen to make life easier on Henro's back. It can be highy compacted to make room for other objects."
     },
     {
       "id": "gear-journal-phone",
