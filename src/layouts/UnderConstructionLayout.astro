@@ -5,12 +5,18 @@ import '../styles/global.css';
 
 interface Props {
   title?: string;
+  heading?: string;
   message?: string;
+  plans?: string;
+  previewHref?: string;
 }
 
 const {
-  title = 'Under Construction',
-  message = 'Henro is currently working on the website. The road will be shorter than the path to Japan, but patience is still required.',
+  title = 'Coming Soon',
+  heading = 'Coming soon',
+  message = 'Henro is currently working on this page. <br />The road will be shorter than the path to Japan, but patience is still required.',
+  plans = '',
+  previewHref = '',
 } = Astro.props;
 ---
 
@@ -24,172 +30,28 @@ const {
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- display=block on Dancing Script prevents the fallback font flash (FOUT) -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&family=Cormorant+Garamond:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+JP:wght@400;600&family=Shippori+Mincho:wght@400;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&display=block"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+JP:wght@400;600&family=Shippori+Mincho:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
 
     <style>
-      :root {
-        --bg-outer-obsidian: #08090C;
-        --bg-header: rgba(10, 12, 16, 0.88);
-        --bg-washi-scroll: #E6DFCF;
-        --ink-sumi: #1C1A17;
-        --header-text: #E6DFCF;
-        --header-muted: #A09A8E;
-        --accent-crimson: #6E2B25;
-        --font-serif: 'Georgia', 'Yu Mincho', 'Hiragino Mincho ProN', serif;
-        --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        --font-cursive: 'Dancing Script', cursive;
-      }
-
-      * {
-        box-sizing: border-box;
+      body.uc-body {
+        background-color: var(--bg-outer-obsidian, #08090C);
+        color: #F4F1EA;
+        font-family: 'EB Garamond', Georgia, 'Yu Mincho', serif;
+        line-height: 1.85;
         margin: 0;
         padding: 0;
-      }
-
-      body.uc-body {
-        background-color: var(--bg-outer-obsidian);
-        color: var(--ink-sumi);
-        font-family: var(--font-serif);
-        line-height: 1.85;
-        overflow: hidden;
-        height: 100vh;
-      }
-
-      .uc-fixed-backdrop {
-        position: fixed;
-        inset: 0;
-        z-index: 0;
-        background-image: url('/assets/apple-bg.jpeg'), url('/assets/apple-bg.svg');
-        background-size: cover;
-        background-position: center 84%;
-        background-repeat: no-repeat;
-      }
-
-      .uc-backdrop-dimmer {
-        position: fixed;
-        inset: 0;
-        z-index: 1;
-        background: radial-gradient(
-          circle at 50% 72%,
-          rgba(8, 9, 12, 0.58) 0%,
-          rgba(8, 9, 12, 0.84) 100%
-        );
-        pointer-events: none;
-      }
-
-      /* Ensure Header styles always work even if global.css differs */
-      :global(header.site-header) {
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        background: var(--bg-header);
-        backdrop-filter: blur(10px);
-        border-bottom: 1px solid rgba(230, 223, 207, 0.16);
-        padding: 12px 32px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 16px;
-      }
-
-      :global(.header-brand) {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        cursor: pointer;
-        text-decoration: none;
-      }
-
-      :global(.header-logo-badge) {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        background: var(--bg-washi-scroll);
-        padding: 3px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
-      }
-
-      :global(.header-logo-badge img) {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-      }
-
-      :global(.header-titles) {
-        display: flex;
-        flex-direction: column;
-      }
-
-      :global(.header-jp) {
-        font-size: 0.72rem;
-        letter-spacing: 0.25em;
-        color: var(--header-muted);
-      }
-
-      :global(.header-en) {
-        font-size: 1.2rem;
-        letter-spacing: 0.14em;
-        color: var(--header-text);
-        font-weight: normal;
-      }
-
-      :global(nav.site-nav) {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 6px;
-      }
-
-      :global(.nav-btn) {
-        background: transparent;
-        border: none;
-        color: var(--header-muted);
-        font-family: var(--font-sans);
-        font-size: 0.76rem;
-        letter-spacing: 0.13em;
-        text-transform: uppercase;
-        padding: 7px 11px;
-        cursor: pointer;
-        transition: all 0.2s;
-        border-bottom: 2px solid transparent;
-        text-decoration: none;
-      }
-
-      :global(.nav-btn:hover) {
-        color: var(--header-text);
-      }
-
-      :global(.nav-btn.active) {
-        color: var(--header-text);
-        border-bottom: 2px solid var(--accent-crimson);
-      }
-
-      :global(.nav-btn .wip-dot) {
-        font-size: 0.62rem;
-        opacity: 0.6;
-        margin-left: 3px;
-      }
-
-      :global(.nav-btn.donate-btn) {
-        background: var(--accent-crimson);
-        color: #F4F1EA;
-        padding: 7px 15px;
-        margin-left: 8px;
-        border-radius: 2px;
-        border-bottom: none;
-        font-weight: 600;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-      }
-
-      :global(.nav-btn.donate-btn:hover) {
-        filter: brightness(1.12);
+        overflow-x: hidden;
+        overflow-y: auto;
+        min-height: 100vh;
+        min-height: 100dvh;
       }
 
       .construction-content {
@@ -199,52 +61,140 @@ const {
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        height: 80vh;
+        min-height: calc(100dvh - 84px);
         text-align: center;
         color: #F4F1EA;
-        padding: 0 20px;
+        padding: 40px 20px 84px;
+        opacity: 0;
+      }
+
+      /* Uses the exact stageFadeIn animation and --fade-duration from global.css */
+      .construction-content.is-ready {
+        animation: stageFadeIn var(--fade-duration, 0.8s) ease-out both;
       }
 
       .logo-large {
-        width: 150px;
+        width: 200px;
         margin-bottom: 20px;
-        filter: drop-shadow(0px 4px 10px rgba(0, 0, 0, 0.6));
+        filter: drop-shadow(0px 4px 8px rgba(253, 252, 252, 0.8));
       }
 
       .construction-title {
-        font-family: var(--font-cursive);
-        font-size: 4rem;
-        margin-bottom: 10px;
+        font-family: 'Dancing Script', cursive;
+        font-size: clamp(2.8rem, 8vw, 4rem);
+        font-weight: 600;
+        margin-bottom: 12px;
+        line-height: 1.2;
         text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
       }
 
       .construction-text {
-        font-family: var(--font-serif);
-        font-size: 1.5rem;
-        max-width: 600px;
+        font-family: 'EB Garamond', Georgia, 'Yu Mincho', serif;
+        font-size: clamp(1.2rem, 3.8vw, 1.5rem);
+        color: #dee2e7;
+        max-width: 620px;
         line-height: 1.6;
-        text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.8);
+        margin-bottom: 16px;
+        text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.85);
+      }
+
+      .construction-plans {
+        font-family: 'EB Garamond', Georgia, 'Yu Mincho', serif;
+        font-size: clamp(1.05rem, 3.4vw, 1.25rem);
+        max-width: 600px;
+        line-height: 1.65;
+        color: rgba(244, 241, 234, 0.9);
+        margin-top: 4px;
+        margin-bottom: 18px;
+        text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.85);
+      }
+
+      .construction-preview-prompt {
+        font-family: 'EB Garamond', Georgia, serif;
+        font-size: 1rem;
+        color: rgba(244, 241, 234, 0.78);
+        margin-top: 14px;
+        letter-spacing: 0.03em;
+        text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.85);
+      }
+
+      .construction-preview-link {
+        color: #eb1906;
+        font-weight: 400;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+        text-decoration-color: rgba(219, 30, 13, 0.6);
+        transition: color 0.2s ease, text-decoration-color 0.2s ease;
+      }
+
+      .construction-preview-link:hover {
+        color: var(--color-crimson-light, #8C3B33);
+        text-decoration-color: #8C3B33;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .construction-content,
+        .construction-content.is-ready {
+          animation: none !important;
+          opacity: 1 !important;
+          transform: none !important;
+        }
       }
     </style>
   </head>
-  <body class="uc-body">
-    <!-- LAYER 1: Fixed Road & Apple Background -->
-    <div class="uc-fixed-backdrop"></div>
-    <div class="uc-backdrop-dimmer"></div>
+  <body class="uc-body selection:bg-[#6E2B25] selection:text-[#E6DFCF]">
+    <!-- LAYER 1: Fixed Road & Apple Background (uses classes from global.css) -->
+    <div
+      class="fixed-backdrop"
+      style="background-image: url('/assets/apple-bg.jpeg'), url('/assets/apple-bg.svg');"
+    ></div>
+    <div class="backdrop-dimmer"></div>
 
-    <!-- PERSISTENT CLICKABLE WEBSITE HEADER -->
+    <!-- PERSISTENT WEBSITE HEADER (Your existing Header.astro) -->
     <Header />
 
-    <!-- UNDER CONSTRUCTION CONTENT -->
-    <main class="construction-content">
+    <!-- COMING SOON CONTENT -->
+    <main class="construction-content" id="uc-content">
       <img
         src="/assets/logo.png"
         onerror="this.onerror=null;this.src='/assets/crest.png';"
         alt="Henro Stamp"
         class="logo-large"
       />
-      <h1 class="construction-title">Under construction</h1>
-      <p class="construction-text">{message}</p>
+      <h1 class="construction-title">{heading}</h1>
+      <p class="construction-text" set:html={message} />
+
+      {plans && <p class="construction-plans" set:html={plans} />}
+
+      <slot />
+
+      {previewHref && (
+        <p class="construction-preview-prompt">
+          Want a <a href={previewHref} class="construction-preview-link">sneak preview</a> of this page?
+        </p>
+      )}
     </main>
+
+    <script is:inline>
+      (function () {
+        const content = document.getElementById('uc-content');
+        if (!content) return;
+
+        function reveal() {
+          content.classList.add('is-ready');
+        }
+
+        // Wait for the cursive font to be ready (or 250ms max fallback) before fading in
+        if (document.fonts && document.fonts.ready) {
+          const fallbackTimer = setTimeout(reveal, 250);
+          document.fonts.ready.then(function () {
+            clearTimeout(fallbackTimer);
+            reveal();
+          });
+        } else {
+          reveal();
+        }
+      })();
+    </script>
   </body>
 </html>
