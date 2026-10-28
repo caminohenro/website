@@ -2,8 +2,8 @@
   "currentLocation": "Finisterra, Galicia, Spain",
   "stripeDonationUrl": "https://buy.stripe.com/test_placeholder",
   "features": {
-    "enableInventory": false,
-    "enableMap": false,
-    "enableForum": false
+    "enableInventory": true,
+    "enableMap": true,
+    "enableForum": true
   }
 }
