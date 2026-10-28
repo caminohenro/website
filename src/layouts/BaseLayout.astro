@@ -43,7 +43,10 @@ const {
     <Header />
 
     <!-- LAYER 2: THE INDIVIDUAL PAGE SCROLL WITH WOODEN ROLLERS -->
-    <div class="scroll-stage">
+   <div
+      class="scroll-stage"
+      data-mobile-physics={Astro.url.pathname === '/' ? 'true' : undefined}
+    >
       <div class="scroll-roller-top"></div>
       <main class="washi-scroll">
         <slot />
@@ -141,7 +144,9 @@ const {
 
     if (!mobile.matches || window.innerWidth > 680) return;
 
-    const stage = document.querySelector('body > .scroll-stage');
+    const stage = document.querySelector(
+     'body > .scroll-stage[data-mobile-physics="true"]'
+    );
     if (!stage) return;
 
     const paper = stage.querySelector(':scope > main.washi-scroll');

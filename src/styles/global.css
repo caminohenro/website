@@ -888,7 +888,7 @@ header.site-header {
  * Direct-child selectors exclude the independent Forum composer scroll.
  */
 @media (max-width: 680px) {
-  body > .scroll-stage {
+  body > .scroll-stage[data-mobile-physics="true"] {
     animation: none !important;
     transform: none !important;
     opacity: 1 !important;
@@ -900,7 +900,7 @@ header.site-header {
     box-sizing: border-box;
   }
 
-  body > .scroll-stage > main.washi-scroll {
+  body > .scroll-stage[data-mobile-physics="true"] > main.washi-scroll {
     animation: none !important;
     transition: none !important;
     transform: none !important;
@@ -914,16 +914,16 @@ header.site-header {
     -webkit-clip-path: none;
   }
 
-  body > .scroll-stage > main.washi-scroll::after {
+  body > .scroll-stage[data-mobile-physics="true"] > main.washi-scroll::after {
     height: calc(48px + env(safe-area-inset-bottom, 0px));
   }
 
-  body > .scroll-stage > .scroll-roller-bottom {
+  body > .scroll-stage[data-mobile-physics="true"] > .scroll-roller-bottom {
     animation: none !important;
     transition: none !important;
   }
 
-  body > .scroll-stage[data-step17-physics="true"] {
+  body > .scroll-stage[data-mobile-physics="true"][data-step17-physics="true"] {
     /*
      * Clipping this outer stage removes hidden paper from scroll overflow.
      * Its measured height always includes the roller and safe bottom area.
@@ -934,12 +934,12 @@ header.site-header {
     overflow-anchor: none;
   }
 
-  body > .scroll-stage[data-step17-physics="true"][data-step17-open="true"] {
+  body > .scroll-stage[data-mobile-physics="true"][data-step17-physics="true"][data-step17-open="true"] {
     height: auto !important;
     overflow: visible !important;
   }
 
-  body > .scroll-stage[data-step17-physics="true"] > .scroll-roller-bottom {
+  body > .scroll-stage[data-mobile-physics="true"][data-step17-physics="true"] > .scroll-roller-bottom {
     /* Keep direct manipulation enabled even at 100% open. */
     touch-action: none !important;
     -webkit-user-select: none;
@@ -948,7 +948,7 @@ header.site-header {
     cursor: grab;
   }
 
-  body > .scroll-stage[data-step17-physics="true"] > .scroll-roller-bottom:focus-visible {
+  body > .scroll-stage[data-mobile-physics="true"][data-step17-physics="true"] > .scroll-roller-bottom:focus-visible {
     outline: 2px solid #fff;
     outline-offset: 6px;
   }
