@@ -3,7 +3,7 @@
   "stripeDonationUrl": "https://buy.stripe.com/test_placeholder",
   "features": {
     "enableInventory": true,
-    "enableMap": true,
+    "enableMap": false,
     "enableForum": true
   }
 }
