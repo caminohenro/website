@@ -13,10 +13,10 @@
     "category": "General"
   },
   "features": {
-    "enableInventory": false,
-    "enableMap": false,
-    "enableForum": false,
-    "enableGallery": false
+    "enableInventory": true,
+    "enableMap": true,
+    "enableForum": true,
+    "enableGallery": true
   },
   "supabase": {
     "url": "https://ojeztracxcevamopdveb.supabase.co",
