@@ -4,49 +4,45 @@
       "title": "Trail Hosts & Roadside Angels",
       "entries": [
         {
+          "name": "Luis",
+          "locationOrRole": "El Padriño"
+        },
+        {
+          "name": "Lucas",
+          "locationOrRole": "El Mentor"
+        },
+        {
+          "name": "Carolina",
+          "locationOrRole": "The Silent partner"
+        }
+      ]
+    },
+    {
+      "title": "Contributors",
+      "entries": [
+        {
           "name": "<name>",
           "locationOrRole": "<location_or_role>",
-          "date": "2026-10-12",
           "note": "<note>"
         },
         {
           "name": "<name>",
           "locationOrRole": "<location_or_role>",
-          "date": "2026-10-10",
           "note": "<note>"
         }
       ]
     },
     {
-      "title": "Osettai Supporters & Patrons",
+      "title": "Website developers",
       "entries": [
         {
-          "name": "<name>",
-          "locationOrRole": "<location_or_role>",
-          "date": "2026-10-10",
+          "name": "Afonso Serra",
+          "locationOrRole": "Main website developer",
           "note": "<note>"
         },
         {
           "name": "<name>",
           "locationOrRole": "<location_or_role>",
-          "date": "2026-10-15",
-          "note": "<note>"
-        }
-      ]
-    },
-    {
-      "title": "Technical & Creative Collaborators",
-      "entries": [
-        {
-          "name": "<name>",
-          "locationOrRole": "<location_or_role>",
-          "date": "2026-10-10",
-          "note": "<note>"
-        },
-        {
-          "name": "<name>",
-          "locationOrRole": "<location_or_role>",
-          "date": "2026-10-10",
           "note": "<note>"
         }
       ]
