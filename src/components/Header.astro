@@ -3,22 +3,59 @@ import siteConfig from '../data/siteConfig.json';
 
 const pathname = Astro.url.pathname;
 
-const isActive = (href: string) => {
-  if (href === '/') return pathname === '/';
-  return pathname === href || pathname.startsWith(href + '/');
+const isActive = (href?: string) => {
+  if (!href) return false;
+  const normPath = pathname.toLowerCase();
+  const normHref = href.toLowerCase();
+  if (normHref === '/') return normPath === '/';
+  return normPath === normHref || normPath.startsWith(normHref + '/');
 };
 
-const navLinks = [
-  { label: 'Home', href: '/', show: true },
-  { label: 'Essays (Blog)', href: '/essays', show: true },
-  { label: 'FAQ', href: '/faq', show: true },
-  { label: 'Credits', href: '/credits', show: true },
-  { label: 'Finances', href: '/finances', show: true },
-  { label: 'Map', href: '/map', show: siteConfig.features?.enableMap === true },
-  { label: 'Inventory', href: '/inventory', show: siteConfig.features?.enableInventory === true },
-  { label: 'Gallery', href: '/gallery', show: siteConfig.features?.enableGallery === true },
-  { label: 'Forum', href: '/forum', show: siteConfig.features?.enableForum === true },
-].filter((item) => item.show);
+const isGroupActive = (children?: Array<{ href?: string }>) => {
+  if (!Array.isArray(children)) return false;
+  return children.some((child) => isActive(child.href));
+};
+
+const defaultNavigation = [
+  { label: 'Home', href: '/' },
+  { label: 'Blog', href: '/essays' },
+  { label: 'FAQ', href: '/faq' },
+  { label: 'Credits', href: '/Credits' },
+  {
+    label: 'Coming Soon',
+    children: [
+      { label: 'Map', href: '/map', featureFlag: 'enableMap' },
+      { label: 'Inventory', href: '/inventory', featureFlag: 'enableInventory' },
+      { label: 'Finances', href: '/finances' },
+      { label: 'Gallery', href: '/gallery', featureFlag: 'enableGallery' },
+      { label: 'Forum', href: '/forum', featureFlag: 'enableForum' },
+    ],
+  },
+];
+
+const features: Record<string, boolean> = siteConfig.features || {};
+const rawNavigation =
+  Array.isArray(siteConfig.navigation) && siteConfig.navigation.length > 0
+    ? siteConfig.navigation
+    : defaultNavigation;
+
+const isFeatureEnabled = (flag?: string) => {
+  if (!flag) return true;
+  return features[flag] !== false;
+};
+
+const navItems = rawNavigation
+  .filter((item: any) => isFeatureEnabled(item.featureFlag))
+  .map((item: any) => {
+    if (Array.isArray(item.children)) {
+      return {
+        ...item,
+        children: item.children.filter((child: any) => isFeatureEnabled(child.featureFlag)),
+      };
+    }
+    return item;
+  })
+  .filter((item: any) => !Array.isArray(item.children) || item.children.length > 0);
 ---
 
 <header class="site-header">
@@ -37,15 +74,37 @@ const navLinks = [
   </a>
 
   <nav class="site-nav" aria-label="Primary Navigation">
-    {navLinks.map((link) => (
-      <a
-        href={link.href}
-        class={'nav-btn' + (isActive(link.href) ? ' active' : '')}
-      >
-        {link.label}
-        {link.wip && <span class="wip-dot">•</span>}
-      </a>
-    ))}
+    {navItems.map((item: any) =>
+      Array.isArray(item.children) ? (
+        <div class="nav-dropdown">
+          <button
+            type="button"
+            class={'nav-btn nav-dropdown-toggle' + (isGroupActive(item.children) ? ' active' : '')}
+            aria-expanded="false"
+          >
+            {item.label} <span class="nav-caret">▾</span>
+          </button>
+          <div class="nav-dropdown-menu">
+            {item.children.map((child: any) => (
+              <a
+                href={child.href}
+                class={'nav-dropdown-item' + (isActive(child.href) ? ' active' : '')}
+              >
+                {child.label}
+              </a>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <a
+          href={item.href}
+          class={'nav-btn' + (isActive(item.href) ? ' active' : '')}
+        >
+          {item.label}
+          {item.wip && <span class="wip-dot">•</span>}
+        </a>
+      )
+    )}
     <a
       href="/donate"
       class={'nav-btn donate-btn' + (isActive('/donate') ? ' active' : '')}
@@ -55,32 +114,66 @@ const navLinks = [
   </nav>
 </header>
 
-
 <script is:inline>
   (function() {
     let lastScroll = 0;
     const header = document.querySelector('header.site-header');
-    
-    if (!header) return;
 
-    window.addEventListener('scroll', () => {
-      const currentScroll = window.scrollY;
-      
-      if (currentScroll <= 0) {
-        header.classList.remove('is-hidden');
+    if (header) {
+      window.addEventListener('scroll', () => {
+        const currentScroll = window.scrollY;
+
+        if (currentScroll <= 0) {
+          header.classList.remove('is-hidden');
+          lastScroll = currentScroll;
+          return;
+        }
+
+        if (currentScroll > lastScroll && currentScroll > 50) {
+          header.classList.add('is-hidden');
+        } else if (currentScroll < lastScroll) {
+          header.classList.remove('is-hidden');
+        }
+
         lastScroll = currentScroll;
-        return;
+      }, { passive: true });
+    }
+
+    const dropdowns = document.querySelectorAll('.nav-dropdown');
+
+    function closeAllDropdowns(exceptDropdown) {
+      dropdowns.forEach((dropdown) => {
+        if (dropdown !== exceptDropdown) {
+          dropdown.classList.remove('open');
+          const btn = dropdown.querySelector('.nav-dropdown-toggle');
+          if (btn) btn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+
+    dropdowns.forEach((dropdown) => {
+      const toggleBtn = dropdown.querySelector('.nav-dropdown-toggle');
+      if (!toggleBtn) return;
+
+      toggleBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const isOpen = dropdown.classList.contains('open');
+        closeAllDropdowns(dropdown);
+        dropdown.classList.toggle('open', !isOpen);
+        toggleBtn.setAttribute('aria-expanded', String(!isOpen));
+      });
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('.nav-dropdown')) {
+        closeAllDropdowns(null);
       }
-      
-      if (currentScroll > lastScroll && currentScroll > 50) {
-        // Scrolling down
-        header.classList.add('is-hidden');
-      } else if (currentScroll < lastScroll) {
-        // Scrolling up
-        header.classList.remove('is-hidden');
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        closeAllDropdowns(null);
       }
-      
-      lastScroll = currentScroll;
-    }, { passive: true });
+    });
   })();
 </script>

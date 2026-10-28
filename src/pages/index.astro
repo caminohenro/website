@@ -72,4 +72,219 @@ const formatDate = (date: Date) =>
       View Full Essay Archive (/essays) ➔
     </a>
   </div>
+
+  <div class="page-break">
+    <div class="line"></div>
+    <div class="kanji">広場 • FROM THE PILGRIM'S COURTYARD</div>
+    <div class="line"></div>
+  </div>
+
+  <section
+    id="home-forum-spotlight"
+    class="forum-spotlight-section"
+    data-supabase-url={siteConfig.supabase?.url || ''}
+    data-supabase-key={siteConfig.supabase?.anonKey || ''}
+  >
+    <div class="spotlight-header-bar">
+      <span class="spotlight-label">COMMUNITY DIALOGUE SPOTLIGHT</span>
+      <div class="spotlight-toggle-group" role="tablist" aria-label="Forum Spotlight Mode">
+        <button
+          type="button"
+          class="spotlight-toggle-pill active"
+          data-spotlight-mode="popular"
+          role="tab"
+          aria-selected="true"
+        >
+          ★ Most Popular
+        </button>
+        <button
+          type="button"
+          class="spotlight-toggle-pill"
+          data-spotlight-mode="latest"
+          role="tab"
+          aria-selected="false"
+        >
+          ✦ Latest Inquiry
+        </button>
+      </div>
+    </div>
+
+    <a href="/forum" id="spotlight-thread-card" class="spotlight-thread-card">
+      <div class="spotlight-meta">
+        <span class="spotlight-category-badge" id="spotlight-category">Philosophy &amp; Ethos</span>
+        <span class="spotlight-meta-sep">•</span>
+        <span id="spotlight-author">Steppenwolf</span>
+        <span class="spotlight-meta-sep">•</span>
+        <span id="spotlight-date">Oct 2026</span>
+        <span class="spotlight-meta-sep">•</span>
+        <span id="spotlight-replies">14 Replies</span>
+      </div>
+      <h3 class="spotlight-title" id="spotlight-title">
+        On Sufficiency vs. Surplus: Where Does Preparation End and Fear Begin?
+      </h3>
+      <p class="spotlight-excerpt" id="spotlight-excerpt">
+        When walking across a continent with everything on your back, every extra ounce is a physical confession of a fear you have not yet made peace with. How do we distinguish wise stewardship from anxiety?
+      </p>
+      <span class="stream-read-link">Enter the Pilgrim's Courtyard (/forum) ➔</span>
+    </a>
+  </section>
+
+  <script is:inline>
+    (function () {
+      const container = document.getElementById('home-forum-spotlight');
+      if (!container) return;
+
+      const supabaseUrl = (container.getAttribute('data-supabase-url') || '').trim();
+      const supabaseKey = (container.getAttribute('data-supabase-key') || '').trim();
+
+      const categoryEl = document.getElementById('spotlight-category');
+      const authorEl = document.getElementById('spotlight-author');
+      const dateEl = document.getElementById('spotlight-date');
+      const repliesEl = document.getElementById('spotlight-replies');
+      const titleEl = document.getElementById('spotlight-title');
+      const excerptEl = document.getElementById('spotlight-excerpt');
+      const cardEl = document.getElementById('spotlight-thread-card');
+      const toggleButtons = container.querySelectorAll('[data-spotlight-mode]');
+
+      const fallbackThreads = {
+        popular: {
+          id: '',
+          category: 'Philosophy & Ethos',
+          author_name: 'Steppenwolf',
+          created_at: '2026-10-18T10:00:00Z',
+          reply_count: 14,
+          title: 'On Sufficiency vs. Surplus: Where Does Preparation End and Fear Begin?',
+          content:
+            'When walking across a continent with everything on your back, every extra ounce is a physical confession of a fear you have not yet made peace with. How do we distinguish wise stewardship from anxiety?',
+        },
+        latest: {
+          id: '',
+          category: 'Trail Craft & Gear',
+          author_name: 'Kūkai_Walker',
+          created_at: '2026-10-27T18:30:00Z',
+          reply_count: 5,
+          title: 'On Sufficiency vs. Surplus: Footcare and Cold-Weather Layering Past the Pyrenees',
+          content:
+            'As the autumn frost settles over the stone paths, what minimalist wool and rain shell combinations have proven resilient without burdening the pack beyond six kilograms?',
+        },
+      };
+
+      function formatShortDate(rawDate) {
+        if (!rawDate) return 'Recent';
+        const parsed = new Date(rawDate);
+        if (Number.isNaN(parsed.getTime())) return 'Recent';
+        return parsed.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: '2-digit',
+        });
+      }
+
+      function truncateExcerpt(text) {
+        const clean = String(text || '')
+          .replace(/\s+/g, ' ')
+          .trim();
+        if (clean.length <= 200) return clean;
+        return clean.slice(0, 197).trimEnd() + '...';
+      }
+
+      function renderThread(thread) {
+        const category = thread.category || thread.topic || 'Courtyard Dialogue';
+        const author = thread.author_name || thread.author || 'Anonymous Pilgrim';
+        const dateText = formatShortDate(thread.created_at || thread.date);
+        const replies = Number(thread.reply_count ?? thread.replies_count ?? 0);
+        const title =
+          thread.title ||
+          'On Sufficiency vs. Surplus: Where Does Preparation End and Fear Begin?';
+        const rawBody =
+          thread.content ||
+          thread.body ||
+          thread.excerpt ||
+          fallbackThreads.popular.content;
+
+        if (categoryEl) categoryEl.textContent = category;
+        if (authorEl) authorEl.textContent = author;
+        if (dateEl) dateEl.textContent = dateText;
+        if (repliesEl) {
+          repliesEl.textContent = replies === 1 ? '1 Reply' : replies + ' Replies';
+        }
+        if (titleEl) titleEl.textContent = title;
+        if (excerptEl) excerptEl.textContent = truncateExcerpt(rawBody);
+        if (cardEl) {
+          cardEl.setAttribute(
+            'href',
+            thread.id ? '/forum?thread=' + encodeURIComponent(thread.id) : '/forum'
+          );
+        }
+      }
+
+      async function loadSpotlight(mode) {
+        const fallback = fallbackThreads[mode] || fallbackThreads.popular;
+
+        if (
+          !supabaseUrl ||
+          !supabaseKey ||
+          supabaseUrl.includes('YOUR_') ||
+          supabaseKey.includes('YOUR_')
+        ) {
+          renderThread(fallback);
+          return;
+        }
+
+        const orderQuery =
+          mode === 'latest'
+            ? 'created_at.desc'
+            : 'reply_count.desc.nullslast,created_at.desc';
+
+        const endpoints = [
+          supabaseUrl.replace(/\/$/, '') +
+            '/rest/v1/forum_threads?select=*&order=' +
+            encodeURIComponent(orderQuery) +
+            '&limit=1',
+          supabaseUrl.replace(/\/$/, '') +
+            '/rest/v1/threads?select=*&order=' +
+            encodeURIComponent(orderQuery) +
+            '&limit=1',
+        ];
+
+        for (const endpoint of endpoints) {
+          try {
+            const response = await fetch(endpoint, {
+              headers: {
+                apikey: supabaseKey,
+                Authorization: 'Bearer ' + supabaseKey,
+                Accept: 'application/json',
+              },
+            });
+
+            if (!response.ok) continue;
+
+            const rows = await response.json();
+            if (Array.isArray(rows) && rows.length > 0 && rows[0]) {
+              renderThread(rows[0]);
+              return;
+            }
+          } catch (_err) {
+            // Fall through to next endpoint or static fallback
+          }
+        }
+
+        renderThread(fallback);
+      }
+
+      toggleButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const mode = btn.getAttribute('data-spotlight-mode') || 'popular';
+          toggleButtons.forEach((other) => {
+            const active = other === btn;
+            other.classList.toggle('active', active);
+            other.setAttribute('aria-selected', String(active));
+          });
+          loadSpotlight(mode);
+        });
+      });
+
+      loadSpotlight('popular');
+    })();
+  </script>
 </BaseLayout>

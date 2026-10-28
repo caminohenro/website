@@ -53,9 +53,55 @@ const {
     </div>
 
     <!-- THE SURPRISE REVEAL AT THE BOTTOM OF EVERY PAGE -->
-    <div class="apple-reveal-stage" aria-hidden="true">
-      <div class="apple-whisper">
-        お接待 • <em>Osettai</em> — The simplest gift of the road is enough.
+    <div class="apple-reveal-stage">
+      <div class="spacer-for-apple"></div>
+      <div
+        class="global-newsletter-box"
+        id="global-newsletter-box"
+        data-form-action={siteConfig.mailerlite?.formActionUrl || ''}
+      >
+        <div class="newsletter-eyebrow">書簡 • DISPATCHES</div>
+        <h2 class="newsletter-heading">Pilgrimage Newsletter</h2>
+        <p class="newsletter-copy">
+          No noise, no algorithms—only a quiet note in your inbox whenever a new dispatch is written from the trail. Sent via MailerLite.
+        </p>
+        <form
+          class="newsletter-form"
+          id="global-newsletter-form"
+          action={siteConfig.mailerlite?.formActionUrl || '#'}
+          method="post"
+          novalidate
+        >
+          <input
+            type="email"
+            name="fields[email]"
+            class="newsletter-input"
+            placeholder="Enter your email address..."
+            required
+            aria-label="Email Address"
+          />
+          <div style="position:absolute; left:-5000px;" aria-hidden="true">
+            <input
+              type="text"
+              name="confirm_email_honeypot"
+              tabindex="-1"
+              value=""
+              autocomplete="off"
+            />
+          </div>
+          <input type="hidden" name="ml-submit" value="1" />
+          <input type="hidden" name="anticsrf" value="true" />
+          <button type="submit" class="newsletter-submit-btn">
+            Subscribe to Dispatches 印
+          </button>
+        </form>
+        <div
+          class="newsletter-response-msg"
+          id="global-newsletter-msg"
+          role="status"
+          aria-live="polite"
+          hidden
+        ></div>
       </div>
     </div>
 
@@ -878,5 +924,75 @@ const {
 })();
     </script>
     <!-- STEP17_MOBILE_SCROLL_PHYSICS_END -->
+    <!-- STEP13_MAILERLITE_SCRIPT_START -->
+    <script is:inline>
+      (function () {
+        const form = document.getElementById('global-newsletter-form');
+        const box = document.getElementById('global-newsletter-box');
+        const msgEl = document.getElementById('global-newsletter-msg');
+
+        if (!form || !box || !msgEl) return;
+
+        form.addEventListener('submit', async function (event) {
+          event.preventDefault();
+
+          const honeypot = form.querySelector('input[name="confirm_email_honeypot"]');
+          if (honeypot && honeypot.value) {
+            return;
+          }
+
+          const emailInput = form.querySelector('input[name="fields[email]"]');
+          const email = emailInput ? emailInput.value.trim() : '';
+
+          if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            msgEl.hidden = false;
+            msgEl.className = 'newsletter-response-msg is-error';
+            msgEl.textContent = 'Please enter a valid email address.';
+            return;
+          }
+
+          const formActionUrl = (box.getAttribute('data-form-action') || '').trim();
+          const submitBtn = form.querySelector('.newsletter-submit-btn');
+          if (submitBtn) submitBtn.disabled = true;
+
+          const isConfigured =
+            formActionUrl &&
+            !formActionUrl.includes('YOUR_ACCOUNT_ID') &&
+            !formActionUrl.includes('YOUR_FORM_ID') &&
+            formActionUrl !== '#';
+
+          if (isConfigured) {
+            try {
+              const formData = new FormData(form);
+              await fetch(formActionUrl, {
+                method: 'POST',
+                body: formData,
+                mode: 'no-cors',
+              });
+              form.reset();
+              msgEl.hidden = false;
+              msgEl.className = 'newsletter-response-msg is-success';
+              msgEl.textContent =
+                '印 Thank you. Your address has been inscribed in the dispatch ledger. Please check your inbox to confirm.';
+            } catch (_err) {
+              msgEl.hidden = false;
+              msgEl.className = 'newsletter-response-msg is-error';
+              msgEl.textContent =
+                'Unable to reach the dispatch ledger right now. Please try again shortly.';
+            } finally {
+              if (submitBtn) submitBtn.disabled = false;
+            }
+          } else {
+            form.reset();
+            if (submitBtn) submitBtn.disabled = false;
+            msgEl.hidden = false;
+            msgEl.className = 'newsletter-response-msg is-success';
+            msgEl.textContent =
+              '印 Thank you. Your address has been inscribed in the dispatch ledger. Please check your inbox to confirm. (Local Preview Mode: To enable live subscriptions, paste your MailerLite Form Action URL into "mailerlite.formActionUrl" inside src/data/siteConfig.json.)';
+          }
+        });
+      })();
+    </script>
+    <!-- STEP13_MAILERLITE_SCRIPT_END -->
   </body>
 </html>

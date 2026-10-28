@@ -23,5 +23,57 @@
   "supabase": {
     "url": "https://ojeztracxcevamopdveb.supabase.co",
     "anonKey": "sb_publishable_xnp4AuAecUicaDt4sz43pg_zK-HwRij"
-  }
+  },
+  "mailerlite": {
+    "formActionUrl": "https://assets.mailerlite.com/jsonp/2695563/forms/202582490539361874/subscribe",
+    "apiKey": "YOUR_MAILERLITE_API_KEY_OPTIONAL",
+    "groupId": "202582509810092026"
+  },
+  "navigation": [
+    {
+      "label": "Home",
+      "href": "/"
+    },
+    {
+      "label": "Blog",
+      "href": "/essays"
+    },
+    {
+      "label": "FAQ",
+      "href": "/faq"
+    },
+    {
+      "label": "Credits",
+      "href": "/Credits"
+    },
+    {
+      "label": "Coming Soon",
+      "children": [
+        {
+          "label": "Map",
+          "href": "/map",
+          "featureFlag": "enableMap"
+        },
+        {
+          "label": "Inventory",
+          "href": "/inventory",
+          "featureFlag": "enableInventory"
+        },
+        {
+          "label": "Finances",
+          "href": "/finances"
+        },
+        {
+          "label": "Gallery",
+          "href": "/gallery",
+          "featureFlag": "enableGallery"
+        },
+        {
+          "label": "Forum",
+          "href": "/forum",
+          "featureFlag": "enableForum"
+        }
+      ]
+    }
+  ]
 }
