@@ -10,13 +10,11 @@
   "stripeDonationUrl": "https://buy.stripe.com/test_placeholder",
   "giscus": {
     "repo": "YOUR_GITHUB_USERNAME/camino-henro",
-    "repoId": "",
-    "category": "General",
-    "categoryId": ""
+    "category": "General"
   },
   "features": {
-    "enableInventory": true,
-    "enableMap": true,
+    "enableInventory": false,
+    "enableMap": false,
     "enableForum": true,
     "enableGallery": true
   },
