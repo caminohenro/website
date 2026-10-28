@@ -177,6 +177,9 @@ const {
     let gestureMoved = false;
     let fullyOpen = false;
     let initialHeaderHidden = true;
+    let opening = null;
+    let headerScrollAnchor = window.scrollY;
+    // STEP17_FAST_RELEASE_AND_STABLE_BACKDROP_V1
 
     function clamp(value, minimum, maximum) {
       return Math.max(minimum, Math.min(maximum, value));
@@ -261,6 +264,13 @@ const {
       const previousHeight = height;
 
       height = paper.getBoundingClientRect().height;
+
+      if (opening && Math.abs(previousHeight - height) > 0.5) {
+        opening = null;
+        velocity = 0;
+        stopFrame();
+      }
+
       paperTop = paper.offsetTop;
       bottomHeight = roller.offsetHeight;
       stagePaddingBottom =
@@ -325,7 +335,7 @@ const {
 
       // CSS pixels per millisecond. Positive means dragging downward.
       velocity = elapsed > 0
-        ? clamp((clientY - first.y) / elapsed, -3.5, 3.5)
+        ? (clientY - first.y) / elapsed
         : 0;
     }
 
@@ -365,6 +375,141 @@ const {
       }
     }
 
+
+    // Read the original animation settings without changing desktop CSS.
+    function originalOpeningSettings() {
+      const paperStyle = window.getComputedStyle(paper);
+      const rootStyle = window.getComputedStyle(html);
+
+      const durationText = (
+        paperStyle.getPropertyValue('--unfurl-duration') ||
+        rootStyle.getPropertyValue('--unfurl-duration') ||
+        '8s'
+      ).trim();
+
+      const durationMatch = durationText.match(/^([\d.]+)\s*(ms|s)$/i);
+
+      let duration = 8000;
+
+      if (durationMatch) {
+        const amount = Number(durationMatch[1]);
+        duration = amount * (
+          durationMatch[2].toLowerCase() === 'ms' ? 1 : 1000
+        );
+      }
+
+      if (!Number.isFinite(duration) || duration <= 0) duration = 8000;
+
+      const easingText = (
+        paperStyle.getPropertyValue('--unfurl-easing') ||
+        rootStyle.getPropertyValue('--unfurl-easing') ||
+        'cubic-bezier(0.33, 1, 0.62, 1)'
+      ).trim();
+
+      const easingMatch = easingText.match(
+        /^cubic-bezier\(\s*([-+\d.e]+)\s*,\s*([-+\d.e]+)\s*,\s*([-+\d.e]+)\s*,\s*([-+\d.e]+)\s*\)$/i
+      );
+
+      let points = [0.33, 1, 0.62, 1];
+
+      if (easingMatch) {
+        const parsed = easingMatch.slice(1).map(Number);
+
+        if (
+          parsed.every(Number.isFinite) &&
+          parsed[0] > 0 &&
+          parsed[0] <= 1 &&
+          parsed[1] > 0 &&
+          parsed[1] <= 1 &&
+          parsed[2] >= 0 &&
+          parsed[2] <= 1 &&
+          parsed[3] >= parsed[1] &&
+          parsed[3] <= 1
+        ) {
+          points = parsed;
+        }
+      }
+
+      return {
+        duration: duration,
+        points: points,
+        initialSlope: points[1] / points[0],
+      };
+    }
+
+    function bezierCoordinate(parameter, first, second) {
+      const inverse = 1 - parameter;
+
+      return (
+        3 * inverse * inverse * parameter * first +
+        3 * inverse * parameter * parameter * second +
+        parameter * parameter * parameter
+      );
+    }
+
+    function originalOpeningProgress(timeProgress, points) {
+      if (timeProgress <= 0) return 0;
+      if (timeProgress >= 1) return 1;
+
+      // Invert the curve's x coordinate before evaluating its y coordinate.
+      // Evaluating y directly at timeProgress would change the CSS easing.
+      let low = 0;
+      let high = 1;
+
+      for (let index = 0; index < 30; index += 1) {
+        const middle = (low + high) / 2;
+        const x = bezierCoordinate(middle, points[0], points[2]);
+
+        if (x < timeProgress) low = middle;
+        else high = middle;
+      }
+
+      return bezierCoordinate(
+        (low + high) / 2,
+        points[1],
+        points[3]
+      );
+    }
+
+    function beginOriginalOpening(releaseSpeed) {
+      const remaining = height - revealed;
+      if (remaining <= 0 || releaseSpeed <= 0) return false;
+
+      const settings = originalOpeningSettings();
+
+      // Initial CSS opening speed:
+      //
+      // pixels/ms = full paper height / original duration * y1/x1
+      //
+      // For cubic-bezier(0.33, 1, 0.62, 1), y1/x1 is approximately 3.03.
+      const threshold =
+        height * settings.initialSlope / settings.duration;
+
+      if (releaseSpeed < threshold) return false;
+
+      // Use the original curve over the remaining distance.
+      // Choose its duration so its initial velocity equals the actual
+      // release velocity, avoiding a sudden acceleration or slowdown:
+      //
+      // releaseSpeed = remaining * initialSlope / duration
+      const duration =
+        remaining * settings.initialSlope / releaseSpeed;
+
+      if (!Number.isFinite(duration) || duration <= 0) return false;
+
+      opening = {
+        startedAt: performance.now(),
+        start: revealed,
+        remaining: remaining,
+        duration: duration,
+        points: settings.points,
+      };
+
+      velocity = 0;
+      beginFrame();
+      return true;
+    }
+
     function tick(now) {
       if (disposed) return;
 
@@ -372,6 +517,29 @@ const {
 
       const elapsed = clamp(now - previousFrameTime, 0, 32);
       previousFrameTime = now;
+
+      if (opening) {
+        const progress = clamp(
+          (now - opening.startedAt) / opening.duration,
+          0,
+          1
+        );
+
+        revealed = opening.start + opening.remaining *
+          originalOpeningProgress(progress, opening.points);
+
+        if (progress >= 1) {
+          revealed = height;
+          opening = null;
+          velocity = 0;
+          render();
+          return;
+        }
+
+        render();
+        frameId = window.requestAnimationFrame(tick);
+        return;
+      }
 
       if (dragging) {
         scrollDuringDrag(elapsed);
@@ -420,6 +588,7 @@ const {
       if (event.touches.length !== 1) return;
 
       stopFrame();
+      opening = null;
 
       const touch = event.touches[0];
       const now = performance.now();
@@ -461,7 +630,6 @@ const {
       if (Math.abs(displacement) > 0) {
         gestureMoved = true;
         dismissHint();
-        releaseInitialHeader();
       }
 
       // A one-pixel finger movement exposes or hides one pixel of paper.
@@ -495,10 +663,13 @@ const {
       // Reduced motion preserves direct manipulation but omits coasting.
       if (reducedMotion.matches) velocity = 0;
 
+      if (velocity > 0 && beginOriginalOpening(velocity)) return;
+
       if (Math.abs(velocity) >= 0.012) beginFrame();
     }
 
     function onTouchCancel() {
+      opening = null;
       dragging = false;
       touchId = null;
       velocity = 0;
@@ -524,7 +695,6 @@ const {
       event.preventDefault();
       onTouchCancel();
       dismissHint();
-      releaseInitialHeader();
 
       revealed = clamp(next, 0, height);
       render();
@@ -536,7 +706,6 @@ const {
       // Keyboard navigation must not focus invisible clipped controls.
       onTouchCancel();
       dismissHint();
-      releaseInitialHeader();
       revealed = height;
       render();
     }
@@ -546,10 +715,30 @@ const {
     }
 
     function onNativeScroll() {
-      // Roller gestures retain their own direct manipulation. Ordinary
-      // scrolling outside the roller returns the header to its old rules.
-      if (!dragging && window.scrollY > 12) {
+      const currentY = window.scrollY;
+
+      // Roller manipulation, its edge auto-scroll, and the completion
+      // animation must not expose the header.
+      if (dragging || opening) {
+        headerScrollAnchor = currentY;
+        return;
+      }
+
+      if (currentY >= headerScrollAnchor) {
+        headerScrollAnchor = currentY;
+        return;
+      }
+
+      // Accumulate a small upward movement instead of depending on an
+      // individual scroll event being larger than a pixel.
+      if (headerScrollAnchor - currentY >= 3) {
         releaseInitialHeader();
+
+        // Hand subsequent behavior back to the existing header logic.
+        const header = document.querySelector('header.site-header');
+        if (header) header.classList.remove('is-hidden');
+
+        headerScrollAnchor = currentY;
       }
     }
 
