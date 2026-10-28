@@ -15,8 +15,8 @@
   "features": {
     "enableInventory": false,
     "enableMap": false,
-    "enableForum": true,
-    "enableGallery": true
+    "enableForum": false,
+    "enableGallery": false
   },
   "supabase": {
     "url": "https://ojeztracxcevamopdveb.supabase.co",
