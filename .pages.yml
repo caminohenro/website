@@ -291,11 +291,14 @@ content:
         type: object
         fields:
           - name: enableInventory
-            label: Show RPG Inventory Page
+            label: Show Inventory Page
             type: boolean
           - name: enableMap
-            label: Show Interactive Map Page
+            label: Show Map Page
             type: boolean
           - name: enableForum
-            label: Show Community Forum Page
+            label: Show Forum Page
+            type: boolean
+          - name: enableGallery
+            label: Show Gallery Page
             type: boolean
