@@ -1,3 +1,8 @@
+# Preserve settings not represented in a CMS form when saving.
+settings:
+  content:
+    merge: true
+
 media:
   name: assets
   label: Site & Essay Media
@@ -249,6 +254,32 @@ content:
     path: src/data/siteConfig.json
     format: json
     fields:
+      - name: siteTitleJp
+        label: Website Title (Japanese)
+        type: string
+      - name: siteTitleEn
+        label: Website Title (English)
+        type: string
+      - name: tagline
+        label: Website Tagline
+        type: text
+      - name: crestImage
+        label: Crest Image
+        type: image
+      - name: routeSummary
+        label: Route Summary
+        type: string
+      - name: supabase
+        label: Forum Supabase Settings
+        type: object
+        fields:
+          - name: url
+            label: Supabase Project URL
+            type: string
+          - name: anonKey
+            label: Supabase Public Anonymous Key
+            description: Use only the public anon key, never a service role or secret key.
+            type: string
       - name: currentLocation
         label: Current Trail Location Banner
         type: string
