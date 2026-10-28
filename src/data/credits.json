@@ -1,7 +1,7 @@
 {
   "sections": [
     {
-      "title": "Trail Hosts & Roadside Angels",
+      "title": "Special thanks",
       "entries": [
         {
           "name": "Luis",
@@ -22,13 +22,11 @@
       "entries": [
         {
           "name": "<name>",
-          "locationOrRole": "<location_or_role>",
-          "note": "<note>"
+          "locationOrRole": "<location_or_role>"
         },
         {
           "name": "<name>",
-          "locationOrRole": "<location_or_role>",
-          "note": "<note>"
+          "locationOrRole": "<location_or_role>"
         }
       ]
     },
@@ -37,13 +35,11 @@
       "entries": [
         {
           "name": "Afonso Serra",
-          "locationOrRole": "Main website developer",
-          "note": "<note>"
+          "locationOrRole": "Main website developer"
         },
         {
           "name": "<name>",
-          "locationOrRole": "<location_or_role>",
-          "note": "<note>"
+          "locationOrRole": "<location_or_role>"
         }
       ]
     }
