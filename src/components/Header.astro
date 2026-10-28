@@ -11,9 +11,9 @@ const isActive = (href: string) => {
 const navLinks = [
   { label: 'Home', href: '/', show: true },
   { label: 'Essays (Blog)', href: '/essays', show: true },
-  { label: 'Finances', href: '/finances', show: true },
   { label: 'FAQ', href: '/faq', show: true },
   { label: 'Credits', href: '/credits', show: true },
+  { label: 'Finances', href: '/finances', show: true },
   { label: 'Map', href: '/map', show: siteConfig.features?.enableMap === true },
   { label: 'Inventory', href: '/inventory', show: siteConfig.features?.enableInventory === true },
   { label: 'Gallery', href: '/gallery', show: siteConfig.features?.enableGallery === true },
@@ -24,7 +24,11 @@ const navLinks = [
 <header class="site-header">
   <a href="/" class="header-brand">
     <div class="header-logo-badge">
-      <img src={siteConfig.crestImage} alt="Henro Stamp Crest" />
+      <img
+        src="/assets/logo.png"
+        onerror="this.onerror=null;this.src='/assets/crest.png';"
+        alt="Henro Stamp Crest"
+      />
     </div>
     <div class="header-titles">
       <span class="header-jp">{siteConfig.siteTitleJp} ・ 同行二人</span>
@@ -39,13 +43,18 @@ const navLinks = [
         class={'nav-btn' + (isActive(link.href) ? ' active' : '')}
       >
         {link.label}
+        {link.wip && <span class="wip-dot">•</span>}
       </a>
     ))}
-    <a href="/donate" class="nav-btn donate-btn">
+    <a
+      href="/donate"
+      class={'nav-btn donate-btn' + (isActive('/donate') ? ' active' : '')}
+    >
       Donate 印
     </a>
   </nav>
 </header>
+
 
 <script is:inline>
   (function() {
