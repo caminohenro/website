@@ -2,15 +2,15 @@
   "currencySymbol": "€",
   "startingReserve": 1200,
   "lastUpdated": "2026-10-16",
-  "note": "Every euro received as Osettai and every euro allocated along the journey is recorded openly in this ledger.",
+  "note": "<ledger_note>",
   "entries": [
     {
       "id": "fin-001",
       "date": "2026-10-10",
       "type": "osettai",
       "category": "Patron Contribution",
-      "description": "Initial blessing from supporter M.",
-      "location": "Santiago de Compostela, Spain",
+      "description": "<description>",
+      "location": "<location>",
       "amount": 50
     },
     {
@@ -18,8 +18,8 @@
       "date": "2026-10-12",
       "type": "expense",
       "category": "Food & Provisions",
-      "description": "Bread, cheese, dried figs, and oats for 3 days",
-      "location": "Cee, Spain",
+      "description": "<description>",
+      "location": "<location>",
       "amount": 18.4
     },
     {
@@ -27,8 +27,8 @@
       "date": "2026-10-14",
       "type": "expense",
       "category": "Shelter",
-      "description": "Municipal albergue pilgrim bunk",
-      "location": "Finisterra, Spain",
+      "description": "<description>",
+      "location": "<location>",
       "amount": 15
     }
   ]

@@ -26,32 +26,19 @@ const formatDate = (date: Date) =>
   description="Chronological philosophical dispatches written on foot from Finisterra, Spain toward Shikoku, Japan."
 >
   <!-- Archive Header -->
-  <header class="pt-2 pb-8 border-b border-[#6E2B25]">
-    <p class="font-jp text-sm sm:text-base tracking-[0.2em] text-[#6E2B25] mb-2">
-      随筆・思索の記録
-    </p>
-    <h1 class="font-heading text-3xl sm:text-5xl font-bold tracking-wider uppercase text-[#1C1A17] mb-3">
-      Dispatches from the Road
-    </h1>
-    <p class="font-body text-base sm:text-lg text-[#524D46] max-w-2xl leading-relaxed mb-6">
-      Long-form reflections on material security, reciprocity, and the quiet continuity between human society and Nature, inscribed along the overland path from the Atlantic coast to Japan.
-    </p>
+  <!-- STANDARDIZED_SCROLL_HEADER_START -->
+<div class="scroll-title-block">
+  <div class="scroll-eyebrow">随筆・思索の記録 • Pilgrimage Dispatches</div>
+  <h1 class="page-heading">Dispatches from the Road</h1>
+  <div class="page-subtitle">Long-form reflections on material security, reciprocity, and the quiet continuity between human society and Nature</div>
+</div>
 
-    <div class="flex flex-wrap items-center gap-6 pt-4 border-t border-[#1C1A17]/15 font-mono text-xs text-[#524D46]">
-      <div>
-        <span class="uppercase tracking-widest">Total Dispatches:</span>{' '}
-        <strong class="text-[#1C1A17] font-medium">{totalDispatches}</strong>
-      </div>
-      <div>
-        <span class="uppercase tracking-widest">Furthest Marker Logged:</span>{' '}
-        <strong class="text-[#6E2B25] font-medium">KM {totalKilometersLogged}</strong>
-      </div>
-      <div>
-        <span class="uppercase tracking-widest">Order:</span>{' '}
-        <span class="text-[#1C1A17]">Newest First</span>
-      </div>
-    </div>
-  </header>
+<div class="page-break">
+  <div class="line"></div>
+  <div class="kanji">筆</div>
+  <div class="line"></div>
+</div>
+<!-- STANDARDIZED_SCROLL_HEADER_END -->
 
   <!-- Chronological Stream of Essays -->
   <section class="divide-y divide-[#1C1A17]/15">

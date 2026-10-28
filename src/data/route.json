@@ -75,32 +75,32 @@
   "checkpoints": [
     {
       "id": "chk-001",
-      "title": "Cape Finisterra (Zero Kilometer Stone), Spain",
+      "title": "<checkpoint_title>",
       "date": "2026-10-10",
       "lat": 42.9078,
       "lng": -9.265,
       "kmMarker": 0,
-      "summary": "Stood at the Atlantic promontory where medieval pilgrims ended their westward walk, tightened my pack straps, and turned eastward toward Shikoku.",
-      "essaySlug": "2026-10-10-the-end-of-the-earth"
+      "summary": "<trail_note>",
+      "essaySlug": "placeholder-essay-1"
     },
     {
       "id": "chk-002",
-      "title": "Cee, Galicia, Spain",
+      "title": "<checkpoint_title>",
       "date": "2026-10-14",
       "lat": 42.9564,
       "lng": -9.1897,
       "kmMarker": 18,
-      "summary": "Descended from the coastal eucalyptus ridges into Cee; received two rain-speckled apples and hot mint infusion beside a stone wall in the spirit of donativo and Osettai.",
-      "essaySlug": "2026-10-14-two-traditions-of-alms"
+      "summary": "<trail_note>",
+      "essaySlug": "placeholder-essay-2"
     },
     {
       "id": "chk-003",
-      "title": "Santiago de Compostela, Galicia, Spain",
+      "title": "<checkpoint_title>",
       "date": "2026-10-16",
       "lat": 42.8782,
       "lng": -8.5448,
       "kmMarker": 115,
-      "summary": "Walked uphill through the misty oak valleys of Negreira and entered the granite heart of Santiago, greeting westbound finishers while continuing east toward the Pyrenees.",
+      "summary": "<trail_note>",
       "essaySlug": ""
     }
   ]

@@ -1,339 +1,263 @@
----
-import BaseLayout from '../layouts/BaseLayout.astro';
-import finances from '../data/finances.json';
-import siteConfig from '../data/siteConfig.json';
-
-const currency = finances.currencySymbol || '€';
-const startingReserve = Number(finances.startingReserve || 0);
-const entries = Array.isArray(finances.entries) ? finances.entries : [];
-
-// Automatic build-time calculations
-const totalOsettai = entries
-  .filter((entry) => entry.type === 'osettai')
-  .reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
-
-const totalExpenses = entries
-  .filter((entry) => entry.type === 'expense')
-  .reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
-
-const currentReserves = startingReserve + totalOsettai - totalExpenses;
-
-const expenseDates = new Set(
-  entries
-    .filter((entry) => entry.type === 'expense' && entry.date)
-    .map((entry) => entry.date)
-);
-const uniqueDays = expenseDates.size > 0 ? expenseDates.size : 1;
-const dailyBurnRate = totalExpenses / uniqueDays;
-
-const categoryTotals: Record<string, { amount: number; percentage: number }> = {};
-entries
-  .filter((entry) => entry.type === 'expense')
-  .forEach((entry) => {
-    const category = entry.category || 'Uncategorized';
-    if (!categoryTotals[category]) {
-      categoryTotals[category] = { amount: 0, percentage: 0 };
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>カミノ遍路 | CAMINO HENRO — Under Construction</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&display=swap" rel="stylesheet">
+  <style>
+    /* ==========================================================================
+       MASTER THEME VARIABLES (Centralized for easy customization)
+       ========================================================================== */
+    :root {
+      --bg-outer-obsidian: #08090C;
+      --bg-header: rgba(10, 12, 16, 0.88);
+      --bg-washi-scroll: #E6DFCF;
+      --bg-washi-subtle: rgba(28, 26, 23, 0.04);
+      --ink-sumi: #1C1A17;
+      --ink-muted: #5A534A;
+      --header-text: #E6DFCF;
+      --header-muted: #A09A8E;
+      --accent-indigo: #0A367E;
+      --accent-crimson: #6E2B25; /* Gentle, darker Bengala red hue */
+      --border-ink: rgba(28, 26, 23, 0.15);
+      --font-serif: 'Georgia', 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'SFMono-Regular', Consolas, monospace;
+      --font-cursive: 'Dancing Script', cursive;
     }
-    categoryTotals[category].amount += Number(entry.amount || 0);
-  });
 
-Object.keys(categoryTotals).forEach((category) => {
-  categoryTotals[category].percentage =
-    totalExpenses > 0
-      ? (categoryTotals[category].amount / totalExpenses) * 100
-      : 0;
-});
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-const sortedCategories = Object.entries(categoryTotals).sort(
-  (a, b) => b[1].amount - a[1].amount
-);
+    body {
+      background-color: var(--bg-outer-obsidian);
+      color: var(--ink-sumi);
+      font-family: var(--font-serif);
+      line-height: 1.85;
+      overflow: hidden; /* REMOVED SCROLL */
+    }
 
-const sortedEntries = [...entries].sort((a, b) =>
-  String(b.date || '').localeCompare(String(a.date || ''))
-);
+    /* ==========================================================================
+       LAYER 1: STATIC BACKGROUND
+       ========================================================================== */
+    .fixed-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-image: url('assets/apple-bg.jpeg');
+      background-size: cover;
+      background-position: center 84%;
+      background-repeat: no-repeat;
+    }
 
-const formatAmount = (value: number) =>
-  currency +
-  value.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
----
+    .backdrop-dimmer {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      background: radial-gradient(
+        circle at 50% 72%,
+        rgba(8, 9, 12, var(--center-dim, 0.58)) 0%,
+        rgba(8, 9, 12, var(--edge-dim, 0.84)) 100%
+      );
+      transition: background 0.35s ease;
+      pointer-events: none;
+    }
 
-<BaseLayout
-  title="Open Financial Ledger | CAMINO HENRO"
-  description="Transparent Daifukucho-style financial ledger recording every Osettai contribution and trail expenditure from Spain to Japan."
->
-  <!-- Editorial Header -->
-  <header class="pt-2 pb-8 border-b border-[#6E2B25]">
-    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-      <p class="font-jp text-sm sm:text-base tracking-[0.2em] text-[#6E2B25]">
-        会計報告 / Open Financial Ledger
-      </p>
-      <span class="font-mono text-xs text-[#524D46]">
-        大福帳 ・ LAST UPDATED: {finances.lastUpdated || 'LIVE'}
-      </span>
+    /* ==========================================================================
+       PERSISTENT WEBSITE HEADER
+       ========================================================================== */
+    header.site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg-header);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(230, 223, 207, 0.16);
+      padding: 12px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .header-logo-badge {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--bg-washi-scroll);
+      padding: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+      transition: all 0.25s ease;
+    }
+    
+    .header-logo-badge img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .header-titles {
+      display: flex;
+      flex-direction: column;
+    }
+    .header-jp {
+      font-size: 0.72rem;
+      letter-spacing: 0.25em;
+      color: var(--header-muted);
+    }
+    .header-en {
+      font-size: 1.2rem;
+      letter-spacing: 0.14em;
+      color: var(--header-text);
+      font-weight: normal;
+    }
+
+    nav.site-nav {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    /* BUTTONS UNCLICKABLE BUT HOVER REACTIVE */
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: var(--header-muted);
+      font-family: var(--font-sans);
+      font-size: 0.76rem;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      padding: 7px 11px;
+      cursor: default; /* UNCLICKABLE */
+      transition: all 0.2s;
+      border-bottom: 2px solid transparent;
+      pointer-events: auto; /* ALLOW HOVER */
+    }
+
+    .nav-btn:hover {
+      color: var(--header-text);
+    }
+
+    .nav-btn.active {
+      color: var(--header-text);
+      border-bottom: 2px solid var(--accent-crimson);
+    }
+
+    .nav-btn .wip-dot {
+      font-size: 0.62rem;
+      opacity: 0.6;
+      margin-left: 3px;
+    }
+
+    .nav-btn.donate-btn {
+      background: var(--accent-crimson);
+      color: #F4F1EA;
+      padding: 7px 15px;
+      margin-left: 8px;
+      border-radius: 2px;
+      border-bottom: none;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+    .nav-btn.donate-btn:hover {
+      filter: brightness(1.12);
+    }
+
+    /* ==========================================================================
+       UNDER CONSTRUCTION CONTENT
+       ========================================================================== */
+    .construction-content {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 80vh;
+      text-align: center;
+      color: #F4F1EA;
+      padding: 0 20px;
+    }
+
+    .logo-large {
+      width: 250px;
+      margin-bottom: 20px;
+      filter: drop-shadow(0px 1px 1px rgba(0, 0, 0, 0.6));
+    }
+
+    .construction-title {
+      font-family: var(--font-cursive);
+      font-size: 4rem;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+    }
+
+    .construction-text {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      max-width: 600px;
+      line-height: 1.6;
+      text-shadow: 1px 1px 6px rgba(0,0,0,0.8);
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- LAYER 1: Fixed Road & Apple Background -->
+  <div class="fixed-backdrop"></div>
+  <div class="backdrop-dimmer" id="dimmer"></div>
+
+  <!-- PERSISTENT WEBSITE HEADER -->
+  <header class="site-header">
+    <div class="header-brand">
+      <div class="header-logo-badge">
+        <img src="assets/logo.png" alt="Henro Stamp Crest" />
+      </div>
+      <div class="header-titles">
+        <span class="header-jp">カミノ遍路 ・ 同行二人</span>
+        <span class="header-en">CAMINO HENRO</span>
+      </div>
     </div>
 
-    <h1 class="font-heading text-3xl sm:text-5xl font-bold tracking-wider uppercase text-[#1C1A17] mb-4">
-      The Pilgrim's Daifukucho
-    </h1>
-
-    <p class="font-body text-base sm:text-lg text-[#524D46] leading-relaxed mb-4">
-      {finances.note}
-    </p>
-
-    <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-[#1C1A17]/15 font-mono text-xs text-[#524D46]">
-      <span>STAGE: {siteConfig.currentLocation}</span>
-      <a
-        href="/donate"
-        class="text-[#6E2B25] hover:text-[#8C3B33] underline underline-offset-4"
-      >
-        Offer Osettai to the Trail Reserve →
-      </a>
-    </div>
+    <nav class="site-nav">
+      <button class="nav-btn active">Home</button>
+      <button class="nav-btn">Essays (Blog)</button>
+      <button class="nav-btn">Finances</button>
+      <button class="nav-btn">FAQ</button>
+      <button class="nav-btn">Credits</button>
+      <button class="nav-btn">Map<span class="wip-dot">•</span></button>
+      <button class="nav-btn">Inventory<span class="wip-dot">•</span></button>
+      <button class="nav-btn">Forum<span class="wip-dot">•</span></button>
+      <button class="nav-btn donate-btn">Donate 印</button>
+    </nav>
   </header>
 
-  <!-- 3 Prominent Summary Blocks -->
-  <section class="py-8 border-b border-[#1C1A17]/15">
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <!-- 1. Current Trail Reserves -->
-      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/55 p-5 flex flex-col justify-between">
-        <div>
-          <span class="font-mono text-[11px] uppercase tracking-widest text-[#524D46] block mb-1">
-            Current Trail Reserves
-          </span>
-          <p class="font-mono text-2xl sm:text-3xl font-bold text-[#6E2B25] my-2">
-            {formatAmount(currentReserves)}
-          </p>
-        </div>
-        <p class="font-mono text-[11px] text-[#524D46] pt-3 border-t border-[#1C1A17]/15">
-          Start ({formatAmount(startingReserve)}) + Osettai ({formatAmount(totalOsettai)}) − Spent ({formatAmount(totalExpenses)})
-        </p>
-      </div>
+  <!-- UNDER CONSTRUCTION CONTENT -->
+  <main class="construction-content">
+    <img src="assets/crest.png" alt="Henro Stamp" class="logo-large">
+    <h1 class="construction-title">Under construction</h1>
+    <p class="construction-text">Henro is currently working on this website. The road will be shorter than the path to Japan, but patience is still required.</p>
+  </main>
 
-      <!-- 2. Total Osettai Received -->
-      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-5 flex flex-col justify-between">
-        <div>
-          <span class="font-mono text-[11px] uppercase tracking-widest text-[#524D46] block mb-1">
-            Total Osettai Received
-          </span>
-          <p class="font-mono text-2xl sm:text-3xl font-bold text-[#1C1A17] my-2">
-            +{formatAmount(totalOsettai)}
-          </p>
-        </div>
-        <p class="font-mono text-[11px] text-[#524D46] pt-3 border-t border-[#1C1A17]/15">
-          {entries.filter((e) => e.type === 'osettai').length} recorded patronage offerings
-        </p>
-      </div>
-
-      <!-- 3. Total Trail Expenditures -->
-      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-5 flex flex-col justify-between">
-        <div>
-          <span class="font-mono text-[11px] uppercase tracking-widest text-[#524D46] block mb-1">
-            Total Trail Expenditures
-          </span>
-          <p class="font-mono text-2xl sm:text-3xl font-bold text-[#6E2B25] my-2">
-            -{formatAmount(totalExpenses)}
-          </p>
-        </div>
-        <p class="font-mono text-[11px] text-[#524D46] pt-3 border-t border-[#1C1A17]/15">
-          Daily Avg Burn: <strong class="text-[#1C1A17]">{formatAmount(dailyBurnRate)}/day</strong> ({expenseDates.size} active {expenseDates.size === 1 ? 'day' : 'days'})
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Category Breakdown Bar -->
-  <section class="py-8 border-b border-[#1C1A17]/15">
-    <div class="flex items-baseline justify-between mb-5">
-      <h2 class="font-heading text-xl sm:text-2xl font-semibold uppercase tracking-wider text-[#1C1A17]">
-        Expenditure Breakdown by Category
-      </h2>
-      <span class="font-jp text-xs text-[#524D46] tracking-widest">費目別内訳</span>
-    </div>
-
-    {sortedCategories.length > 0 ? (
-      <div class="space-y-4">
-        {sortedCategories.map(([categoryName, stats]) => (
-          <div>
-            <div class="flex justify-between items-baseline font-mono text-xs mb-1.5">
-              <span class="text-[#1C1A17] font-medium uppercase tracking-wider">
-                {categoryName}
-              </span>
-              <span class="text-[#524D46]">
-                <strong class="text-[#1C1A17]">{formatAmount(stats.amount)}</strong>{' '}
-                ({stats.percentage.toFixed(1)}%)
-              </span>
-            </div>
-            <div class="w-full h-2.5 bg-[#D8CEB8] border border-[#1C1A17]/20 overflow-hidden">
-              <div
-                class="h-full bg-[#6E2B25]"
-                style={'width: ' + Math.min(100, Math.max(2, stats.percentage)).toFixed(1) + '%;'}
-              ></div>
-            </div>
-          </div>
-        ))}
-      </div>
-    ) : (
-      <p class="font-mono text-xs text-[#524D46] py-4">
-        No trail expenditures have been recorded yet.
-      </p>
-    )}
-  </section>
-
-  <!-- Filterable Itemized Ledger Table -->
-  <section class="py-8">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-      <div>
-        <h2 class="font-heading text-xl sm:text-2xl font-semibold uppercase tracking-wider text-[#1C1A17]">
-          Itemized Account Ledger
-        </h2>
-        <p class="font-mono text-xs text-[#524D46]">
-          Showing chronological entries in reverse order
-        </p>
-      </div>
-
-      <!-- Client-Side Filter Buttons -->
-      <div class="flex flex-wrap items-center gap-2 font-mono text-xs" role="group" aria-label="Filter ledger entries">
-        <button
-          type="button"
-          data-filter="all"
-          class="ledger-filter-btn bg-[#6E2B25] text-[#E6DFCF] border border-[#6E2B25] px-3 py-1.5 uppercase tracking-wider transition-colors"
-        >
-          All Entries ({sortedEntries.length})
-        </button>
-        <button
-          type="button"
-          data-filter="osettai"
-          class="ledger-filter-btn bg-transparent text-[#1C1A17] border border-[#1C1A17]/30 hover:border-[#6E2B25] px-3 py-1.5 uppercase tracking-wider transition-colors"
-        >
-          Osettai (+)
-        </button>
-        <button
-          type="button"
-          data-filter="expense"
-          class="ledger-filter-btn bg-transparent text-[#1C1A17] border border-[#1C1A17]/30 hover:border-[#6E2B25] px-3 py-1.5 uppercase tracking-wider transition-colors"
-        >
-          Expenses (-)
-        </button>
-      </div>
-    </div>
-
-    <div class="overflow-x-auto border border-[#1C1A17]/20 bg-[#D8CEB8]/25">
-      <table class="w-full text-left border-collapse">
-        <thead>
-          <tr class="border-b border-[#6E2B25] bg-[#D8CEB8]/60 font-mono text-[11px] uppercase tracking-wider text-[#524D46]">
-            <th class="py-3 px-4">Date</th>
-            <th class="py-3 px-4">Location</th>
-            <th class="py-3 px-4">Category</th>
-            <th class="py-3 px-4">Description</th>
-            <th class="py-3 px-4 text-right">Amount</th>
-          </tr>
-        </thead>
-        <tbody id="ledger-table-body" class="divide-y divide-[#1C1A17]/15 text-sm">
-          {sortedEntries.length > 0 ? (
-            sortedEntries.map((entry) => {
-              const isOsettai = entry.type === 'osettai';
-              const formattedVal =
-                (isOsettai ? '+' : '-') + formatAmount(Number(entry.amount || 0));
-
-              return (
-                <tr
-                  data-entry-type={entry.type}
-                  class="ledger-row hover:bg-[#D8CEB8]/40 transition-colors"
-                >
-                  <td class="py-3.5 px-4 font-mono text-xs text-[#524D46] whitespace-nowrap">
-                    {entry.date}
-                  </td>
-                  <td class="py-3.5 px-4 font-body text-[#1C1A17] whitespace-nowrap">
-                    {entry.location}
-                  </td>
-                  <td class="py-3.5 px-4 font-mono text-xs">
-                    <span
-                      class={
-                        isOsettai
-                          ? 'px-2 py-0.5 border border-[#1C1A17]/30 bg-[#E6DFCF] text-[#1C1A17]'
-                          : 'px-2 py-0.5 border border-[#6E2B25]/40 bg-[#E6DFCF] text-[#6E2B25]'
-                      }
-                    >
-                      {entry.category}
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-4 font-body text-[#1C1A17]/90">
-                    {entry.description}
-                  </td>
-                  <td
-                    class={
-                      'py-3.5 px-4 font-mono text-xs font-medium text-right whitespace-nowrap ' +
-                      (isOsettai ? 'text-[#1C1A17]' : 'text-[#6E2B25]')
-                    }
-                  >
-                    {formattedVal}
-                  </td>
-                </tr>
-              );
-            })
-          ) : (
-            <tr>
-              <td
-                colspan="5"
-                class="py-8 px-4 text-center font-mono text-xs text-[#524D46]"
-              >
-                No financial entries recorded in the ledger yet.
-              </td>
-            </tr>
-          )}
-          <tr id="ledger-filter-empty" class="hidden">
-            <td
-              colspan="5"
-              class="py-8 px-4 text-center font-mono text-xs text-[#524D46]"
-            >
-              No matching entries for this filter.
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <script is:inline>
-    (function () {
-      const filterButtons = document.querySelectorAll('.ledger-filter-btn');
-      const rows = document.querySelectorAll('.ledger-row');
-      const emptyFilterRow = document.getElementById('ledger-filter-empty');
-
-      filterButtons.forEach(function (button) {
-        button.addEventListener('click', function () {
-          const selectedType = button.getAttribute('data-filter') || 'all';
-
-          filterButtons.forEach(function (btn) {
-            btn.className =
-              'ledger-filter-btn bg-transparent text-[#1C1A17] border border-[#1C1A17]/30 hover:border-[#6E2B25] px-3 py-1.5 uppercase tracking-wider transition-colors';
-          });
-          button.className =
-            'ledger-filter-btn bg-[#6E2B25] text-[#E6DFCF] border border-[#6E2B25] px-3 py-1.5 uppercase tracking-wider transition-colors';
-
-          let visibleCount = 0;
-          rows.forEach(function (row) {
-            const rowType = row.getAttribute('data-entry-type');
-            if (selectedType === 'all' || rowType === selectedType) {
-              row.classList.remove('hidden');
-              visibleCount++;
-            } else {
-              row.classList.add('hidden');
-            }
-          });
-
-          if (emptyFilterRow) {
-            if (visibleCount === 0 && rows.length > 0) {
-              emptyFilterRow.classList.remove('hidden');
-            } else {
-              emptyFilterRow.classList.add('hidden');
-            }
-          }
-        });
-      });
-    })();
-  </script>
-</BaseLayout>
+</body>
+</html>

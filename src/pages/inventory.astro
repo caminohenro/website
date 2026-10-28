@@ -1,629 +1,263 @@
----
-import BaseLayout from '../layouts/BaseLayout.astro';
-import inventoryData from '../data/inventory.json';
-import siteConfig from '../data/siteConfig.json';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>カミノ遍路 | CAMINO HENRO — Under Construction</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&display=swap" rel="stylesheet">
+  <style>
+    /* ==========================================================================
+       MASTER THEME VARIABLES (Centralized for easy customization)
+       ========================================================================== */
+    :root {
+      --bg-outer-obsidian: #08090C;
+      --bg-header: rgba(10, 12, 16, 0.88);
+      --bg-washi-scroll: #E6DFCF;
+      --bg-washi-subtle: rgba(28, 26, 23, 0.04);
+      --ink-sumi: #1C1A17;
+      --ink-muted: #5A534A;
+      --header-text: #E6DFCF;
+      --header-muted: #A09A8E;
+      --accent-indigo: #0A367E;
+      --accent-crimson: #6E2B25; /* Gentle, darker Bengala red hue */
+      --border-ink: rgba(28, 26, 23, 0.15);
+      --font-serif: 'Georgia', 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'SFMono-Regular', Consolas, monospace;
+      --font-cursive: 'Dancing Script', cursive;
+    }
 
-interface GearSpecs {
-  Material?: string;
-  Origin?: string;
-  Role?: string;
-  [key: string]: string | undefined;
-}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-interface GearItem {
-  id: string;
-  name: string;
-  japaneseName: string;
-  slot: string;
-  weightGrams: number;
-  condition: 'Pristine' | 'Seasoned' | 'Worn' | 'Need Replacement' | string;
-  icon: string;
-  shortSummary: string;
-  lore: string;
-  specs?: GearSpecs;
-}
+    body {
+      background-color: var(--bg-outer-obsidian);
+      color: var(--ink-sumi);
+      font-family: var(--font-serif);
+      line-height: 1.85;
+      overflow: hidden; /* REMOVED SCROLL */
+    }
 
-// Support either inventoryData.items or a raw array fallback
-const rawItems = Array.isArray(inventoryData)
-  ? inventoryData
-  : Array.isArray(inventoryData?.items)
-  ? inventoryData.items
-  : [];
+    /* ==========================================================================
+       LAYER 1: STATIC BACKGROUND
+       ========================================================================== */
+    .fixed-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-image: url('assets/apple-bg.jpeg');
+      background-size: cover;
+      background-position: center 84%;
+      background-repeat: no-repeat;
+    }
 
-const items: GearItem[] = rawItems.map((item, idx) => ({
-  id: item.id || 'item-' + idx,
-  name: item.name || 'Unnamed Gear',
-  japaneseName: item.japaneseName || '装備品',
-  slot: item.slot || 'Main Pack',
-  weightGrams: Number(item.weightGrams || 0),
-  condition: item.condition || 'Seasoned',
-  icon: item.icon || '印',
-  shortSummary: item.shortSummary || '',
-  lore: item.lore || '',
-  specs: item.specs || {
-    Material: 'Field-tested construction',
-    Origin: 'Eurasian Trail',
-    Role: 'Pilgrimage equipment',
-  },
-}));
+    .backdrop-dimmer {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      background: radial-gradient(
+        circle at 50% 72%,
+        rgba(8, 9, 12, var(--center-dim, 0.58)) 0%,
+        rgba(8, 9, 12, var(--edge-dim, 0.84)) 100%
+      );
+      transition: background 0.35s ease;
+      pointer-events: none;
+    }
 
-// Automatic Build-Time Weight Calculations
-const equippedGrams = items
-  .filter((item) => item.slot === 'Equipped')
-  .reduce((sum, item) => sum + item.weightGrams, 0);
+    /* ==========================================================================
+       PERSISTENT WEBSITE HEADER
+       ========================================================================== */
+    header.site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg-header);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(230, 223, 207, 0.16);
+      padding: 12px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
 
-const basePackGrams = items
-  .filter((item) => item.slot !== 'Equipped' && item.slot !== 'Consumables')
-  .reduce((sum, item) => sum + item.weightGrams, 0);
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      text-decoration: none;
+    }
 
-const consumablesGrams = items
-  .filter((item) => item.slot === 'Consumables')
-  .reduce((sum, item) => sum + item.weightGrams, 0);
+    .header-logo-badge {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--bg-washi-scroll);
+      padding: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+      transition: all 0.25s ease;
+    }
+    
+    .header-logo-badge img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
 
-const totalTrailGrams = items.reduce((sum, item) => sum + item.weightGrams, 0);
+    .header-titles {
+      display: flex;
+      flex-direction: column;
+    }
+    .header-jp {
+      font-size: 0.72rem;
+      letter-spacing: 0.25em;
+      color: var(--header-muted);
+    }
+    .header-en {
+      font-size: 1.2rem;
+      letter-spacing: 0.14em;
+      color: var(--header-text);
+      font-weight: normal;
+    }
 
-const formatKg = (grams: number) => (grams / 1000).toFixed(2) + ' kg';
-const formatGrams = (grams: number) => grams.toLocaleString('en-US') + ' g';
+    nav.site-nav {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
 
-// Group items by the 5 canonical RPG equipment slots
-const slotOrder = [
-  {
-    key: 'Equipped',
-    jp: '身支度・装着品',
-    description: 'Garments and instruments worn or carried in hand at every step.',
-  },
-  {
-    key: 'Main Pack',
-    jp: '背嚢・主装備',
-    description: 'Core vessel and field maintenance tools riding against the spine.',
-  },
-  {
-    key: 'Shelter & Sleep',
-    jp: '野営・寝具',
-    description: 'Autonomous sanctuary for mountain passes, porticos, and open fields.',
-  },
-  {
-    key: 'Electronics & Writing',
-    jp: '筆録・通信具',
-    description: 'Instruments for inscribing dispatches and logging continental coordinates.',
-  },
-  {
-    key: 'Consumables',
-    jp: '糧食・飲料水',
-    description: 'Daily water and simple provisions sustaining the body between villages.',
-  },
-];
+    /* BUTTONS UNCLICKABLE BUT HOVER REACTIVE */
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: var(--header-muted);
+      font-family: var(--font-sans);
+      font-size: 0.76rem;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      padding: 7px 11px;
+      cursor: default; /* UNCLICKABLE */
+      transition: all 0.2s;
+      border-bottom: 2px solid transparent;
+      pointer-events: auto; /* ALLOW HOVER */
+    }
 
-const groupedSlots = slotOrder.map((slotMeta) => {
-  const slotItems = items.filter((item) => item.slot === slotMeta.key);
-  const slotWeightGrams = slotItems.reduce((sum, item) => sum + item.weightGrams, 0);
-  return {
-    ...slotMeta,
-    items: slotItems,
-    slotWeightGrams,
-  };
-});
+    .nav-btn:hover {
+      color: var(--header-text);
+    }
 
-// Include any custom slots if added via PagesCMS later
-const knownSlotKeys = new Set(slotOrder.map((s) => s.key));
-const extraSlotsMap = new Map<string, GearItem[]>();
-items.forEach((item) => {
-  if (!knownSlotKeys.has(item.slot)) {
-    const existing = extraSlotsMap.get(item.slot) || [];
-    existing.push(item);
-    extraSlotsMap.set(item.slot, existing);
-  }
-});
-extraSlotsMap.forEach((extraItems, slotKey) => {
-  groupedSlots.push({
-    key: slotKey,
-    jp: '追加装備',
-    description: 'Additional trail equipment.',
-    items: extraItems,
-    slotWeightGrams: extraItems.reduce((sum, i) => sum + i.weightGrams, 0),
-  });
-});
+    .nav-btn.active {
+      color: var(--header-text);
+      border-bottom: 2px solid var(--accent-crimson);
+    }
 
-const getConditionBadgeClasses = (condition: string) => {
-  switch (condition) {
-    case 'Pristine':
-      return 'border-[#1C1A17]/40 bg-[#D8CEB8]/70 text-[#1C1A17]';
-    case 'Seasoned':
-      return 'border-[#6E2B25]/50 bg-[#6E2B25]/10 text-[#6E2B25]';
-    case 'Worn':
-      return 'border-[#6E2B25] bg-[#6E2B25]/20 text-[#6E2B25] font-semibold';
-    case 'Need Replacement':
-      return 'border-[#6E2B25] bg-[#6E2B25] text-[#E6DFCF] font-semibold';
-    default:
-      return 'border-[#1C1A17]/30 bg-[#D8CEB8]/40 text-[#524D46]';
-  }
-};
----
+    .nav-btn .wip-dot {
+      font-size: 0.62rem;
+      opacity: 0.6;
+      margin-left: 3px;
+    }
 
-<BaseLayout
-  title="Pilgrim's Inventory | CAMINO HENRO"
-  description="Tactile RPG gear inventory and build-time weight ledger documenting every item carried on foot from Finisterra, Spain to Shikoku, Japan."
->
-  <!-- Editorial Header -->
-  <header class="pt-2 pb-8 border-b border-[#6E2B25]">
-    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-      <p class="font-jp text-sm sm:text-base tracking-[0.2em] text-[#6E2B25]">
-        行脚装備録 / Pilgrim's Gear Inventory
-      </p>
-      <span class="font-mono text-xs text-[#524D46]">
-        STAGE: {siteConfig.currentLocation}
-      </span>
+    .nav-btn.donate-btn {
+      background: var(--accent-crimson);
+      color: #F4F1EA;
+      padding: 7px 15px;
+      margin-left: 8px;
+      border-radius: 2px;
+      border-bottom: none;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+    .nav-btn.donate-btn:hover {
+      filter: brightness(1.12);
+    }
+
+    /* ==========================================================================
+       UNDER CONSTRUCTION CONTENT
+       ========================================================================== */
+    .construction-content {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 80vh;
+      text-align: center;
+      color: #F4F1EA;
+      padding: 0 20px;
+    }
+
+    .logo-large {
+      width: 250px;
+      margin-bottom: 20px;
+      filter: drop-shadow(0px 1px 1px rgba(0, 0, 0, 0.6));
+    }
+
+    .construction-title {
+      font-family: var(--font-cursive);
+      font-size: 4rem;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+    }
+
+    .construction-text {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      max-width: 600px;
+      line-height: 1.6;
+      text-shadow: 1px 1px 6px rgba(0,0,0,0.8);
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- LAYER 1: Fixed Road & Apple Background -->
+  <div class="fixed-backdrop"></div>
+  <div class="backdrop-dimmer" id="dimmer"></div>
+
+  <!-- PERSISTENT WEBSITE HEADER -->
+  <header class="site-header">
+    <div class="header-brand">
+      <div class="header-logo-badge">
+        <img src="assets/logo.png" alt="Henro Stamp Crest" />
+      </div>
+      <div class="header-titles">
+        <span class="header-jp">カミノ遍路 ・ 同行二人</span>
+        <span class="header-en">CAMINO HENRO</span>
+      </div>
     </div>
 
-    <h1 class="font-heading text-3xl sm:text-5xl font-bold tracking-wider uppercase text-[#1C1A17] mb-3">
-      The Weight of Sufficiency
-    </h1>
-
-    <p class="font-body text-base sm:text-lg text-[#524D46] max-w-2xl leading-relaxed">
-      To walk across a continent is to negotiate daily with gravity. Every object in this loadout must justify its weight in grams through daily utility, durability, or quiet philosophical meaning. Select any equipment slot below to inspect its field lore and specifications.
-    </p>
+    <nav class="site-nav">
+      <button class="nav-btn active">Home</button>
+      <button class="nav-btn">Essays (Blog)</button>
+      <button class="nav-btn">Finances</button>
+      <button class="nav-btn">FAQ</button>
+      <button class="nav-btn">Credits</button>
+      <button class="nav-btn">Map<span class="wip-dot">•</span></button>
+      <button class="nav-btn">Inventory<span class="wip-dot">•</span></button>
+      <button class="nav-btn">Forum<span class="wip-dot">•</span></button>
+      <button class="nav-btn donate-btn">Donate 印</button>
+    </nav>
   </header>
 
-  <!-- Automatic Build-Time Weight Summary Bar (4-Column RPG Stat Header) -->
-  <section class="py-8 border-b border-[#6E2B25]" aria-label="Pack Weight Summary">
-    <div class="flex items-baseline justify-between mb-4">
-      <h2 class="font-mono text-xs uppercase tracking-widest text-[#6E2B25]">
-        [ LOADOUT TELEMETRY // BUILD-TIME WEIGHT CALCULATOR ]
-      </h2>
-      <span class="font-mono text-xs text-[#524D46]">
-        {items.length} ACTIVE ITEMS
-      </span>
-    </div>
+  <!-- UNDER CONSTRUCTION CONTENT -->
+  <main class="construction-content">
+    <img src="assets/crest.png" alt="Henro Stamp" class="logo-large">
+    <h1 class="construction-title">Under construction</h1>
+    <p class="construction-text">Henro is currently working on this website. The road will be shorter than the path to Japan, but patience is still required.</p>
+  </main>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border border-[#1C1A17]/25 bg-[#D8CEB8]/40 divide-y sm:divide-y-0 sm:divide-x divide-[#1C1A17]/20 font-mono">
-      <!-- 1. Base Pack Weight -->
-      <div class="p-4 sm:p-5 flex flex-col justify-between">
-        <div>
-          <span class="text-[10px] uppercase tracking-widest text-[#524D46] block mb-1">
-            01 / Base Pack Weight
-          </span>
-          <p class="text-2xl sm:text-3xl font-bold text-[#6E2B25]">
-            {formatKg(basePackGrams)}
-          </p>
-        </div>
-        <div class="mt-3 pt-2 border-t border-[#1C1A17]/15 flex items-center justify-between text-xs text-[#524D46]">
-          <span>{formatGrams(basePackGrams)}</span>
-          <span>Non-Consumable</span>
-        </div>
-      </div>
-
-      <!-- 2. Equipped / Worn -->
-      <div class="p-4 sm:p-5 flex flex-col justify-between">
-        <div>
-          <span class="text-[10px] uppercase tracking-widest text-[#524D46] block mb-1">
-            02 / Equipped / Worn
-          </span>
-          <p class="text-2xl sm:text-3xl font-bold text-[#1C1A17]">
-            {formatKg(equippedGrams)}
-          </p>
-        </div>
-        <div class="mt-3 pt-2 border-t border-[#1C1A17]/15 flex items-center justify-between text-xs text-[#524D46]">
-          <span>{formatGrams(equippedGrams)}</span>
-          <span>On Body &amp; Hand</span>
-        </div>
-      </div>
-
-      <!-- 3. Consumables -->
-      <div class="p-4 sm:p-5 flex flex-col justify-between">
-        <div>
-          <span class="text-[10px] uppercase tracking-widest text-[#524D46] block mb-1">
-            03 / Consumables
-          </span>
-          <p class="text-2xl sm:text-3xl font-bold text-[#1C1A17]">
-            {formatKg(consumablesGrams)}
-          </p>
-        </div>
-        <div class="mt-3 pt-2 border-t border-[#1C1A17]/15 flex items-center justify-between text-xs text-[#524D46]">
-          <span>{formatGrams(consumablesGrams)}</span>
-          <span>Water &amp; Rations</span>
-        </div>
-      </div>
-
-      <!-- 4. Total Trail Weight -->
-      <div class="p-4 sm:p-5 flex flex-col justify-between bg-[#D8CEB8]/75">
-        <div>
-          <span class="text-[10px] uppercase tracking-widest text-[#6E2B25] font-semibold block mb-1">
-            04 / Total Trail Weight
-          </span>
-          <p class="text-2xl sm:text-3xl font-bold text-[#1C1A17]">
-            {formatKg(totalTrailGrams)}
-          </p>
-        </div>
-        <div class="mt-3 pt-2 border-t border-[#6E2B25]/30 flex items-center justify-between text-xs text-[#6E2B25] font-medium">
-          <span>{formatGrams(totalTrailGrams)}</span>
-          <span>Full Loadout</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Tactile RPG Equipment Grid Grouped by Slot -->
-  <div class="py-8 space-y-12">
-    {groupedSlots.map((slotGroup, groupIndex) => (
-      <section aria-labelledby={'slot-heading-' + groupIndex}>
-        <div class="flex flex-wrap items-baseline justify-between gap-2 pb-3 mb-5 border-b border-[#6E2B25]">
-          <div>
-            <div class="flex items-center gap-3">
-              <span class="font-mono text-xs text-[#6E2B25] font-semibold">
-                SLOT 0{groupIndex + 1}
-              </span>
-              <span class="font-jp text-xs text-[#524D46] tracking-widest">
-                {slotGroup.jp}
-              </span>
-            </div>
-            <h2
-              id={'slot-heading-' + groupIndex}
-              class="font-heading text-2xl sm:text-3xl font-semibold uppercase tracking-wider text-[#1C1A17] mt-0.5"
-            >
-              {slotGroup.key}
-            </h2>
-          </div>
-
-          <div class="font-mono text-xs text-[#524D46]">
-            <span>SLOT SUBTOTAL: </span>
-            <strong class="text-[#1C1A17]">{formatGrams(slotGroup.slotWeightGrams)}</strong>
-            <span class="text-[#6E2B25]"> ({formatKg(slotGroup.slotWeightGrams)})</span>
-          </div>
-        </div>
-
-        <p class="font-body text-sm sm:text-base text-[#524D46] mb-5">
-          {slotGroup.description}
-        </p>
-
-        {slotGroup.items.length > 0 ? (
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {slotGroup.items.map((item) => (
-              <button
-                type="button"
-                data-item-id={item.id}
-                aria-haspopup="dialog"
-                class="inventory-slot-tile group relative w-full text-left bg-[#E6DFCF] hover:bg-[#D8CEB8]/55 border border-[#1C1A17]/25 hover:border-[#6E2B25] p-5 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-[#6E2B25]"
-              >
-                <!-- Tactile #6E2B25 RPG Corner Accents on Hover -->
-                <span
-                  aria-hidden="true"
-                  class="pointer-events-none absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-[#6E2B25] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity"
-                ></span>
-                <span
-                  aria-hidden="true"
-                  class="pointer-events-none absolute top-0 right-0 w-2.5 h-2.5 border-t-2 border-r-2 border-[#6E2B25] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity"
-                ></span>
-                <span
-                  aria-hidden="true"
-                  class="pointer-events-none absolute bottom-0 left-0 w-2.5 h-2.5 border-b-2 border-l-2 border-[#6E2B25] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity"
-                ></span>
-                <span
-                  aria-hidden="true"
-                  class="pointer-events-none absolute bottom-0 right-0 w-2.5 h-2.5 border-b-2 border-r-2 border-[#6E2B25] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity"
-                ></span>
-
-                <!-- Top Row: Icon + Japanese Subtitle & Condition Badge + Weight -->
-                <div class="flex items-start justify-between gap-3 mb-3">
-                  <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 shrink-0 border border-[#1C1A17]/25 group-hover:border-[#6E2B25] bg-[#D8CEB8]/45 flex items-center justify-center text-[#1C1A17] group-hover:text-[#6E2B25] transition-colors p-2">
-                      {item.icon.trim().startsWith('<svg') ? (
-                        <div class="w-8 h-8" set:html={item.icon} />
-                      ) : (
-                        <span class="font-jp text-lg font-semibold select-none">
-                          {item.icon}
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <span class="font-jp text-xs text-[#6E2B25] tracking-widest block">
-                        {item.japaneseName}
-                      </span>
-                      <h3 class="font-heading text-xl font-bold text-[#1C1A17] group-hover:text-[#6E2B25] transition-colors leading-snug">
-                        {item.name}
-                      </h3>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Short Summary -->
-                <p class="font-body text-sm text-[#524D46] line-clamp-2 mb-4 leading-relaxed">
-                  {item.shortSummary}
-                </p>
-
-                <!-- Bottom RPG Telemetry Strip: Condition Badge & Gram Weight -->
-                <div class="pt-3 border-t border-[#1C1A17]/15 flex items-center justify-between gap-2 font-mono text-xs">
-                  <span
-                    class={
-                      'px-2 py-0.5 border text-[11px] uppercase tracking-wider ' +
-                      getConditionBadgeClasses(item.condition)
-                    }
-                  >
-                    {item.condition}
-                  </span>
-
-                  <div class="flex items-center gap-3">
-                    <span class="text-[#1C1A17] font-semibold">
-                      {formatGrams(item.weightGrams)}
-                    </span>
-                    <span class="text-[11px] uppercase tracking-widest text-[#6E2B25] group-hover:underline underline-offset-4">
-                      Inspect →
-                    </span>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/25 p-6 font-mono text-xs text-[#524D46]">
-            No items currently assigned to this slot.
-          </div>
-        )}
-      </section>
-    ))}
-  </div>
-
-  <!-- Interactive Item Inspection Modal -->
-  <div
-    id="inventory-modal-backdrop"
-    class="fixed inset-0 z-50 hidden items-center justify-center bg-[#1C1A17]/75 backdrop-blur-[2px] p-4 sm:p-6 overflow-y-auto"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="modal-item-name"
-  >
-    <!-- Washi Parchment Modal Box with Double #6E2B25 and #1C1A17 Frame -->
-    <div
-      id="inventory-modal-panel"
-      class="relative w-full max-w-2xl bg-[#E6DFCF] text-[#1C1A17] border-2 border-[#1C1A17] p-1.5 shadow-2xl my-auto"
-    >
-      <div class="border-2 border-[#6E2B25] p-5 sm:p-8">
-        <!-- Modal Top Bar -->
-        <div class="flex items-center justify-between gap-4 pb-4 mb-5 border-b border-[#6E2B25]">
-          <div class="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-[#6E2B25]">
-            <span>印</span>
-            <span id="modal-item-slot">Equipped</span>
-          </div>
-
-          <button
-            id="modal-close-btn"
-            type="button"
-            class="border border-[#1C1A17]/40 hover:border-[#6E2B25] bg-[#D8CEB8]/50 hover:bg-[#6E2B25] text-[#1C1A17] hover:text-[#E6DFCF] font-mono text-xs uppercase tracking-widest px-3 py-1.5 transition-colors focus:outline-none focus:ring-2 focus:ring-[#6E2B25]"
-          >
-            Close [ESC]
-          </button>
-        </div>
-
-        <!-- Modal Header: Icon + Titles + Weight & Condition -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#1C1A17]/15">
-          <div class="flex items-center gap-4">
-            <div
-              id="modal-item-icon"
-              class="w-16 h-16 shrink-0 border border-[#6E2B25] bg-[#D8CEB8]/50 flex items-center justify-center text-[#6E2B25] p-3"
-            ></div>
-            <div>
-              <p
-                id="modal-item-jp"
-                class="font-jp text-sm tracking-[0.2em] text-[#6E2B25] mb-0.5"
-              ></p>
-              <h2
-                id="modal-item-name"
-                class="font-heading text-2xl sm:text-3xl font-bold text-[#1C1A17] leading-tight"
-              ></h2>
-            </div>
-          </div>
-
-          <div class="flex sm:flex-col items-baseline sm:items-end justify-between gap-2 font-mono border-t sm:border-t-0 pt-3 sm:pt-0 border-[#1C1A17]/15">
-            <span
-              id="modal-item-weight"
-              class="text-lg sm:text-xl font-bold text-[#1C1A17]"
-            ></span>
-            <span
-              id="modal-item-condition"
-              class="px-2.5 py-0.5 border text-xs uppercase tracking-wider"
-            ></span>
-          </div>
-        </div>
-
-        <!-- Philosophical & Practical Lore -->
-        <div class="py-6 border-b border-[#1C1A17]/15">
-          <div class="flex items-baseline justify-between mb-2">
-            <h3 class="font-mono text-xs uppercase tracking-widest text-[#524D46]">
-              Field Lore &amp; Justification of Weight
-            </h3>
-            <span class="font-jp text-xs text-[#6E2B25]">由緒・考察</span>
-          </div>
-          <p
-            id="modal-item-lore"
-            class="font-body text-base sm:text-lg text-[#1C1A17] leading-relaxed"
-          ></p>
-        </div>
-
-        <!-- Technical Specifications Table -->
-        <div class="pt-6">
-          <div class="flex items-baseline justify-between mb-3">
-            <h3 class="font-mono text-xs uppercase tracking-widest text-[#524D46]">
-              Item Specifications
-            </h3>
-            <span class="font-jp text-xs text-[#524D46]">仕様明細</span>
-          </div>
-
-          <div class="border border-[#1C1A17]/25 bg-[#D8CEB8]/35">
-            <table class="w-full text-left border-collapse">
-              <tbody
-                id="modal-item-specs"
-                class="divide-y divide-[#1C1A17]/15 text-sm"
-              ></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Serialize Inventory Data for Zero-Latency Client Inspection -->
-  <script
-    id="inventory-items-json"
-    type="application/json"
-    set:html={JSON.stringify(items)}
-  ></script>
-
-  <script is:inline>
-    (function () {
-      const dataEl = document.getElementById('inventory-items-json');
-      if (!dataEl) return;
-
-      let inventoryItems = [];
-      try {
-        inventoryItems = JSON.parse(dataEl.textContent || '[]');
-      } catch (e) {
-        console.error('Failed to parse inventory items JSON', e);
-      }
-
-      const itemsById = {};
-      inventoryItems.forEach(function (item) {
-        if (item && item.id) {
-          itemsById[item.id] = item;
-        }
-      });
-
-      const backdrop = document.getElementById('inventory-modal-backdrop');
-      const closeBtn = document.getElementById('modal-close-btn');
-      const slotEl = document.getElementById('modal-item-slot');
-      const iconEl = document.getElementById('modal-item-icon');
-      const jpEl = document.getElementById('modal-item-jp');
-      const nameEl = document.getElementById('modal-item-name');
-      const weightEl = document.getElementById('modal-item-weight');
-      const conditionEl = document.getElementById('modal-item-condition');
-      const loreEl = document.getElementById('modal-item-lore');
-      const specsTbody = document.getElementById('modal-item-specs');
-      const tileButtons = document.querySelectorAll('.inventory-slot-tile');
-
-      let lastFocusedElement = null;
-
-      function getConditionClasses(condition) {
-        switch (condition) {
-          case 'Pristine':
-            return 'px-2.5 py-0.5 border text-xs uppercase tracking-wider border-[#1C1A17]/40 bg-[#D8CEB8]/70 text-[#1C1A17]';
-          case 'Seasoned':
-            return 'px-2.5 py-0.5 border text-xs uppercase tracking-wider border-[#6E2B25]/50 bg-[#6E2B25]/10 text-[#6E2B25]';
-          case 'Worn':
-            return 'px-2.5 py-0.5 border text-xs uppercase tracking-wider border-[#6E2B25] bg-[#6E2B25]/20 text-[#6E2B25] font-semibold';
-          case 'Need Replacement':
-            return 'px-2.5 py-0.5 border text-xs uppercase tracking-wider border-[#6E2B25] bg-[#6E2B25] text-[#E6DFCF] font-semibold';
-          default:
-            return 'px-2.5 py-0.5 border text-xs uppercase tracking-wider border-[#1C1A17]/30 bg-[#D8CEB8]/40 text-[#524D46]';
-        }
-      }
-
-      function openModal(itemId, triggerEl) {
-        const item = itemsById[itemId];
-        if (!item || !backdrop) return;
-
-        lastFocusedElement = triggerEl || document.activeElement;
-
-        if (slotEl) slotEl.textContent = item.slot || 'Equipment';
-        if (jpEl) jpEl.textContent = item.japaneseName || '';
-        if (nameEl) nameEl.textContent = item.name || '';
-
-        const grams = Number(item.weightGrams || 0);
-        const kg = (grams / 1000).toFixed(2);
-        if (weightEl) {
-          weightEl.textContent = grams.toLocaleString('en-US') + ' g (' + kg + ' kg)';
-        }
-
-        if (conditionEl) {
-          conditionEl.textContent = item.condition || 'Seasoned';
-          conditionEl.className = getConditionClasses(item.condition);
-        }
-
-        if (loreEl) {
-          loreEl.textContent = item.lore || item.shortSummary || '';
-        }
-
-        if (iconEl) {
-          const rawIcon = String(item.icon || '印').trim();
-          if (rawIcon.indexOf('<svg') === 0) {
-            iconEl.innerHTML = '<div class="w-10 h-10">' + rawIcon + '</div>';
-          } else {
-            iconEl.textContent = rawIcon;
-          }
-        }
-
-        if (specsTbody) {
-          specsTbody.innerHTML = '';
-          const specsObj = item.specs || {};
-          const keys = Object.keys(specsObj);
-          if (keys.length > 0) {
-            keys.forEach(function (key) {
-              const tr = document.createElement('tr');
-              const th = document.createElement('th');
-              th.className =
-                'py-2.5 px-4 font-mono text-xs uppercase tracking-wider text-[#524D46] bg-[#D8CEB8]/45 w-1/3 border-r border-[#1C1A17]/15';
-              th.textContent = key;
-
-              const td = document.createElement('td');
-              td.className = 'py-2.5 px-4 font-body text-sm sm:text-base text-[#1C1A17]';
-              td.textContent = String(specsObj[key] || '');
-
-              tr.appendChild(th);
-              tr.appendChild(td);
-              specsTbody.appendChild(tr);
-            });
-          } else {
-            const tr = document.createElement('tr');
-            const td = document.createElement('td');
-            td.className = 'py-3 px-4 font-mono text-xs text-[#524D46]';
-            td.textContent = 'Standard pilgrimage specification.';
-            tr.appendChild(td);
-            specsTbody.appendChild(tr);
-          }
-        }
-
-        backdrop.classList.remove('hidden');
-        backdrop.classList.add('flex');
-        document.body.style.overflow = 'hidden';
-
-        if (closeBtn) {
-          closeBtn.focus();
-        }
-      }
-
-      function closeModal() {
-        if (!backdrop || backdrop.classList.contains('hidden')) return;
-        backdrop.classList.add('hidden');
-        backdrop.classList.remove('flex');
-        document.body.style.overflow = '';
-
-        if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
-          lastFocusedElement.focus();
-        }
-      }
-
-      tileButtons.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          const itemId = btn.getAttribute('data-item-id');
-          if (itemId) {
-            openModal(itemId, btn);
-          }
-        });
-      });
-
-      if (closeBtn) {
-        closeBtn.addEventListener('click', closeModal);
-      }
-
-      if (backdrop) {
-        backdrop.addEventListener('click', function (event) {
-          if (event.target === backdrop) {
-            closeModal();
-          }
-        });
-      }
-
-      document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape') {
-          closeModal();
-        }
-      });
-    })();
-  </script>
-</BaseLayout>
+</body>
+</html>
