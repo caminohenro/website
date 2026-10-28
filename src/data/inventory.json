@@ -2,19 +2,13 @@
   "items": [
     {
       "id": "gear-sugegasa",
-      "name": "<item_name>",
-      "japaneseName": "<jp_name>",
+      "name": "Kasa",
+      "japaneseName": "笠",
       "slot": "Equipped",
       "weightGrams": 380,
       "condition": "Seasoned",
-      "icon": "<svg viewBox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 32L24 12L44 32Q24 27 4 32Z\"/><path d=\"M14 22Q24 19 34 22\"/><path d=\"M9 27Q24 23 39 27\"/><path d=\"M16 31C16 37 32 37 32 31\"/></svg>",
       "shortSummary": "<short_summary>",
-      "lore": "<lore>",
-      "specs": {
-        "Material": "<spec>",
-        "Origin": "<spec>",
-        "Role": "<spec>"
-      }
+      "lore": "<lore>"
     },
     {
       "id": "gear-sandals",
@@ -23,14 +17,8 @@
       "slot": "Equipped",
       "weightGrams": 340,
       "condition": "Worn",
-      "icon": "<svg viewBox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 8C10 8 8 13 9 22C10 31 11 40 16 40C21 40 22 33 21 22C20 13 18 8 14 8Z\"/><path d=\"M34 8C30 8 28 13 29 22C30 33 31 40 36 40C41 40 42 31 43 22C44 13 40 8 34 8Z\"/><path d=\"M15 14L15 20M15 20L10 28M15 20L21 28\"/><path d=\"M35 14L35 20M35 20L29 28M35 20L41 28\"/></svg>",
       "shortSummary": "<short_summary>",
-      "lore": "<lore>",
-      "specs": {
-        "Material": "<spec>",
-        "Origin": "<spec>",
-        "Role": "<spec>"
-      }
+      "lore": "<lore>"
     },
     {
       "id": "gear-kongozue",
@@ -39,14 +27,8 @@
       "slot": "Equipped",
       "weightGrams": 450,
       "condition": "Seasoned",
-      "icon": "<svg viewBox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"24\" y1=\"4\" x2=\"24\" y2=\"44\"/><path d=\"M20 8H28\"/><path d=\"M19 14H29\"/><path d=\"M21 20H27\"/><circle cx=\"24\" cy=\"6\" r=\"2\"/></svg>",
       "shortSummary": "<short_summary>",
-      "lore": "<lore>",
-      "specs": {
-        "Material": "<spec>",
-        "Origin": "<spec>",
-        "Role": "<spec>"
-      }
+      "lore": "<lore>"
     },
     {
       "id": "gear-rucksack",
@@ -55,14 +37,8 @@
       "slot": "Main Pack",
       "weightGrams": 890,
       "condition": "Seasoned",
-      "icon": "<svg viewBox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"12\" y=\"12\" width=\"24\" height=\"28\" rx=\"3\"/><path d=\"M16 12V9C16 7 19 6 24 6C29 6 32 7 32 9V12\"/><path d=\"M12 20H36\"/><rect x=\"18\" y=\"25\" width=\"12\" height=\"10\"/><line x1=\"24\" y1=\"18\" x2=\"24\" y2=\"23\"/></svg>",
       "shortSummary": "<short_summary>",
-      "lore": "<lore>",
-      "specs": {
-        "Material": "<spec>",
-        "Origin": "<spec>",
-        "Role": "<spec>"
-      }
+      "lore": "<lore>"
     },
     {
       "id": "gear-bivy-quilt",
@@ -71,14 +47,8 @@
       "slot": "Shelter & Sleep",
       "weightGrams": 920,
       "condition": "Pristine",
-      "icon": "<svg viewBox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 36L24 14L42 36H6Z\"/><path d=\"M24 14V36\"/><path d=\"M14 36L24 24L34 36\"/></svg>",
       "shortSummary": "<short_summary>",
-      "lore": "<lore>",
-      "specs": {
-        "Material": "<spec>",
-        "Origin": "<spec>",
-        "Role": "<spec>"
-      }
+      "lore": "<lore>"
     },
     {
       "id": "gear-journal-phone",
@@ -87,14 +57,8 @@
       "slot": "Electronics & Writing",
       "weightGrams": 410,
       "condition": "Seasoned",
-      "icon": "<svg viewBox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"10\" y=\"8\" width=\"22\" height=\"32\" rx=\"1\"/><line x1=\"15\" y1=\"15\" x2=\"27\" y2=\"15\"/><line x1=\"15\" y1=\"21\" x2=\"27\" y2=\"21\"/><line x1=\"15\" y1=\"27\" x2=\"23\" y2=\"27\"/><path d=\"M36 10L36 34L34 39L32 34L32 10Z\"/></svg>",
       "shortSummary": "<short_summary>",
-      "lore": "<lore>",
-      "specs": {
-        "Material": "<spec>",
-        "Origin": "<spec>",
-        "Role": "<spec>"
-      }
+      "lore": "<lore>"
     },
     {
       "id": "gear-repair-kit",
@@ -103,14 +67,8 @@
       "slot": "Main Pack",
       "weightGrams": 145,
       "condition": "Pristine",
-      "icon": "<svg viewBox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"10\" y1=\"38\" x2=\"38\" y2=\"10\"/><circle cx=\"34\" cy=\"14\" r=\"1.5\"/><path d=\"M14 14C20 8 28 20 34 14\"/><rect x=\"12\" y=\"24\" width=\"12\" height=\"12\" rx=\"2\"/></svg>",
       "shortSummary": "<short_summary>",
-      "lore": "<lore>",
-      "specs": {
-        "Material": "<spec>",
-        "Origin": "<spec>",
-        "Role": "<spec>"
-      }
+      "lore": "<lore>"
     },
     {
       "id": "gear-provisions",
@@ -119,14 +77,8 @@
       "slot": "Consumables",
       "weightGrams": 2350,
       "condition": "Pristine",
-      "icon": "<svg viewBox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M18 8H30V13L34 18V38C34 40 32 42 30 42H18C16 42 14 40 14 38V18L18 13V8Z\"/><line x1=\"14\" y1=\"26\" x2=\"34\" y2=\"26\"/><circle cx=\"24\" cy=\"34\" r=\"3\"/></svg>",
       "shortSummary": "<short_summary>",
-      "lore": "<lore>",
-      "specs": {
-        "Material": "<spec>",
-        "Origin": "<spec>",
-        "Role": "<spec>"
-      }
+      "lore": "<lore>"
     }
   ]
 }
