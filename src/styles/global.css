@@ -889,7 +889,7 @@ header.site-header {
  */
 @media (max-width: 680px) {
   body > .scroll-stage[data-mobile-physics="true"] {
-    animation: none !important;
+    animation: stageFadeIn var(--fade-duration) ease-out both !important;
     transform: none !important;
     opacity: 1 !important;
     min-height: 100vh !important;
@@ -899,6 +899,7 @@ header.site-header {
     padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
     box-sizing: border-box;
   }
+}
 
   body > .scroll-stage[data-mobile-physics="true"] > main.washi-scroll {
     animation: none !important;
