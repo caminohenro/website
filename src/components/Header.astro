@@ -129,7 +129,7 @@ const navItems = rawNavigation
           return;
         }
 
-        if (currentScroll > lastScroll && currentScroll > 50) {
+        if (currentScroll > lastScroll) {
           header.classList.add('is-hidden');
         } else if (currentScroll < lastScroll) {
           header.classList.remove('is-hidden');
