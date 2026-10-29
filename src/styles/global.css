@@ -1009,7 +1009,6 @@ header.site-header {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(5px); }
   }
-}
 
 @media (min-width: 681px) {
   .step17-unfurl-tooltip {
