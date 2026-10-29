@@ -863,8 +863,14 @@ const {
       });
     }
 
+    // SCROLL_ENTRANCE_FIX_V1: synchronize clipping and roller position before paint.
     const observer = typeof ResizeObserver === 'function'
-      ? new ResizeObserver(scheduleMeasurement)
+      ? new ResizeObserver(function () {
+          if (disposed) return;
+          window.cancelAnimationFrame(measurementId);
+          measurementId = 0;
+          measure(false);
+        })
       : null;
 
     if (observer) observer.observe(paper);
@@ -933,14 +939,8 @@ const {
     signal: lifetime.signal,
   });
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initialize, {
-      once: true,
-      signal: lifetime.signal,
-    });
-  } else {
-    initialize();
-  }
+  // The inline script follows the stage markup: close it before first paint.
+  initialize();
 })();
     </script>
     <!-- STEP17_MOBILE_SCROLL_PHYSICS_END -->

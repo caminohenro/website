@@ -1,0 +1,998 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import siteConfig from '../data/siteConfig.json';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = siteConfig.siteTitleJp + ' | ' + siteConfig.siteTitleEn,
+  description = siteConfig.tagline,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href={siteConfig.crestImage} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+JP:wght@400;600&family=Shippori+Mincho:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="selection:bg-[#6E2B25] selection:text-[#E6DFCF]">
+    <!-- LAYER 1: Fixed Road & Apple Background -->
+    <div
+      class="fixed-backdrop"
+      style="background-image: url('/assets/apple-bg.jpeg'), url('/assets/apple-bg.svg');"
+    ></div>
+    <div class="backdrop-dimmer" id="dimmer"></div>
+
+    <!-- PERSISTENT WEBSITE HEADER (Outside the Scroll) -->
+    <Header />
+
+    <!-- LAYER 2: THE INDIVIDUAL PAGE SCROLL WITH WOODEN ROLLERS -->
+    <div class="scroll-stage">
+      <div class="scroll-roller-top"></div>
+      <main class="washi-scroll">
+        <slot />
+        <Footer />
+      </main>
+      <div class="scroll-roller-bottom"></div>
+    </div>
+
+    <!-- THE SURPRISE REVEAL AT THE BOTTOM OF EVERY PAGE -->
+    <div class="apple-reveal-stage">
+      <div class="spacer-for-apple"></div>
+      <div
+        class="global-newsletter-box"
+        id="global-newsletter-box"
+        data-form-action={siteConfig.mailerlite?.formActionUrl || ''}
+      >
+        <div class="newsletter-eyebrow">書簡 • DISPATCHES</div>
+        <h2 class="newsletter-heading">Pilgrimage Newsletter</h2>
+        <p class="newsletter-copy">
+          No noise, no algorithms—only a quiet note in your inbox whenever a new dispatch is written from the trail. Sent via MailerLite.
+        </p>
+        <form
+          class="newsletter-form"
+          id="global-newsletter-form"
+          action={siteConfig.mailerlite?.formActionUrl || '#'}
+          method="post"
+          novalidate
+        >
+          <input
+            type="email"
+            name="fields[email]"
+            class="newsletter-input"
+            placeholder="Enter your email address..."
+            required
+            aria-label="Email Address"
+          />
+          <div style="position:absolute; left:-5000px;" aria-hidden="true">
+            <input
+              type="text"
+              name="confirm_email_honeypot"
+              tabindex="-1"
+              value=""
+              autocomplete="off"
+            />
+          </div>
+          <input type="hidden" name="ml-submit" value="1" />
+          <input type="hidden" name="anticsrf" value="true" />
+          <button type="submit" class="newsletter-submit-btn">
+            Subscribe to Dispatches 印
+          </button>
+        </form>
+        <div
+          class="newsletter-response-msg"
+          id="global-newsletter-msg"
+          role="status"
+          aria-live="polite"
+          hidden
+        ></div>
+      </div>
+    </div>
+
+    <script is:inline>
+      // Gently brighten the road & apple as the user scrolls past the bottom roller
+      window.addEventListener('scroll', function () {
+        const dimmer = document.getElementById('dimmer');
+        if (!dimmer) return;
+        const scrollBottom = window.scrollY + window.innerHeight;
+        const docHeight = document.documentElement.scrollHeight;
+        const revealProgress = Math.max(0, Math.min(1, (scrollBottom - (docHeight - window.innerHeight * 0.85)) / (window.innerHeight * 0.6)));
+        const centerAlpha = (0.58 - revealProgress * 0.48).toFixed(2);
+        const edgeAlpha = (0.84 - revealProgress * 0.35).toFixed(2);
+        dimmer.style.setProperty('--center-dim', centerAlpha);
+        dimmer.style.setProperty('--edge-dim', edgeAlpha);
+      });
+    </script>
+  <!-- STEP17_MOBILE_SCROLL_PHYSICS_START -->
+    <script is:inline>
+(function mobileScrollPhysics() {
+  'use strict';
+
+  const key = '__step17MobileScrollPhysics';
+
+  if (typeof window[key] === 'function') window[key]();
+
+  const lifetime = new AbortController();
+  const mobile = window.matchMedia('(max-width: 680px)');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  let cleanupCurrent = null;
+  let hintDismissed = false;
+
+  function initialize() {
+    if (cleanupCurrent) cleanupCurrent();
+    cleanupCurrent = null;
+
+    if (!mobile.matches || window.innerWidth > 680) return;
+
+    const stage = document.querySelector('body > .scroll-stage');
+    if (!stage) return;
+
+    const paper = stage.querySelector(':scope > main.washi-scroll');
+    const roller = stage.querySelector(':scope > .scroll-roller-bottom');
+    const topRoller = stage.querySelector(':scope > .scroll-roller-top');
+
+    if (!paper || !roller || !topRoller) return;
+
+    const controller = new AbortController();
+    const signal = controller.signal;
+    const html = document.documentElement;
+
+    const styleSnapshots = new Map();
+    const attributeSnapshots = new Map();
+
+    function setStyle(element, property, value) {
+      if (!styleSnapshots.has(element)) {
+        styleSnapshots.set(element, new Map());
+      }
+
+      const properties = styleSnapshots.get(element);
+
+      if (!properties.has(property)) {
+        properties.set(property, {
+          value: element.style.getPropertyValue(property),
+          priority: element.style.getPropertyPriority(property),
+        });
+      }
+
+      element.style.setProperty(property, value);
+    }
+
+    function setAttribute(element, name, value) {
+      if (!attributeSnapshots.has(element)) {
+        attributeSnapshots.set(element, new Map());
+      }
+
+      const attributes = attributeSnapshots.get(element);
+
+      if (!attributes.has(name)) {
+        attributes.set(name, element.getAttribute(name));
+      }
+
+      if (value === null) element.removeAttribute(name);
+      else element.setAttribute(name, value);
+    }
+
+    const hint = document.createElement('div');
+    hint.className = 'step17-unfurl-tooltip';
+    hint.setAttribute('aria-hidden', 'true');
+
+    const arrow = document.createElement('span');
+    arrow.className = 'step17-unfurl-arrow';
+    arrow.textContent = '\u2193';
+
+    const label = document.createElement('span');
+    label.textContent = 'Drag to unfurl';
+
+    hint.append(arrow, label);
+    stage.appendChild(hint);
+
+    let disposed = false;
+    let height = 0;
+    let revealed = 0;
+    let paperTop = 0;
+    let bottomHeight = 0;
+    let stagePaddingBottom = 0;
+    let dragging = false;
+    let touchId = null;
+    let lastClientY = 0;
+    let lastDocumentY = 0;
+    let lastInputTime = 0;
+    let samples = [];
+    let velocity = 0;
+    let frameId = 0;
+    let measurementId = 0;
+    let hintTimer = 0;
+    let previousFrameTime = 0;
+    let gestureMoved = false;
+    let fullyOpen = false;
+    let initialHeaderHidden = true;
+    let opening = null;
+    let headerScrollAnchor = window.scrollY;
+    // STEP17_FAST_RELEASE_AND_STABLE_BACKDROP_V1
+
+    function clamp(value, minimum, maximum) {
+      return Math.max(minimum, Math.min(maximum, value));
+    }
+
+    function viewport() {
+      const visual = window.visualViewport;
+
+      return {
+        top: visual ? visual.offsetTop : 0,
+        height: visual ? visual.height : window.innerHeight,
+      };
+    }
+
+    function dismissHint() {
+      hintDismissed = true;
+      window.clearTimeout(hintTimer);
+      hint.classList.remove('is-visible');
+    }
+
+    function releaseInitialHeader() {
+      if (!initialHeaderHidden) return;
+      initialHeaderHidden = false;
+      setAttribute(html, 'data-step17-header-hidden', null);
+    }
+
+    function render() {
+      revealed = clamp(revealed, 0, height);
+
+      const hidden = Math.max(0, height - revealed);
+      fullyOpen = hidden < 0.01;
+
+      setAttribute(stage, 'data-step17-open', fullyOpen ? 'true' : 'false');
+
+      if (fullyOpen) {
+        revealed = height;
+        setStyle(paper, 'clip-path', 'none');
+        setStyle(paper, '-webkit-clip-path', 'none');
+      } else {
+        const clip = 'inset(0 -90px ' + hidden.toFixed(3) + 'px -90px)';
+        setStyle(paper, 'clip-path', clip);
+        setStyle(paper, '-webkit-clip-path', clip);
+      }
+
+      setStyle(
+        roller,
+        'transform',
+        'translateY(' + (-hidden).toFixed(3) + 'px)'
+      );
+
+      // The paper retains its natural, unlimited height. The stage clips
+      // only the intentionally furled portion and does not leave a long,
+      // invisible document region below the raised roller.
+      //
+      // At 100% open, CSS restores automatic stage height and visible
+      // overflow, removing any outer clipping from the readable page.
+      const visibleStageHeight =
+        paperTop + revealed + bottomHeight + stagePaddingBottom;
+
+      setStyle(
+        stage,
+        '--step17-stage-height',
+        visibleStageHeight.toFixed(3) + 'px'
+      );
+
+      hint.style.top =
+        (paperTop + revealed + bottomHeight + 15).toFixed(3) + 'px';
+
+      setAttribute(
+        roller,
+        'aria-label',
+        fullyOpen
+          ? 'Scroll roller. Drag up to furl the page.'
+          : 'Scroll roller. Drag down to unfurl or up to furl.'
+      );
+    }
+
+    function measure(first) {
+      if (disposed) return;
+
+      const previouslyOpen = fullyOpen;
+      const previousHeight = height;
+
+      height = paper.getBoundingClientRect().height;
+
+      if (opening && Math.abs(previousHeight - height) > 0.5) {
+        opening = null;
+        velocity = 0;
+        stopFrame();
+      }
+
+      paperTop = paper.offsetTop;
+      bottomHeight = roller.offsetHeight;
+      stagePaddingBottom =
+        parseFloat(window.getComputedStyle(stage).paddingBottom) || 112;
+
+      if (first) {
+        // Exactly closed: the entire paper is initially clipped away.
+        revealed = 0;
+      } else if (previouslyOpen && !dragging) {
+        // Loaded replies and other dynamic content remain fully readable.
+        revealed = height;
+      } else {
+        // Preserve the exposed length while the Forum changes underneath.
+        revealed = clamp(revealed, 0, height);
+      }
+
+      if (dragging && Math.abs(previousHeight - height) > 0.5) {
+        lastDocumentY = lastClientY + window.scrollY;
+        samples = [{
+          y: lastClientY,
+          time: performance.now(),
+        }];
+      }
+
+      render();
+    }
+
+    function scheduleMeasurement() {
+      if (disposed || measurementId) return;
+
+      measurementId = window.requestAnimationFrame(function () {
+        measurementId = 0;
+        measure(false);
+      });
+    }
+
+    function stopFrame() {
+      window.cancelAnimationFrame(frameId);
+      frameId = 0;
+    }
+
+    function findTouch(list) {
+      for (let index = 0; index < list.length; index += 1) {
+        if (list[index].identifier === touchId) return list[index];
+      }
+
+      return null;
+    }
+
+    function recordVelocity(clientY, now) {
+      samples.push({ y: clientY, time: now });
+
+      while (
+        samples.length > 2 &&
+        samples[0].time < now - 90
+      ) {
+        samples.shift();
+      }
+
+      const first = samples[0];
+      const elapsed = now - first.time;
+
+      // CSS pixels per millisecond. Positive means dragging downward.
+      velocity = elapsed > 0
+        ? (clientY - first.y) / elapsed
+        : 0;
+    }
+
+    function scrollDuringDrag(elapsed) {
+      if (!dragging) return;
+
+      const view = viewport();
+      const edgeZone = Math.min(90, view.height * 0.15);
+      const upperEdge = view.top + edgeZone;
+      const lowerEdge = view.top + view.height - edgeZone;
+
+      let speed = 0;
+
+      if (lastClientY > lowerEdge && revealed < height) {
+        speed = clamp((lastClientY - lowerEdge) / edgeZone, 0, 1) * 0.65;
+      } else if (lastClientY < upperEdge && revealed > 0) {
+        speed = -clamp((upperEdge - lastClientY) / edgeZone, 0, 1) * 0.65;
+      }
+
+      if (speed === 0) return;
+
+      const previousScroll = window.scrollY;
+
+      window.scrollTo({
+        top: previousScroll + speed * elapsed,
+        behavior: 'instant',
+      });
+
+      const actualScroll = window.scrollY - previousScroll;
+
+      if (actualScroll !== 0) {
+        // Auto-scrolling moves the document under a stationary finger.
+        // Add the actual scroll distance to keep the roller under it.
+        revealed = clamp(revealed + actualScroll, 0, height);
+        lastDocumentY += actualScroll;
+        render();
+      }
+    }
+
+
+    // Read the original animation settings without changing desktop CSS.
+    function originalOpeningSettings() {
+      const paperStyle = window.getComputedStyle(paper);
+      const rootStyle = window.getComputedStyle(html);
+
+      const durationText = (
+        paperStyle.getPropertyValue('--unfurl-duration') ||
+        rootStyle.getPropertyValue('--unfurl-duration') ||
+        '8s'
+      ).trim();
+
+      const durationMatch = durationText.match(/^([\d.]+)\s*(ms|s)$/i);
+
+      let duration = 8000;
+
+      if (durationMatch) {
+        const amount = Number(durationMatch[1]);
+        duration = amount * (
+          durationMatch[2].toLowerCase() === 'ms' ? 1 : 1000
+        );
+      }
+
+      if (!Number.isFinite(duration) || duration <= 0) duration = 8000;
+
+      const easingText = (
+        paperStyle.getPropertyValue('--unfurl-easing') ||
+        rootStyle.getPropertyValue('--unfurl-easing') ||
+        'cubic-bezier(0.33, 1, 0.62, 1)'
+      ).trim();
+
+      const easingMatch = easingText.match(
+        /^cubic-bezier\(\s*([-+\d.e]+)\s*,\s*([-+\d.e]+)\s*,\s*([-+\d.e]+)\s*,\s*([-+\d.e]+)\s*\)$/i
+      );
+
+      let points = [0.33, 1, 0.62, 1];
+
+      if (easingMatch) {
+        const parsed = easingMatch.slice(1).map(Number);
+
+        if (
+          parsed.every(Number.isFinite) &&
+          parsed[0] > 0 &&
+          parsed[0] <= 1 &&
+          parsed[1] > 0 &&
+          parsed[1] <= 1 &&
+          parsed[2] >= 0 &&
+          parsed[2] <= 1 &&
+          parsed[3] >= parsed[1] &&
+          parsed[3] <= 1
+        ) {
+          points = parsed;
+        }
+      }
+
+      return {
+        duration: duration,
+        points: points,
+        initialSlope: points[1] / points[0],
+      };
+    }
+
+    function bezierCoordinate(parameter, first, second) {
+      const inverse = 1 - parameter;
+
+      return (
+        3 * inverse * inverse * parameter * first +
+        3 * inverse * parameter * parameter * second +
+        parameter * parameter * parameter
+      );
+    }
+
+    function originalOpeningProgress(timeProgress, points) {
+      if (timeProgress <= 0) return 0;
+      if (timeProgress >= 1) return 1;
+
+      // Invert the curve's x coordinate before evaluating its y coordinate.
+      // Evaluating y directly at timeProgress would change the CSS easing.
+      let low = 0;
+      let high = 1;
+
+      for (let index = 0; index < 30; index += 1) {
+        const middle = (low + high) / 2;
+        const x = bezierCoordinate(middle, points[0], points[2]);
+
+        if (x < timeProgress) low = middle;
+        else high = middle;
+      }
+
+      return bezierCoordinate(
+        (low + high) / 2,
+        points[1],
+        points[3]
+      );
+    }
+
+    function beginOriginalOpening(releaseSpeed) {
+      const remaining = height - revealed;
+      if (remaining <= 0 || releaseSpeed <= 0) return false;
+
+      const settings = originalOpeningSettings();
+
+      // Initial CSS opening speed:
+      //
+      // pixels/ms = full paper height / original duration * y1/x1
+      //
+      // For cubic-bezier(0.33, 1, 0.62, 1), y1/x1 is approximately 3.03.
+      const threshold =
+        height * settings.initialSlope / settings.duration;
+
+      if (releaseSpeed < threshold) return false;
+
+      // Use the original curve over the remaining distance.
+      // Choose its duration so its initial velocity equals the actual
+      // release velocity, avoiding a sudden acceleration or slowdown:
+      //
+      // releaseSpeed = remaining * initialSlope / duration
+      const duration =
+        remaining * settings.initialSlope / releaseSpeed;
+
+      if (!Number.isFinite(duration) || duration <= 0) return false;
+
+      opening = {
+        startedAt: performance.now(),
+        start: revealed,
+        remaining: remaining,
+        duration: duration,
+        points: settings.points,
+      };
+
+      velocity = 0;
+      beginFrame();
+      return true;
+    }
+
+    function tick(now) {
+      if (disposed) return;
+
+      frameId = 0;
+
+      const elapsed = clamp(now - previousFrameTime, 0, 32);
+      previousFrameTime = now;
+
+      if (opening) {
+        const progress = clamp(
+          (now - opening.startedAt) / opening.duration,
+          0,
+          1
+        );
+
+        revealed = opening.start + opening.remaining *
+          originalOpeningProgress(progress, opening.points);
+
+        if (progress >= 1) {
+          revealed = height;
+          opening = null;
+          velocity = 0;
+          render();
+          return;
+        }
+
+        render();
+        frameId = window.requestAnimationFrame(tick);
+        return;
+      }
+
+      if (dragging) {
+        scrollDuringDrag(elapsed);
+        frameId = window.requestAnimationFrame(tick);
+        return;
+      }
+
+      if (Math.abs(velocity) < 0.012) {
+        velocity = 0;
+        return;
+      }
+
+      // Pure inertial motion with exponential friction:
+      //
+      // v(t + dt) = v(t) * exp(-friction * dt)
+      // dx = v(t) * (1 - exp(-friction * dt)) / friction
+      //
+      // There is no spring and no endpoint chosen from swipe direction.
+      // Small movements stop nearby; stronger flicks coast farther.
+      const friction = 0.0045;
+      const decay = Math.exp(-friction * elapsed);
+      const displacement = velocity * (1 - decay) / friction;
+      const proposed = revealed + displacement;
+
+      revealed = clamp(proposed, 0, height);
+      velocity *= decay;
+
+      if (proposed <= 0 || proposed >= height) {
+        velocity = 0;
+      }
+
+      render();
+
+      if (Math.abs(velocity) >= 0.012) {
+        frameId = window.requestAnimationFrame(tick);
+      }
+    }
+
+    function beginFrame() {
+      stopFrame();
+      previousFrameTime = performance.now();
+      frameId = window.requestAnimationFrame(tick);
+    }
+
+    function onTouchStart(event) {
+      if (event.touches.length !== 1) return;
+
+      stopFrame();
+      opening = null;
+
+      const touch = event.touches[0];
+      const now = performance.now();
+
+      dragging = true;
+      touchId = touch.identifier;
+      lastClientY = touch.clientY;
+      lastDocumentY = touch.clientY + window.scrollY;
+      lastInputTime = now;
+      gestureMoved = false;
+      velocity = 0;
+      samples = [{ y: touch.clientY, time: now }];
+
+      beginFrame();
+    }
+
+    function onTouchMove(event) {
+      if (!dragging) return;
+
+      if (event.touches.length !== 1) {
+        onTouchCancel();
+        return;
+      }
+
+      const touch = findTouch(event.touches);
+      if (!touch) return;
+
+      if (!event.cancelable) {
+        onTouchCancel();
+        return;
+      }
+
+      event.preventDefault();
+
+      const now = performance.now();
+      const documentY = touch.clientY + window.scrollY;
+      const displacement = documentY - lastDocumentY;
+
+      if (Math.abs(displacement) > 0) {
+        gestureMoved = true;
+        dismissHint();
+      }
+
+      // A one-pixel finger movement exposes or hides one pixel of paper.
+      // The same formula works at 0%, 100%, and every point in between.
+      revealed = clamp(revealed + displacement, 0, height);
+
+      lastDocumentY = documentY;
+      lastClientY = touch.clientY;
+      lastInputTime = now;
+
+      recordVelocity(touch.clientY, now);
+      render();
+    }
+
+    function onTouchEnd(event) {
+      if (!dragging) return;
+
+      const touch = findTouch(event.changedTouches);
+      if (!touch) return;
+
+      const now = performance.now();
+
+      dragging = false;
+      touchId = null;
+      stopFrame();
+
+      if (!gestureMoved || now - lastInputTime > 100) {
+        velocity = 0;
+      }
+
+      // Reduced motion preserves direct manipulation but omits coasting.
+      if (reducedMotion.matches) velocity = 0;
+
+      if (velocity > 0 && beginOriginalOpening(velocity)) return;
+
+      if (Math.abs(velocity) >= 0.012) beginFrame();
+    }
+
+    function onTouchCancel() {
+      opening = null;
+      dragging = false;
+      touchId = null;
+      velocity = 0;
+      stopFrame();
+    }
+
+    function onKeyDown(event) {
+      const increment = Math.max(40, viewport().height * 0.15);
+      let next = revealed;
+
+      if (event.key === 'ArrowDown') next += increment;
+      else if (event.key === 'ArrowUp') next -= increment;
+      else if (event.key === 'PageDown') next += viewport().height * 0.8;
+      else if (event.key === 'PageUp') next -= viewport().height * 0.8;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = height;
+      else if (event.key === 'Enter' || event.key === ' ') {
+        next = fullyOpen ? 0 : height;
+      } else {
+        return;
+      }
+
+      event.preventDefault();
+      onTouchCancel();
+      dismissHint();
+
+      revealed = clamp(next, 0, height);
+      render();
+    }
+
+    function onFocusIn(event) {
+      if (!paper.contains(event.target) || fullyOpen) return;
+
+      // Keyboard navigation must not focus invisible clipped controls.
+      onTouchCancel();
+      dismissHint();
+      revealed = height;
+      render();
+    }
+
+    function onVisibilityChange() {
+      if (document.hidden) onTouchCancel();
+    }
+
+    function onNativeScroll() {
+      const currentY = window.scrollY;
+
+      // Roller manipulation, its edge auto-scroll, and the completion
+      // animation must not expose the header.
+      if (dragging || opening) {
+        headerScrollAnchor = currentY;
+        return;
+      }
+
+      if (currentY >= headerScrollAnchor) {
+        headerScrollAnchor = currentY;
+        return;
+      }
+
+      // Accumulate a small upward movement instead of depending on an
+      // individual scroll event being larger than a pixel.
+      if (headerScrollAnchor - currentY >= 3) {
+        releaseInitialHeader();
+
+        // Hand subsequent behavior back to the existing header logic.
+        const header = document.querySelector('header.site-header');
+        if (header) header.classList.remove('is-hidden');
+
+        headerScrollAnchor = currentY;
+      }
+    }
+
+    setAttribute(stage, 'data-step17-physics', 'true');
+    setAttribute(html, 'data-step17-header-hidden', 'true');
+    setAttribute(roller, 'role', 'button');
+    setAttribute(roller, 'tabindex', '0');
+
+    roller.addEventListener('touchstart', onTouchStart, {
+      passive: true,
+      signal,
+    });
+
+    roller.addEventListener('touchmove', onTouchMove, {
+      passive: false,
+      signal,
+    });
+
+    roller.addEventListener('touchend', onTouchEnd, {
+      passive: true,
+      signal,
+    });
+
+    roller.addEventListener('touchcancel', onTouchCancel, {
+      passive: true,
+      signal,
+    });
+
+    roller.addEventListener('keydown', onKeyDown, { signal });
+    paper.addEventListener('focusin', onFocusIn, { signal });
+
+    window.addEventListener('resize', scheduleMeasurement, {
+      passive: true,
+      signal,
+    });
+
+    window.addEventListener('scroll', onNativeScroll, {
+      passive: true,
+      signal,
+    });
+
+    document.addEventListener('visibilitychange', onVisibilityChange, {
+      signal,
+    });
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', scheduleMeasurement, {
+        passive: true,
+        signal,
+      });
+    }
+
+    const observer = typeof ResizeObserver === 'function'
+      ? new ResizeObserver(scheduleMeasurement)
+      : null;
+
+    if (observer) observer.observe(paper);
+
+    paper.addEventListener('load', scheduleMeasurement, {
+      capture: true,
+      signal,
+    });
+
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () {
+        if (!disposed) scheduleMeasurement();
+      });
+    }
+
+    measure(true);
+
+    hintTimer = window.setTimeout(function () {
+      if (!disposed && !hintDismissed) {
+        hint.classList.add('is-visible');
+      }
+    }, 500);
+
+    cleanupCurrent = function () {
+      disposed = true;
+      controller.abort();
+      stopFrame();
+      window.cancelAnimationFrame(measurementId);
+      window.clearTimeout(hintTimer);
+
+      if (observer) observer.disconnect();
+
+      hint.remove();
+
+      attributeSnapshots.forEach(function (attributes, element) {
+        attributes.forEach(function (value, name) {
+          if (value === null) element.removeAttribute(name);
+          else element.setAttribute(name, value);
+        });
+      });
+
+      styleSnapshots.forEach(function (properties, element) {
+        properties.forEach(function (saved, property) {
+          if (saved.value) {
+            element.style.setProperty(property, saved.value, saved.priority);
+          } else {
+            element.style.removeProperty(property);
+          }
+        });
+      });
+    };
+  }
+
+  function destroy() {
+    lifetime.abort();
+    if (cleanupCurrent) cleanupCurrent();
+    cleanupCurrent = null;
+  }
+
+  window[key] = destroy;
+
+  mobile.addEventListener('change', initialize, {
+    signal: lifetime.signal,
+  });
+
+  document.addEventListener('astro:before-swap', function () {
+    if (cleanupCurrent) cleanupCurrent();
+    cleanupCurrent = null;
+  }, { signal: lifetime.signal });
+
+  document.addEventListener('astro:page-load', initialize, {
+    signal: lifetime.signal,
+  });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initialize, {
+      once: true,
+      signal: lifetime.signal,
+    });
+  } else {
+    initialize();
+  }
+})();
+    </script>
+    <!-- STEP17_MOBILE_SCROLL_PHYSICS_END -->
+    <!-- STEP13_MAILERLITE_SCRIPT_START -->
+    <script is:inline>
+      (function () {
+        const form = document.getElementById('global-newsletter-form');
+        const box = document.getElementById('global-newsletter-box');
+        const msgEl = document.getElementById('global-newsletter-msg');
+
+        if (!form || !box || !msgEl) return;
+
+        form.addEventListener('submit', async function (event) {
+          event.preventDefault();
+
+          const honeypot = form.querySelector('input[name="confirm_email_honeypot"]');
+          if (honeypot && honeypot.value) {
+            return;
+          }
+
+          const emailInput = form.querySelector('input[name="fields[email]"]');
+          const email = emailInput ? emailInput.value.trim() : '';
+
+          if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            msgEl.hidden = false;
+            msgEl.className = 'newsletter-response-msg is-error';
+            msgEl.textContent = 'Please enter a valid email address.';
+            return;
+          }
+
+          const formActionUrl = (box.getAttribute('data-form-action') || '').trim();
+          const submitBtn = form.querySelector('.newsletter-submit-btn');
+          if (submitBtn) submitBtn.disabled = true;
+
+          const isConfigured =
+            formActionUrl &&
+            !formActionUrl.includes('YOUR_ACCOUNT_ID') &&
+            !formActionUrl.includes('YOUR_FORM_ID') &&
+            formActionUrl !== '#';
+
+          if (isConfigured) {
+            try {
+              const formData = new FormData(form);
+              await fetch(formActionUrl, {
+                method: 'POST',
+                body: formData,
+                mode: 'no-cors',
+              });
+              form.reset();
+              msgEl.hidden = false;
+              msgEl.className = 'newsletter-response-msg is-success';
+              msgEl.textContent =
+                '印 Thank you. Your address has been inscribed in the dispatch ledger. Please check your inbox to confirm.';
+            } catch (_err) {
+              msgEl.hidden = false;
+              msgEl.className = 'newsletter-response-msg is-error';
+              msgEl.textContent =
+                'Unable to reach the dispatch ledger right now. Please try again shortly.';
+            } finally {
+              if (submitBtn) submitBtn.disabled = false;
+            }
+          } else {
+            form.reset();
+            if (submitBtn) submitBtn.disabled = false;
+            msgEl.hidden = false;
+            msgEl.className = 'newsletter-response-msg is-success';
+            msgEl.textContent =
+              '印 Thank you. Your address has been inscribed in the dispatch ledger. Please check your inbox to confirm. (Local Preview Mode: To enable live subscriptions, paste your MailerLite Form Action URL into "mailerlite.formActionUrl" inside src/data/siteConfig.json.)';
+          }
+        });
+      })();
+    </script>
+    <!-- STEP13_MAILERLITE_SCRIPT_END -->
+  </body>
+</html>

@@ -888,10 +888,10 @@ header.site-header {
  * Direct-child selectors exclude the independent Forum composer scroll.
  */
 @media (max-width: 680px) {
-  body > .scroll-stage[data-mobile-physics="true"] {
-    animation: stageFadeIn var(--fade-duration) ease-out both !important;
-    transform: none !important;
-    opacity: 1 !important;
+  /* SCROLL_ENTRANCE_FIX_V1: the stage fades while JS controls unfurling. */
+  body > .scroll-stage {
+    animation: stageFadeIn var(--fade-duration, 0.8s) ease-out both;
+    transform: translateY(0);
     min-height: 100vh !important;
     min-height: 100dvh !important;
     max-height: none !important;
