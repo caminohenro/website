@@ -35,7 +35,7 @@ const {
     <!-- LAYER 1: Fixed Road & Apple Background -->
     <div
       class="fixed-backdrop"
-      style="background-image: url('/assets/apple-bg.jpeg'), url('/assets/apple-bg.svg');"
+      style="background-image: url('/assets/apple-bg.jpeg'), url('/assets/apple-diff.jpg');"
     ></div>
     <div class="backdrop-dimmer" id="dimmer"></div>
 
@@ -770,7 +770,7 @@ const {
 
       // Roller manipulation, its edge auto-scroll, and the completion
       // animation must not expose the header.
-      if (dragging || opening) {
+      if (dragging) {
         headerScrollAnchor = currentY;
         return;
       }
