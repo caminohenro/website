@@ -1308,6 +1308,202 @@ const {
 })();
     </script>
     <!-- STEP17_MOBILE_SCROLL_PHYSICS_END -->
+    <!-- SHARED_SCROLL_MOTION_V1 -->
+    <script is:inline>
+(function sharedScrollHelpers() {
+
+  const pendingUnfurls = new WeakMap();
+
+
+
+  window.scrollMovePosition = function (stage, targetY, from) {
+
+    const styles = window.getComputedStyle(stage);
+
+    const durationText = styles
+
+      .getPropertyValue('--scroll-move-duration')
+
+      .trim();
+
+
+
+    const match = durationText.match(/^([\d.]+)(ms|s)$/i);
+
+
+
+    const duration = match
+
+      ? Number(match[1]) *
+
+        (match[2].toLowerCase() === 's' ? 1000 : 1)
+
+      : 1000;
+
+
+
+    const easing =
+
+      styles.getPropertyValue('--scroll-move-easing').trim() ||
+
+      'cubic-bezier(0.25, 0.1, 0.25, 1)';
+
+
+
+    const origin = from || styles.translate;
+
+
+
+    return stage.animate(
+
+      [
+
+        { translate: origin === 'none' ? '0px 0px' : origin },
+
+        { translate: '0px ' + targetY + 'px' }
+
+      ],
+
+      { duration, easing, fill: 'both' }
+
+    );
+
+  };
+
+
+
+  window.prepareScrollUnfurl = function (paper) {
+
+    // Remove an unfinished entrance's previous completion listener.
+
+    pendingUnfurls.get(paper)?.();
+
+
+
+    const names = [
+
+      'animation',
+
+      'height',
+
+      'min-height',
+
+      'max-height'
+
+    ];
+
+
+
+    const saved = names.map(name => ({
+
+      name,
+
+      value: paper.style.getPropertyValue(name),
+
+      priority: paper.style.getPropertyPriority(name)
+
+    }));
+
+
+
+    let targetHeight;
+
+
+
+    try {
+
+      // Measure natural height synchronously, before the next paint.
+
+      paper.style.setProperty('animation', 'none', 'important');
+
+      paper.style.setProperty('height', 'auto', 'important');
+
+      paper.style.setProperty(
+
+        'min-height',
+
+        'var(--scroll-unfurl-min-height, 72vh)',
+
+        'important'
+
+      );
+
+      paper.style.setProperty('max-height', 'none', 'important');
+
+
+
+      targetHeight = window.getComputedStyle(paper).height;
+
+    } finally {
+
+      saved.forEach(({ name, value, priority }) => {
+
+        if (value) {
+
+          paper.style.setProperty(name, value, priority);
+
+        } else {
+
+          paper.style.removeProperty(name);
+
+        }
+
+      });
+
+    }
+
+
+
+    paper.style.setProperty(
+
+      '--scroll-unfurl-max-height',
+
+      targetHeight
+
+    );
+
+
+
+    function detach() {
+
+      paper.removeEventListener('animationend', onEnd);
+
+      pendingUnfurls.delete(paper);
+
+    }
+
+
+
+    function onEnd(event) {
+
+      if (
+
+        event.target !== paper ||
+
+        event.animationName !== 'scrollUnfurlDown'
+
+      ) return;
+
+
+
+      // Release the cap for later loaded or expanded content.
+
+      paper.style.setProperty('--scroll-unfurl-max-height', 'none');
+
+      detach();
+
+    }
+
+
+
+    pendingUnfurls.set(paper, detach);
+
+    paper.addEventListener('animationend', onEnd);
+
+  };
+
+})();
+    </script>
     <!-- HOME_DESKTOP_CLICK_V1 -->
     <script is:inline>
 
@@ -1478,27 +1674,7 @@ const {
 
         if (!reduced.matches) {
 
-          movement = stage.animate(
-
-            [
-
-              { translate: from },
-
-              { translate: '0px 0px' }
-
-            ],
-
-            {
-
-              duration: 700,
-
-              easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
-
-              fill: 'both'
-
-            }
-
-          );
+          movement = window.scrollMovePosition(stage, 0, from);
 
 
 
@@ -1516,6 +1692,7 @@ const {
 
         // Only this state allows the paper to begin unfurling.
 
+        window.prepareScrollUnfurl(paper);
         stage.dataset.homeUnfurl = 'opening';
 
 
@@ -1688,6 +1865,17 @@ const {
     );
 
     if (!stage || !paper || !top || !bottom || !spacer) return;
+
+    // Prepare the automatic initial unfurl on regular desktop pages.
+    if (
+      desktop.matches &&
+      !reduced.matches &&
+      stage.dataset.desktopClickUnfurl !== 'true' &&
+      !paper.hasAttribute('data-initial-unfurl-prepared')
+    ) {
+      window.prepareScrollUnfurl(paper);
+      paper.setAttribute('data-initial-unfurl-prepared', '');
+    }
 
     const controls = new AbortController();
     const signal = controls.signal;
@@ -1864,27 +2052,7 @@ const {
 
       if (!reduced.matches) {
 
-        repeatMovement = stage.animate(
-
-          [
-
-            { translate: from === 'none' ? '0px 0px' : from },
-
-            { translate: destination }
-
-          ],
-
-          {
-
-            duration: 1000,
-
-            easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
-
-            fill: 'both'
-
-          }
-
-        );
+        repeatMovement = window.scrollMovePosition(stage, target, from);
 
 
 
@@ -1988,9 +2156,8 @@ const {
 
         paper.inert = previousInert;
 
-        paper.style.animation =
-
-          'scrollUnfurlDown var(--unfurl-duration, 8s) ' +
+        window.prepareScrollUnfurl(paper);
+        paper.style.animation = 'scrollUnfurlDown var(--unfurl-duration, 8s) ' +
 
           'var(--unfurl-easing, cubic-bezier(0.33, 1, 0.62, 1)) ' +
 

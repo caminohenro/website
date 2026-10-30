@@ -453,9 +453,12 @@ h1.page-heading {
 :root {
   --fade-duration: 0.8s;
   --pause-duration: 0.1s;
-  --unfurl-duration: 8s;
+  --unfurl-duration: 2s;
   --unfurl-delay: calc(var(--fade-duration) + var(--pause-duration));
   --unfurl-easing: cubic-bezier(0.33, 1, 0.62, 1);
+  /* SHARED_SCROLL_MOTION_V1: shared by all three desktop position movements. */
+  --scroll-move-duration: 1000ms;
+  --scroll-move-easing: cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .scroll-stage {
