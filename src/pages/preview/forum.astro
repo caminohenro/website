@@ -80,6 +80,7 @@ const categories = [
         </button>
       </div>
 
+      <div id="board-subscribe-slot" style="display:flow-root">
       <div
         id="board-subscribe-drawer"
         class="forum-form-panel hidden-view"
@@ -164,6 +165,8 @@ const categories = [
           </div>
         </form>
       </div>
+
+      </div><!-- board-subscribe-slot -->
 
       <!-- Compact mode selector, inside the parchment and beneath the category/action row. -->
       <div class="compose-mode-control" aria-label="Message composer presentation">
@@ -357,6 +360,7 @@ const categories = [
     <!-- ================================================================== -->
     <!-- MAIN VIEW 1: THREAD LIST VIEW (#forum-list-view)                   -->
     <!-- ================================================================== -->
+    <div id="forum-main-views" style="display:flow-root">
     <section id="forum-list-view" aria-label="Discussion Threads">
       <div id="threads-stream-container" class="threads-stream">
         <div class="stream-item loading-placeholder">
@@ -547,6 +551,8 @@ const categories = [
       </div>
     </section>
 
+    </div><!-- forum-main-views -->
+
     <!-- The separate-scroll composer lives here and receives the existing form element when Option 1 is selected. -->
     <div id="forum-compose-overlay" class="forum-compose-overlay hidden-view" aria-hidden="true">
       <div id="forum-compose-scroll-stage" class="forum-compose-scroll-stage" aria-hidden="true">
@@ -560,6 +566,11 @@ const categories = [
 </BaseLayout>
 
 <style is:global>
+  html:has(#forum-main-views) {
+    overflow-anchor: none;
+    scroll-behavior: auto;
+  }
+
   :root {
     --washi-bg: #E6DFCF;
     --washi-dark: #D8CEB8;
@@ -1753,21 +1764,28 @@ const categories = [
     // Board-Wide New Topic Subscription Drawer Toggle & Submission
     function setBoardSubscribeDrawerOpen(isOpen) {
       if (!boardSubscribeDrawer || !toggleBoardSubscribeBtn) return;
+      toggleBoardSubscribeBtn.setAttribute('aria-expanded', String(isOpen));
+      animateForumRegion(document.getElementById('board-subscribe-slot'),
+        () => setBoardSubscribeDrawerOpenContent(isOpen), !isOpen);
+    }
+
+    function setBoardSubscribeDrawerOpenContent(isOpen) {
+      if (!boardSubscribeDrawer || !toggleBoardSubscribeBtn) return;
       boardSubscribeDrawer.classList.toggle('hidden-view', !isOpen);
       toggleBoardSubscribeBtn.setAttribute('aria-expanded', String(isOpen));
       if (isOpen) {
         loadSavedIdentity();
         if (boardSubNameInput && !boardSubNameInput.value) {
-          boardSubNameInput.focus();
+          boardSubNameInput.focus({ preventScroll: true });
         } else if (boardSubEmailInput) {
-          boardSubEmailInput.focus();
+          boardSubEmailInput.focus({ preventScroll: true });
         }
       }
     }
 
     if (toggleBoardSubscribeBtn && boardSubscribeDrawer) {
       toggleBoardSubscribeBtn.addEventListener('click', function () {
-        const isCurrentlyHidden = boardSubscribeDrawer.classList.contains('hidden-view');
+        const isCurrentlyHidden = toggleBoardSubscribeBtn.getAttribute('aria-expanded') !== 'true';
         setBoardSubscribeDrawerOpen(isCurrentlyHidden);
       });
     }
@@ -2034,6 +2052,7 @@ const categories = [
     async function openInlineComposer(type, panel, operationId) {
       const slot = getComposerSlot(type);
       if (!slot) return;
+      const finishViewport = trackViewportRegion(slot);
       panel.classList.remove('hidden-view');
       slot.style.height = '0px';
       slot.style.overflow = 'hidden';
@@ -2056,13 +2075,15 @@ const categories = [
         slotAnimation.finished.catch(() => {}),
         contentAnimation.finished.catch(() => {})
       ]);
+      if (operationId === composerOperationId) {
+        slot.style.height = 'auto';
+        slot.style.overflow = 'visible';
+        panel.style.opacity = '';
+        panel.style.transform = '';
+      }
       slotAnimation.cancel();
       contentAnimation.cancel();
-      if (operationId !== composerOperationId) return;
-      slot.style.height = 'auto';
-      slot.style.overflow = 'visible';
-      panel.style.opacity = '';
-      panel.style.transform = '';
+      finishViewport();
     }
 
     function updateComposeModeUI() {
@@ -2151,7 +2172,7 @@ const categories = [
       const focusTarget = type === 'topic'
         ? ((!topicAuthorInput || topicAuthorInput.value) ? document.getElementById('topic-title') : topicAuthorInput)
         : replyAuthorInput;
-      if (focusTarget) focusTarget.focus({ preventScroll: activeComposerPresentation === 'overlay' });
+      if (focusTarget) focusTarget.focus({ preventScroll: true });
     }
 
     async function closeComposer(type, options = {}) {
@@ -2167,6 +2188,7 @@ const categories = [
       const operationId = ++composerOperationId;
       const presentation = activeComposerPresentation;
       const slot = getComposerSlot(type);
+      const finishViewport = presentation === 'inline' ? trackViewportRegion(slot) : () => {};
       const animations = [];
       const closeDuration = presentation === 'overlay' ? composerOverlayCloseDuration : composerInlineCloseDuration;
 
@@ -2209,7 +2231,7 @@ const categories = [
       }
 
       await Promise.all(animations.map((animation) => animation.finished.catch(() => {})));
-      if (operationId !== composerOperationId) return;
+      if (operationId !== composerOperationId) { finishViewport(); return; }
       animations.forEach((animation) => animation.cancel());
       panel.classList.add('hidden-view');
       panel.style.opacity = '';
@@ -2254,6 +2276,7 @@ const categories = [
           newReplyFeedback.className = 'form-feedback';
         }
       }
+      finishViewport();
       activeComposerType = null;
       activeComposerPresentation = null;
       composerTransitioning = false;
@@ -2381,68 +2404,269 @@ const categories = [
       }
     }
 
-    // Animate list/thread/category changes while keeping the main parchment's bottom roller
-    // visually anchored in the viewport. If this feels disorienting on a device, disable
-    // followMainScrollRoller below and use the fallback scroll-to-top behavior instead.
-    const followMainScrollRoller = true;
-    let mainViewAnimationId = 0;
-
-    function getMainScrollBottomRoller() {
-      return document.querySelector('.scroll-stage > .scroll-roller-bottom, .scroll-stage .scroll-roller-bottom:not(.forum-compose-scroll-stage .scroll-roller-bottom)');
-    }
-
-    function animateMainViewChange(view, mutate, duration = 520) {
-      const bottomRoller = getMainScrollBottomRoller();
-      const initialRollerTop = bottomRoller ? bottomRoller.getBoundingClientRect().top : null;
-      const oldHeight = view ? view.getBoundingClientRect().height : 0;
-      const token = ++mainViewAnimationId;
-      mutate();
-      if (!view) return;
-      const newHeight = view.getBoundingClientRect().height;
-      const targetHeight = Math.max(0, newHeight);
-      view.style.overflow = 'clip';
-      view.style.height = `${oldHeight}px`;
-      view.style.opacity = '0.88';
-      view.style.transform = 'translateY(5px)';
-      void view.offsetHeight;
-      const animation = view.animate([
-        { height: `${oldHeight}px`, opacity: 0.88, transform: 'translateY(5px)' },
-        { height: `${targetHeight}px`, opacity: 1, transform: 'translateY(0)' }
-      ], { duration: prefersReducedMotion ? 1 : duration, easing: 'cubic-bezier(0.33, 1, 0.62, 1)', fill: 'both' });
-
-      let frame = 0;
-      const followRoller = () => {
-        if (token !== mainViewAnimationId) return;
-        if (followMainScrollRoller && bottomRoller && initialRollerTop !== null) {
-          const currentTop = bottomRoller.getBoundingClientRect().top;
-          const delta = currentTop - initialRollerTop;
-          if (Math.abs(delta) > 0.5) {
-            window.scrollTo({
-              top: window.scrollY + delta,
-              behavior: 'instant'
-            });
-          }
-        }
-        frame = window.requestAnimationFrame(followRoller);
+    // FORUM_VIEWPORT_FIX_V1
+    // Observe an explicitly changing region, including every animated height step.
+    const viewportRegions = new Set();
+    function trackViewportRegion(region) {
+      if (!region) return () => {};
+      // An outer transition already accounts for nested content changes.
+      if ([...viewportRegions].some(active => active.contains(region))) return () => {};
+      viewportRegions.add(region);
+      let oldHeight = region.getBoundingClientRect().height;
+      let top = region.getBoundingClientRect().top + window.scrollY;
+      let y = window.scrollY;
+      let stopped = false;
+      const onScroll = () => { y = window.scrollY; };
+      const update = () => {
+        if (stopped) return;
+        const rect = region.getBoundingClientRect();
+        const removed = Math.max(0, oldHeight - rect.height);
+        // Removing [top, top + removed] subtracts only the part above the viewport.
+        y = Math.max(0, y - Math.min(removed, Math.max(0, y - top)));
+        window.scrollTo({ top: y, left: window.scrollX, behavior: 'instant' });
+        y = window.scrollY; // Respect the browser's document-end limit.
+        oldHeight = rect.height;
+        top = region.getBoundingClientRect().top + window.scrollY;
       };
-      if (followMainScrollRoller) frame = window.requestAnimationFrame(followRoller);
-      animation.finished.catch(() => {}).then(() => {
-        if (token !== mainViewAnimationId) return;
-        window.cancelAnimationFrame(frame);
-        animation.cancel();
-        view.style.height = '';
-        view.style.overflow = '';
-        view.style.opacity = '';
-        view.style.transform = '';
-        if (!followMainScrollRoller) {
-          // Fallback experiment: reset the page to the top after content changes.
-          window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
-        }
-      });
+      const observer = new ResizeObserver(update);
+      observer.observe(region);
+      window.addEventListener('scroll', onScroll, { passive: true });
+      const stop = () => {
+        if (stopped) return;
+        update();
+        stopped = true;
+        viewportRegions.delete(region);
+        observer.disconnect();
+        window.removeEventListener('scroll', onScroll);
+        window.removeEventListener('wheel', stop);
+        window.removeEventListener('touchstart', stop);
+        window.removeEventListener('keydown', stop);
+        document.removeEventListener('astro:before-swap', stop);
+        window.removeEventListener('pagehide', stop);
+      };
+      // Give control back immediately when the user starts navigating.
+      window.addEventListener('wheel', stop, { passive: true });
+      window.addEventListener('touchstart', stop, { passive: true });
+      window.addEventListener('keydown', stop);
+      document.addEventListener('astro:before-swap', stop, { once: true });
+      window.addEventListener('pagehide', stop, { once: true });
+      return stop;
     }
+
+    function changeViewportRegion(region, change) {
+      const finish = trackViewportRegion(region);
+      try { return change(); }
+      finally { finish(); }
+    }
+
+
+
+    // FORUM_SHARED_UNFURL_V1
+
+    const sharedAnimations = new Map();
+
+
+
+
+    // FORUM_ROLLER_SYNC_V1
+    let forumMutationDepth = 0;
+
+    function animateForumRegion(region, mutate, close = false) {
+      if (!region || forumMutationDepth) {
+        mutate();
+        return;
+      }
+
+      const ancestor = [...sharedAnimations.keys()].find(
+        element => element !== region && element.contains(region)
+      );
+
+      if (ancestor) {
+        // Sample the ancestor before changing its contents.
+        animateForumRegion(ancestor, mutate);
+        return;
+      }
+
+      const previous = sharedAnimations.get(region);
+      const oldHeight = region.getBoundingClientRect().height;
+      const descendants = [...sharedAnimations.entries()].filter(
+        ([element]) => element !== region && region.contains(element)
+      );
+
+      // Release child viewport trackers at their current heights.
+      // The outer tracker then owns the remaining transition.
+      descendants.forEach(([, state]) => state.finishViewport());
+
+      const state = previous || {
+        finishViewport: trackViewportRegion(region),
+        height: region.style.height,
+        overflow: region.style.overflow,
+        animations: []
+      };
+
+      // Settle existing child animations before measuring the destination.
+      descendants.forEach(([element, childState]) => {
+        childState.token = null;
+        childState.animations.forEach(animation => animation.cancel());
+        element.style.height = childState.height;
+        element.style.overflow = childState.overflow;
+        sharedAnimations.delete(element);
+      });
+
+      // Invalidate callbacks belonging to an interrupted animation.
+      state.token = {};
+      const token = state.token;
+
+      state.animations.forEach(animation => animation.cancel());
+      state.animations = [];
+
+      // Register before mutate(), which may call renderThreadList()
+      // or renderRepliesList() and re-enter this function.
+      sharedAnimations.set(region, state);
+
+      const restore = () => {
+        region.style.height = state.height;
+        region.style.overflow = state.overflow;
+        state.animations.forEach(animation => animation.cancel());
+        state.finishViewport();
+        sharedAnimations.delete(region);
+      };
+
+      try {
+        region.style.height = state.height;
+        region.style.overflow = state.overflow;
+
+        if (!close) {
+          forumMutationDepth++;
+          try {
+            mutate();
+          } finally {
+            forumMutationDepth--;
+          }
+        }
+
+        // Nested render calls have completed synchronously, so this is
+        // the natural destination height, not a child's animation frame.
+        const targetHeight = close
+          ? 0
+          : region.getBoundingClientRect().height;
+
+        const shrinking = targetHeight < oldHeight;
+        const duration = shrinking
+          ? composerInlineCloseDuration
+          : composerInlineOpenDuration;
+
+        region.style.height = `${oldHeight}px`;
+        region.style.overflow = 'hidden';
+
+        state.animations.push(region.animate(
+          [
+            { height: `${oldHeight}px` },
+            { height: `${targetHeight}px` }
+          ],
+          {
+            duration,
+            easing: shrinking
+              ? 'cubic-bezier(0.4, 0, 0.8, 0.2)'
+              : 'cubic-bezier(0.33, 1, 0.62, 1)',
+            fill: 'both'
+          }
+        ));
+
+        for (const child of region.children) {
+          state.animations.push(child.animate(
+            close
+              ? [
+                  { opacity: 1, transform: 'translateY(0)' },
+                  { opacity: 0, transform: 'translateY(-12px)' }
+                ]
+              : [
+                  { opacity: 0, transform: 'translateY(-14px)' },
+                  { opacity: 1, transform: 'translateY(0)' }
+                ],
+            {
+              duration: close
+                ? Math.max(1, duration - 80)
+                : composerContentFadeDuration,
+              easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+              fill: 'both'
+            }
+          ));
+        }
+
+        Promise.all(
+          state.animations.map(animation =>
+            animation.finished.catch(() => {})
+          )
+        ).then(() => {
+          if (
+            state.token !== token ||
+            sharedAnimations.get(region) !== state
+          ) return;
+
+          try {
+            if (close) {
+              forumMutationDepth++;
+              try {
+                mutate();
+              } finally {
+                forumMutationDepth--;
+              }
+            }
+          } finally {
+            restore();
+          }
+        });
+      } catch (error) {
+        state.token = null;
+        restore();
+        throw error;
+      }
+    }
+
+
+    function animateMainViewChange(view, mutate) {
+
+      animateForumRegion(
+
+        document.getElementById('forum-main-views'),
+
+        mutate
+
+      );
+
+    }
+
+
+
+    document.addEventListener('astro:before-swap', () => {
+
+      sharedAnimations.forEach((state, region) => {
+
+        state.token = null;
+
+        state.animations.forEach(animation => animation.cancel());
+
+        region.style.height = state.height;
+
+        region.style.overflow = state.overflow;
+
+        state.finishViewport();
+
+      });
+
+      sharedAnimations.clear();
+
+    }, { once: true });
+
+
 
     // Render Thread List View (#forum-list-view) using renderAuthorBadge()
     function renderThreadList() {
+      return animateForumRegion(threadsStreamContainer, () => renderThreadListContent());
+    }
+
+    function renderThreadListContent() {
       if (!threadsStreamContainer) return;
 
       const filtered =
@@ -2620,9 +2844,9 @@ const categories = [
     async function loadRepliesForThread(threadId) {
       if (!repliesListContainer) return;
 
-      repliesListContainer.innerHTML = `
-        <div class="empty-replies-box">Unrolling responses...</div>
-      `;
+      animateForumRegion(repliesListContainer, () => {
+        repliesListContainer.innerHTML = '<div class="empty-replies-box">Unrolling responses...</div>';
+      });
 
       if (!isLiveSupabase) {
         const list = demoStarterReplies[threadId] || [];
@@ -2655,6 +2879,10 @@ const categories = [
 
     // Render Replies List using renderAuthorBadge() and .is-admin-reply
     function renderRepliesList(replies) {
+      return animateForumRegion(repliesListContainer, () => renderRepliesListContent(replies));
+    }
+
+    function renderRepliesListContent(replies) {
       if (!repliesListContainer) return;
 
       if (activeThreadReplyCount) {

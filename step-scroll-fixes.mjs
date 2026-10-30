@@ -1,128 +1,331 @@
 #!/usr/bin/env node
-/**
- * Usage (Node.js 18+):
- *   node fix-scroll-entrance.mjs [project-directory] [--dry-run]
- * Run against the actual Astro project, containing src/layouts/BaseLayout.astro
- * and src/styles/global.css. No packages or network access required.
- * Original bytes are backed up under .scroll-fix-backups/<timestamp>/.
- * Restore those two files from the backup to undo the patch.
- */
-import { readFile, writeFile, mkdir, copyFile } from 'node:fs/promises';
-import path from 'node:path';
+// Node.js 18+
+// Usage: node fix-forum-roller.mjs [project-directory] [--dry-run]
 
-const marker = 'SCROLL_ENTRANCE_FIX_V1';
-const args = process.argv.slice(2);
-if (args.includes('--help') || args.includes('-h')) {
-  console.log('Usage: node fix-scroll-entrance.mjs [project-directory] [--dry-run]');
-  process.exit(0);
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import path from 'node:path';
+import { Script } from 'node:vm';
+
+function replacementCode() {
+    // FORUM_ROLLER_SYNC_V1
+    let forumMutationDepth = 0;
+
+    function animateForumRegion(region, mutate, close = false) {
+      if (!region || forumMutationDepth) {
+        mutate();
+        return;
+      }
+
+      const ancestor = [...sharedAnimations.keys()].find(
+        element => element !== region && element.contains(region)
+      );
+
+      if (ancestor) {
+        // Sample the ancestor before changing its contents.
+        animateForumRegion(ancestor, mutate);
+        return;
+      }
+
+      const previous = sharedAnimations.get(region);
+      const oldHeight = region.getBoundingClientRect().height;
+      const descendants = [...sharedAnimations.entries()].filter(
+        ([element]) => element !== region && region.contains(element)
+      );
+
+      // Release child viewport trackers at their current heights.
+      // The outer tracker then owns the remaining transition.
+      descendants.forEach(([, state]) => state.finishViewport());
+
+      const state = previous || {
+        finishViewport: trackViewportRegion(region),
+        height: region.style.height,
+        overflow: region.style.overflow,
+        animations: []
+      };
+
+      // Settle existing child animations before measuring the destination.
+      descendants.forEach(([element, childState]) => {
+        childState.token = null;
+        childState.animations.forEach(animation => animation.cancel());
+        element.style.height = childState.height;
+        element.style.overflow = childState.overflow;
+        sharedAnimations.delete(element);
+      });
+
+      // Invalidate callbacks belonging to an interrupted animation.
+      state.token = {};
+      const token = state.token;
+
+      state.animations.forEach(animation => animation.cancel());
+      state.animations = [];
+
+      // Register before mutate(), which may call renderThreadList()
+      // or renderRepliesList() and re-enter this function.
+      sharedAnimations.set(region, state);
+
+      const restore = () => {
+        region.style.height = state.height;
+        region.style.overflow = state.overflow;
+        state.animations.forEach(animation => animation.cancel());
+        state.finishViewport();
+        sharedAnimations.delete(region);
+      };
+
+      try {
+        region.style.height = state.height;
+        region.style.overflow = state.overflow;
+
+        if (!close) {
+          forumMutationDepth++;
+          try {
+            mutate();
+          } finally {
+            forumMutationDepth--;
+          }
+        }
+
+        // Nested render calls have completed synchronously, so this is
+        // the natural destination height, not a child's animation frame.
+        const targetHeight = close
+          ? 0
+          : region.getBoundingClientRect().height;
+
+        const shrinking = targetHeight < oldHeight;
+        const duration = shrinking
+          ? composerInlineCloseDuration
+          : composerInlineOpenDuration;
+
+        region.style.height = `${oldHeight}px`;
+        region.style.overflow = 'hidden';
+
+        state.animations.push(region.animate(
+          [
+            { height: `${oldHeight}px` },
+            { height: `${targetHeight}px` }
+          ],
+          {
+            duration,
+            easing: shrinking
+              ? 'cubic-bezier(0.4, 0, 0.8, 0.2)'
+              : 'cubic-bezier(0.33, 1, 0.62, 1)',
+            fill: 'both'
+          }
+        ));
+
+        for (const child of region.children) {
+          state.animations.push(child.animate(
+            close
+              ? [
+                  { opacity: 1, transform: 'translateY(0)' },
+                  { opacity: 0, transform: 'translateY(-12px)' }
+                ]
+              : [
+                  { opacity: 0, transform: 'translateY(-14px)' },
+                  { opacity: 1, transform: 'translateY(0)' }
+                ],
+            {
+              duration: close
+                ? Math.max(1, duration - 80)
+                : composerContentFadeDuration,
+              easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+              fill: 'both'
+            }
+          ));
+        }
+
+        Promise.all(
+          state.animations.map(animation =>
+            animation.finished.catch(() => {})
+          )
+        ).then(() => {
+          if (
+            state.token !== token ||
+            sharedAnimations.get(region) !== state
+          ) return;
+
+          try {
+            if (close) {
+              forumMutationDepth++;
+              try {
+                mutate();
+              } finally {
+                forumMutationDepth--;
+              }
+            }
+          } finally {
+            restore();
+          }
+        });
+      } catch (error) {
+        state.token = null;
+        restore();
+        throw error;
+      }
+    }
 }
-if (args.some(a => a.startsWith('--') && a !== '--dry-run') || args.filter(a => a !== '--dry-run').length > 1) {
-  console.error('Usage: node fix-scroll-entrance.mjs [project-directory] [--dry-run]');
+
+const args = process.argv.slice(2);
+const positional = args.filter(argument => argument !== '--dry-run');
+
+if (
+  positional.length > 1 ||
+  args.some(argument =>
+    argument.startsWith('--') && argument !== '--dry-run'
+  )
+) {
+  console.error(
+    'Usage: node fix-forum-roller.mjs [project-directory] [--dry-run]'
+  );
   process.exit(1);
 }
-const root = path.resolve(args.find(a => a !== '--dry-run') || '.');
+
+const root = path.resolve(positional[0] || '.');
+const filename = path.join(root, 'src/pages/forum.astro');
 const dryRun = args.includes('--dry-run');
 
-function replaceOnce(source, before, after, label) {
-  const count = source.split(before).length - 1;
-  if (count !== 1) throw new Error(`${label}: expected one original block, found ${count}. No files changed.`);
-  return source.replace(before, after);
-}
-
-function patchLayout(source) {
-  let out = replaceOnce(source,
-`    const observer = typeof ResizeObserver === 'function'
-      ? new ResizeObserver(scheduleMeasurement)
-      : null;`,
-`    // ${marker}: synchronize clipping and roller position before paint.
-    const observer = typeof ResizeObserver === 'function'
-      ? new ResizeObserver(function () {
-          if (disposed) return;
-          window.cancelAnimationFrame(measurementId);
-          measurementId = 0;
-          measure(false);
-        })
-      : null;`, 'ResizeObserver');
-  out = replaceOnce(out,
-`  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initialize, {
-      once: true,
-      signal: lifetime.signal,
-    });
-  } else {
-    initialize();
-  }`,
-`  // The inline script follows the stage markup: close it before first paint.
-  initialize();`, 'initialization');
-  return out;
-}
-
-function patchCss(source) {
-  // Target only Step 17's outer stage; retain JS control of unfurling and roller.
-  return replaceOnce(source,
-`  body > .scroll-stage {
-    animation: none !important;
-    transform: none !important;
-    opacity: 1 !important;
-    min-height: 100vh !important;`,
-`  /* ${marker}: the stage fades while JS controls unfurling. */
-  body > .scroll-stage {
-    animation: stageFadeIn var(--fade-duration, 0.8s) ease-out both;
-    transform: translateY(0);
-    min-height: 100vh !important;`, 'mobile stage CSS');
-}
-
 async function main() {
-  const specs = [
-    ['src/layouts/BaseLayout.astro', patchLayout],
-    ['src/styles/global.css', patchCss],
-  ];
-  // Read and validate both files before creating backups or modifying either.
-  const files = [];
-  for (const [relative, patch] of specs) {
-    const filename = path.join(root, relative);
-    const original = await readFile(filename);
-    const source = original.toString('utf8');
-    const normalized = source.replace(/\r\n/g, '\n');
-    files.push({ relative, filename, original, normalized, patch });
-  }
-  const marked = files.filter(f => f.normalized.includes(marker));
-  if (marked.length === files.length) {
-    console.log('Fix already applied; no files changed.');
+  const original = await readFile(filename);
+  let source = original.toString('utf8').replace(/\r\n?/g, '\n');
+
+  if (source.includes('FORUM_ROLLER_SYNC_V1')) {
+    console.log('Roller fix already applied. No changes.');
     return;
   }
-  if (marked.length) throw new Error('Only one file has the patch marker. Restore the pair from backup before retrying. No files changed.');
-  for (const f of files) {
-    const patched = f.patch(f.normalized);
-    // Preserve each original file's newline convention.
-    f.output = Buffer.from(f.original.includes(Buffer.from('\r\n')) ? patched.replace(/\n/g, '\r\n') : patched);
+
+  for (const marker of [
+    'FORUM_VIEWPORT_FIX_V1',
+    'FORUM_SHARED_UNFURL_V1'
+  ]) {
+    if (!source.includes(marker)) {
+      throw new Error(
+        `Required previous patch missing: ${marker}. No files changed.`
+      );
+    }
   }
+
+  const startMarker = '    function animateForumRegion(';
+  const endMarker = '    function animateMainViewChange(';
+
+  function uniqueIndex(marker) {
+    const index = source.indexOf(marker);
+    if (
+      index < 0 ||
+      source.indexOf(marker, index + marker.length) !== -1
+    ) {
+      throw new Error(
+        `Expected one occurrence of ${marker.trim()}. No files changed.`
+      );
+    }
+    return index;
+  }
+
+  const start = uniqueIndex(startMarker);
+  const end = uniqueIndex(endMarker);
+
+  if (end <= start) {
+    throw new Error('Unexpected animation section. No files changed.');
+  }
+
+  const existing = source.slice(start, end);
+
+  for (const expected of [
+    'mutate();',
+    'animateForumRegion(ancestor, () => {});',
+    'finishViewport: trackViewportRegion(region)',
+    'const targetHeight = close',
+    'sharedAnimations.set(region, state);'
+  ]) {
+    if (!existing.includes(expected)) {
+      throw new Error(
+        'Animation helper differs from the supplied version. ' +
+        'No files changed.'
+      );
+    }
+  }
+
+  const functionSource = replacementCode.toString();
+  const replacement = functionSource.slice(
+    functionSource.indexOf('{') + 1,
+    functionSource.lastIndexOf('}')
+  );
+
+  source =
+    source.slice(0, start) +
+    replacement +
+    '\n\n' +
+    source.slice(end);
+
+  // Validate every inline script before writing.
+  let scriptCount = 0;
+  for (const match of source.matchAll(
+    /<script\b[^>]*>([\s\S]*?)<\/script>/g
+  )) {
+    new Script(match[1], {
+      filename: `forum-inline-${++scriptCount}.js`
+    });
+  }
+
+  if (!scriptCount) {
+    throw new Error('No inline scripts found. No files changed.');
+  }
+
   if (dryRun) {
-    console.log(`Validated patch in ${root}. Would update:\n${files.map(f => '  ' + f.relative).join('\n')}\nNo files changed.`);
+    console.log(
+      'Patch and inline JavaScript syntax validated.\nWould update: ' +
+      filename +
+      '\nNo files changed.'
+    );
     return;
   }
-  const backup = path.join(root, '.scroll-fix-backups', new Date().toISOString().replace(/[:.]/g, '-') + '-' + process.pid);
-  await mkdir(backup, { recursive: true });
-  for (const f of files) {
-    const destination = path.join(backup, f.relative);
-    await mkdir(path.dirname(destination), { recursive: true });
-    await writeFile(destination, f.original, { flag: 'wx' });
+
+  const backupDirectory = path.join(
+    root,
+    '.scroll-fix-backups',
+    'forum-roller-' +
+      new Date().toISOString().replace(/[:.]/g, '-') +
+      '-' + process.pid
+  );
+
+  await mkdir(backupDirectory, { recursive: true });
+
+  const backupFile = path.join(backupDirectory, 'forum.astro');
+  await writeFile(backupFile, original, { flag: 'wx' });
+
+  if (!(await readFile(filename)).equals(original)) {
+    throw new Error(
+      'forum.astro changed during patching. No changes applied.'
+    );
   }
-  const attempted = [];
+
+  // Preserve the original newline convention.
+  if (original.includes(Buffer.from('\r\n'))) {
+    source = source.replace(/\n/g, '\r\n');
+  }
+
   try {
-    for (const f of files) {
-      // Avoid overwriting changes made after validation.
-      if (!(await readFile(f.filename)).equals(f.original)) throw new Error(`${f.relative} changed during patching.`);
-      attempted.push(f);
-      await writeFile(f.filename, f.output);
-    }
+    await writeFile(filename, source);
   } catch (error) {
-    for (const f of attempted.reverse()) {
-      try { await copyFile(path.join(backup, f.relative), f.filename); }
-      catch (restoreError) { console.error(`Restore failed for ${f.relative}: ${restoreError.message}`); }
+    try {
+      await writeFile(filename, original);
+    } catch (restoreError) {
+      throw new Error(
+        `Write failed: ${error.message}\n` +
+        `Automatic restoration failed: ${restoreError.message}\n` +
+        `Restore the original from: ${backupFile}`
+      );
     }
-    throw new Error(`${error.message}\nPatch failed; restoration attempted. Backups: ${backup}`);
+    throw new Error(
+      `Write failed; original restored: ${error.message}`
+    );
   }
-  console.log(`Updated both files. Backups: ${backup}\nNext: run your usual build, then check a fresh mobile reload and roller dragging.`);
+
+  console.log(
+    'Updated: ' + filename +
+    '\nOriginal backup: ' + backupFile
+  );
 }
-main().catch(error => { console.error(error.message); process.exitCode = 1; });
+
+main().catch(error => {
+  console.error(error.message);
+  process.exitCode = 1;
+});
