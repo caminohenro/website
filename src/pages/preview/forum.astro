@@ -1776,10 +1776,13 @@ const categories = [
       toggleBoardSubscribeBtn.setAttribute('aria-expanded', String(isOpen));
       if (isOpen) {
         loadSavedIdentity();
-        if (boardSubNameInput && !boardSubNameInput.value) {
-          boardSubNameInput.focus({ preventScroll: true });
-        } else if (boardSubEmailInput) {
-          boardSubEmailInput.focus({ preventScroll: true });
+
+        if (!window.matchMedia('(max-width: 680px)').matches) {
+          if (boardSubNameInput && !boardSubNameInput.value) {
+            boardSubNameInput.focus({ preventScroll: true });
+          } else if (boardSubEmailInput) {
+            boardSubEmailInput.focus({ preventScroll: true });
+          }
         }
       }
     }
@@ -2173,7 +2176,12 @@ const categories = [
       const focusTarget = type === 'topic'
         ? ((!topicAuthorInput || topicAuthorInput.value) ? document.getElementById('topic-title') : topicAuthorInput)
         : replyAuthorInput;
-      if (focusTarget) focusTarget.focus({ preventScroll: true });
+      if (
+        focusTarget &&
+        !window.matchMedia('(max-width: 680px)').matches
+      ) {
+        focusTarget.focus({ preventScroll: true });
+      }
     }
 
     async function closeComposer(type, options = {}) {
