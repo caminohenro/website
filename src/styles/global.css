@@ -1271,7 +1271,7 @@ header.site-header {
 
 .spacer-for-apple {
   width: 100%;
-  height: 70vh;
+  height: 80vh;
   min-height: 400px;
   pointer-events: none;
 }
@@ -1432,9 +1432,7 @@ header.site-header {
     outline-offset: 6px;
   }
 
-  body:has(> .scroll-stage[data-desktop-click-unfurl="true"]:not([data-home-unfurl="opening"])) > .apple-reveal-stage {
-    visibility: hidden;
-  }
+  /* Newsletter remains available while the home scroll is closed. */
 
   .home-click-hint {
     position: absolute;
@@ -1639,3 +1637,43 @@ html:has([data-scroll-anchor="on"]) {
 /*============================= */
 /* SCROLL ANCHORING CONTROL END */
 /*============================= */
+
+/* SCROLL_CLOSE_NEWSLETTER_V1 */
+body > .apple-reveal-stage {
+  justify-content: flex-start;
+  min-height: 0;
+}
+
+body > .apple-reveal-stage > .spacer-for-apple {
+  height: var(--newsletter-gap, 100svh);
+  min-height: 0;
+  flex: 0 0 auto;
+}
+
+body > .scroll-stage > .scroll-roller-top[role="button"] {
+  cursor: pointer;
+}
+
+body > .scroll-stage > .scroll-roller-top[role="button"]:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 6px;
+}
+
+@media (min-width: 681px) {
+  html:has(body > .scroll-stage[data-whole-scroll-control="true"]) {
+    overflow-anchor: none;
+  }
+
+  body > .scroll-stage[data-whole-scroll-control="true"][data-whole-scroll-control="true"] > main.washi-scroll {
+    animation: none !important;
+    transition: none !important;
+    box-sizing: border-box;
+    height: var(--whole-scroll-height, auto) !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    overflow: hidden !important;
+    opacity: 1 !important;
+  }
+}

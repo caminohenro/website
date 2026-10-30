@@ -254,7 +254,20 @@ const {
     }
 
     function updateHint() {
-      if (!startsClosed) { dismissHint(); return; }
+      if (mobilePositionFrame || opening) {
+        dismissHint();
+        return;
+      }
+
+      if (
+        revealed <= 0.01 &&
+        !dragging &&
+        !mobileCentered &&
+        (startsClosed || mobileHasInteracted)
+      ) {
+        centerClosedMobile();
+        return;
+      }
       if (revealed > 0 || dragging) {
         dismissHint();
         return;
@@ -667,6 +680,7 @@ const {
       const now = performance.now();
 
       dragging = true;
+      returnMobileToTop();
       dismissHint();
       touchId = touch.identifier;
       lastClientY = touch.clientY;
@@ -843,6 +857,230 @@ const {
       signal,
     });
 
+
+    // SCROLL_CLOSE_NEWSLETTER_V1
+
+
+    // REPEAT_SCROLL_ENTRANCE_V1
+
+    let mobilePositionFrame = 0;
+
+    let mobileOffset = 0;
+
+    let mobileCentered = false;
+
+    let mobileHasInteracted = false;
+
+
+
+    function moveMobilePosition(target, finished) {
+
+      window.cancelAnimationFrame(mobilePositionFrame);
+
+      dismissHint();
+
+
+
+      const from = mobileOffset;
+
+      const startedAt = performance.now();
+
+      const duration = reducedMotion.matches ? 0 : 1000;
+
+
+
+      function step(now) {
+
+        if (disposed) return;
+
+
+
+        const progress = duration
+
+          ? Math.min(1, (now - startedAt) / duration)
+
+          : 1;
+
+        const eased = 1 - Math.pow(1 - progress, 3);
+
+        const previousOffset = mobileOffset;
+
+
+
+        mobileOffset = from + (target - from) * eased;
+
+        setStyle(stage, 'translate', '0px ' + mobileOffset + 'px');
+
+
+
+        // Keep the roller under the finger while the stage moves upward.
+
+        if (dragging) {
+
+          revealed = clamp(
+
+            revealed + previousOffset - mobileOffset,
+
+            0,
+
+            height
+
+          );
+
+          render();
+
+        }
+
+
+
+        if (progress < 1) {
+
+          mobilePositionFrame = window.requestAnimationFrame(step);
+
+        } else {
+
+          mobilePositionFrame = 0;
+
+          if (finished) finished();
+
+        }
+
+      }
+
+
+
+      mobilePositionFrame = window.requestAnimationFrame(step);
+
+    }
+
+
+
+    function centerClosedMobile() {
+
+      if (mobileCentered || dragging || opening || revealed > 0.01) return;
+
+
+
+      mobileCentered = true;
+
+      window.scrollTo({ top: 0, behavior: 'instant' });
+
+
+
+      const rollerCenter =
+
+        (
+
+          topRoller.getBoundingClientRect().top +
+
+          roller.getBoundingClientRect().bottom
+
+        ) / 2 + window.scrollY - mobileOffset;
+
+
+
+      const view = viewport();
+
+      const target = Math.max(
+
+        0,
+
+        view.top + view.height / 2 - rollerCenter
+
+      );
+
+
+
+      moveMobilePosition(target, updateHint);
+
+    }
+
+
+
+    function returnMobileToTop() {
+
+      mobileHasInteracted = true;
+
+
+
+      if (!mobileCentered && mobileOffset === 0) return;
+
+      mobileCentered = false;
+
+      moveMobilePosition(0, updateHint);
+
+    }
+
+
+    let topCloseFrame = 0;
+
+    function cancelTopClose() {
+      window.cancelAnimationFrame(topCloseFrame);
+      topCloseFrame = 0;
+    }
+
+    function closeFromTop(event) {
+      if (
+        event.type === 'keydown' &&
+        event.key !== 'Enter' &&
+        event.key !== ' '
+      ) return;
+
+      event.preventDefault();
+      dismissHint();
+      onTouchCancel();
+      cancelTopClose();
+
+      const start = revealed;
+      const startedAt = performance.now();
+      const duration = reducedMotion.matches ? 0 : 900;
+
+      function closeStep(now) {
+        if (disposed) return;
+        const progress = duration
+          ? Math.min(1, (now - startedAt) / duration)
+          : 1;
+
+        const eased = progress * progress * (3 - 2 * progress);
+        const previous = revealed;
+        revealed = start * (1 - eased);
+
+        const paperDocumentTop =
+          stage.getBoundingClientRect().top + window.scrollY + paperTop;
+        const removed = Math.max(0, previous - revealed);
+        const targetY = Math.max(
+          0,
+          window.scrollY -
+            Math.min(removed, Math.max(0, window.scrollY - paperDocumentTop))
+        );
+
+        render();
+        window.scrollTo({ top: targetY, behavior: 'instant' });
+
+        if (progress < 1) {
+          topCloseFrame = window.requestAnimationFrame(closeStep);
+        } else {
+          topCloseFrame = 0;
+        }
+      }
+
+      topCloseFrame = window.requestAnimationFrame(closeStep);
+    }
+
+    setAttribute(topRoller, 'role', 'button');
+    setAttribute(topRoller, 'tabindex', '0');
+    setAttribute(topRoller, 'aria-label', 'Close the scroll');
+
+    topRoller.addEventListener('click', closeFromTop, { signal });
+    topRoller.addEventListener('keydown', closeFromTop, { signal });
+
+    // Dragging or using the bottom roller takes over from closing.
+    roller.addEventListener('touchstart', cancelTopClose, {
+      passive: true,
+      signal
+    });
+    roller.addEventListener('keydown', cancelTopClose, { signal });
+
     roller.addEventListener('keydown', onKeyDown, { signal });
     paper.addEventListener('focusin', onFocusIn, { signal });
 
@@ -1014,6 +1252,8 @@ const {
 
     cleanupCurrent = function () {
       disposed = true;
+      window.cancelAnimationFrame(mobilePositionFrame);
+      cancelTopClose();
       controller.abort();
       stopFrame();
       window.cancelAnimationFrame(measurementId);
@@ -1252,7 +1492,7 @@ const {
 
               duration: 700,
 
-              easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+              easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
 
               fill: 'both'
 
@@ -1423,6 +1663,612 @@ const {
   })();
 
 
+    </script>
+
+    <!-- SCROLL_CLOSE_NEWSLETTER_V1 desktop and newsletter -->
+    <script is:inline>
+(function desktopAndNewsletterCode() {
+  const key = '__scrollCloseNewsletterV1';
+  if (typeof window[key] === 'function') window[key]();
+
+  const lifetime = new AbortController();
+  const desktop = window.matchMedia('(min-width: 681px)');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let cleanupPage = () => {};
+
+  function initialize() {
+    cleanupPage();
+
+    const stage = document.querySelector('body > .scroll-stage');
+    const paper = stage?.querySelector(':scope > main.washi-scroll');
+    const top = stage?.querySelector(':scope > .scroll-roller-top');
+    const bottom = stage?.querySelector(':scope > .scroll-roller-bottom');
+    const spacer = document.querySelector(
+      'body > .apple-reveal-stage > .spacer-for-apple'
+    );
+
+    if (!stage || !paper || !top || !bottom || !spacer) return;
+
+    const controls = new AbortController();
+    const signal = controls.signal;
+    const previousInert = paper.inert;
+    const previousGap = spacer.style.getPropertyValue('--newsletter-gap');
+    const snapshots = [top, bottom].map(element => ({
+      element,
+      attributes: ['role', 'tabindex', 'aria-label', 'aria-expanded']
+        .map(name => [name, element.getAttribute(name)])
+    }));
+
+    let frame = 0;
+    let disposed = false;
+    let owned = false;
+    let closed = false;
+    let closing = false;
+
+    function placeNewsletter() {
+      if (disposed) return;
+
+      const visual = window.visualViewport;
+      const viewportHeight = Math.max(
+        window.innerHeight,
+        visual ? visual.height + visual.offsetTop : 0
+      );
+
+      // Document position, independent of the user's current scroll position.
+      const spacerTop =
+        spacer.getBoundingClientRect().top + window.scrollY;
+
+      const gap = Math.max(24, viewportHeight + 24 - spacerTop);
+      spacer.style.setProperty('--newsletter-gap', gap + 'px');
+    }
+
+    function homeIsWaiting() {
+      return (
+        stage.dataset.desktopClickUnfurl === 'true' &&
+        stage.dataset.homeUnfurl !== 'opening'
+      );
+    }
+
+    function refreshControls() {
+      if (!desktop.matches || (!owned && homeIsWaiting())) return;
+
+      top.setAttribute('role', 'button');
+      top.setAttribute('tabindex', '0');
+      top.setAttribute(
+        'aria-label',
+        closed || closing ? 'Open the scroll' : 'Close the scroll'
+      );
+      top.setAttribute('aria-expanded', String(!closed && !closing));
+
+      if (owned) {
+        bottom.setAttribute('role', 'button');
+        bottom.setAttribute('tabindex', '0');
+        bottom.setAttribute(
+          'aria-label',
+          closed || closing ? 'Open the scroll' : 'Scroll is open'
+        );
+        bottom.setAttribute('aria-expanded', String(!closed && !closing));
+      }
+    }
+
+
+
+    const savedStageTranslate = stage.style.translate;
+
+    const savedPaperAnimation = paper.style.animation;
+
+
+
+    let repeatMovement = null;
+
+    let repeatHintTimer = 0;
+
+    let repeatEpoch = 0;
+
+
+
+    const repeatHint =
+
+      stage.querySelector('.home-click-hint')?.cloneNode(true) ||
+
+      document.createElement('div');
+
+
+
+    repeatHint.className = 'home-click-hint';
+
+
+
+    if (!repeatHint.innerHTML.trim()) {
+
+      repeatHint.innerHTML =
+
+        '<svg viewBox="0 0 36 40" width="26" height="29" aria-hidden="true">' +
+
+          '<g class="home-click-pointer">' +
+
+            '<path d="M12 11V31L17 26L21 35L25 33L21 24H29Z"/>' +
+
+          '</g>' +
+
+          '<g class="home-click-rays">' +
+
+            '<path d="M12 2V5M4 5L6.5 7.5M2 13H5M20 5L17.5 7.5"/>' +
+
+          '</g>' +
+
+        '</svg><span>Click to unfurl</span>';
+
+    }
+
+
+
+    repeatHint.setAttribute('aria-hidden', 'true');
+
+    repeatHint.style.display = 'none';
+
+    repeatHint.style.animation = 'none';
+
+    repeatHint.style.opacity = '1';
+
+    repeatHint.style.transform = 'translateX(-50%)';
+
+    stage.appendChild(repeatHint);
+
+
+
+    function hideRepeatHint() {
+
+      window.clearTimeout(repeatHintTimer);
+
+      repeatHintTimer = 0;
+
+      repeatHint.style.display = 'none';
+
+    }
+
+
+
+    function showRepeatHintLater() {
+
+      hideRepeatHint();
+
+      repeatHintTimer = window.setTimeout(() => {
+
+        repeatHintTimer = 0;
+
+        if (!disposed && closed && !closing) {
+
+          repeatHint.style.display = 'flex';
+          repeatHint.style.animation = 'homeClickHintIn 450ms ease both';
+
+        }
+
+      }, 1000);
+
+    }
+
+
+
+    async function moveDesktopPosition(target) {
+
+      if (repeatMovement) repeatMovement.cancel();
+
+
+
+      const from = window.getComputedStyle(stage).translate;
+
+      const destination = '0px ' + target + 'px';
+
+
+
+      if (!reduced.matches) {
+
+        repeatMovement = stage.animate(
+
+          [
+
+            { translate: from === 'none' ? '0px 0px' : from },
+
+            { translate: destination }
+
+          ],
+
+          {
+
+            duration: 1000,
+
+            easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
+
+            fill: 'both'
+
+          }
+
+        );
+
+
+
+        const current = repeatMovement;
+
+        await current.finished.catch(() => {});
+
+
+
+        if (disposed || repeatMovement !== current) return false;
+
+
+
+        stage.style.translate = destination;
+
+        current.cancel();
+
+        repeatMovement = null;
+
+      } else {
+
+        stage.style.translate = destination;
+
+      }
+
+
+
+      placeNewsletter();
+
+      return true;
+
+    }
+
+
+
+    async function animateScroll(shouldClose) {
+
+      const epoch = ++repeatEpoch;
+
+      hideRepeatHint();
+
+      window.cancelAnimationFrame(frame);
+
+
+
+      if (repeatMovement) {
+
+        // Preserve the visible position before cancelling a movement.
+
+        stage.style.translate = window.getComputedStyle(stage).translate;
+
+        repeatMovement.cancel();
+
+        repeatMovement = null;
+
+      }
+
+
+
+      owned = true;
+
+
+
+      if (!shouldClose) {
+
+        closed = false;
+
+        closing = false;
+
+        refreshControls();
+
+
+
+        const completed = await moveDesktopPosition(0);
+
+        if (!completed || disposed || epoch !== repeatEpoch) return;
+
+
+
+        /*
+
+         * Release manual height control and replay the original CSS unfurl.
+
+         * The rollers then follow the paper through normal layout.
+
+         */
+
+        stage.dataset.homeUnfurl = 'opening';
+
+        paper.style.animation = 'none';
+
+        delete stage.dataset.wholeScrollControl;
+
+        stage.style.removeProperty('--whole-scroll-height');
+
+
+
+        void paper.offsetHeight;
+
+
+
+        paper.inert = previousInert;
+
+        paper.style.animation =
+
+          'scrollUnfurlDown var(--unfurl-duration, 8s) ' +
+
+          'var(--unfurl-easing, cubic-bezier(0.33, 1, 0.62, 1)) ' +
+
+          'var(--pause-duration, 0.1s) both';
+
+
+
+        refreshControls();
+
+        placeNewsletter();
+
+        return;
+
+      }
+
+
+
+      const from = paper.getBoundingClientRect().height;
+
+      stage.style.setProperty('--whole-scroll-height', from + 'px');
+
+      stage.dataset.wholeScrollControl = 'true';
+
+
+
+      closing = true;
+
+      closed = false;
+
+      top.focus({ preventScroll: true });
+
+      paper.inert = true;
+
+      refreshControls();
+
+
+
+      const startedAt = performance.now();
+
+      const duration = reduced.matches ? 0 : 900;
+
+      let previousHeight = from;
+
+
+
+      function step(now) {
+
+        if (disposed || epoch !== repeatEpoch) return;
+
+
+
+        const progress = duration
+
+          ? Math.min(1, (now - startedAt) / duration)
+
+          : 1;
+
+        const eased = progress * progress * (3 - 2 * progress);
+
+        const nextHeight = from * (1 - eased);
+
+
+
+        const documentTop =
+
+          paper.getBoundingClientRect().top + window.scrollY;
+
+        const removed = Math.max(0, previousHeight - nextHeight);
+
+        const targetY = Math.max(
+
+          0,
+
+          window.scrollY -
+
+            Math.min(removed, Math.max(0, window.scrollY - documentTop))
+
+        );
+
+
+
+        stage.style.setProperty('--whole-scroll-height', nextHeight + 'px');
+
+        previousHeight = nextHeight;
+
+        placeNewsletter();
+
+        window.scrollTo({ top: targetY, behavior: 'instant' });
+
+
+
+        if (progress < 1) {
+
+          frame = window.requestAnimationFrame(step);
+
+          return;
+
+        }
+
+
+
+        frame = 0;
+
+        closed = true;
+
+        closing = false;
+
+        refreshControls();
+
+
+
+        window.scrollTo({ top: 0, behavior: 'instant' });
+
+
+
+        const currentTranslate = window.getComputedStyle(stage).translate;
+
+        const offset = currentTranslate === 'none'
+
+          ? 0
+
+          : parseFloat(currentTranslate.split(/\s+/)[1]) || 0;
+
+
+
+        const center =
+
+          (
+
+            top.getBoundingClientRect().top +
+
+            bottom.getBoundingClientRect().bottom
+
+          ) / 2 + window.scrollY - offset;
+
+
+
+        const visual = window.visualViewport;
+
+        const screenCenter = visual
+
+          ? visual.offsetTop + visual.height / 2
+
+          : window.innerHeight / 2;
+
+
+
+        moveDesktopPosition(Math.max(0, screenCenter - center)).then(ok => {
+
+          if (ok && !disposed && epoch === repeatEpoch && closed) {
+
+            showRepeatHintLater();
+
+          }
+
+        });
+
+      }
+
+
+
+      frame = window.requestAnimationFrame(step);
+
+    }
+
+
+
+    function onRoller(event) {
+      if (!desktop.matches) return;
+
+      if (
+        event.type === 'keydown' &&
+        event.key !== 'Enter' &&
+        event.key !== ' '
+      ) return;
+
+      // Retain the home's existing first-opening interaction.
+      if (!owned && homeIsWaiting()) return;
+
+      const isTop = event.currentTarget === top;
+      if (!isTop && !closed && !closing) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      animateScroll(closed || closing ? false : true);
+    }
+
+    for (const roller of [top, bottom]) {
+      roller.addEventListener('click', onRoller, {
+        capture: true,
+        signal
+      });
+      roller.addEventListener('keydown', onRoller, {
+        capture: true,
+        signal
+      });
+    }
+
+    // The existing desktop home controller changes this attribute after
+    // its opening movement. Restore top-roller accessibility afterwards.
+    const attributes = new MutationObserver(() => {
+      refreshControls();
+      placeNewsletter();
+    });
+    attributes.observe(stage, {
+      attributes: true,
+      attributeFilter: ['data-home-unfurl']
+    });
+
+    const sizes = new ResizeObserver(placeNewsletter);
+    sizes.observe(stage);
+
+    window.addEventListener('resize', placeNewsletter, {
+      passive: true,
+      signal
+    });
+    window.visualViewport?.addEventListener('resize', placeNewsletter, {
+      passive: true,
+      signal
+    });
+    document.fonts?.ready.then(() => {
+      if (!disposed) placeNewsletter();
+    });
+
+    refreshControls();
+    placeNewsletter();
+
+    cleanupPage = () => {
+      disposed = true;
+      window.cancelAnimationFrame(frame);
+      controls.abort();
+      repeatEpoch++;
+      hideRepeatHint();
+      if (repeatMovement) repeatMovement.cancel();
+      repeatHint.remove();
+      stage.style.translate = savedStageTranslate;
+      paper.style.animation = savedPaperAnimation;
+      sizes.disconnect();
+      attributes.disconnect();
+
+      if (owned) {
+        delete stage.dataset.wholeScrollControl;
+        stage.style.removeProperty('--whole-scroll-height');
+        paper.inert = previousInert;
+      }
+
+      if (previousGap) {
+        spacer.style.setProperty('--newsletter-gap', previousGap);
+      } else {
+        spacer.style.removeProperty('--newsletter-gap');
+      }
+
+      snapshots.forEach(({ element, attributes }) => {
+        attributes.forEach(([name, value]) => {
+          if (value === null) element.removeAttribute(name);
+          else element.setAttribute(name, value);
+        });
+      });
+    };
+  }
+
+  desktop.addEventListener('change', initialize, {
+    signal: lifetime.signal
+  });
+  document.addEventListener('astro:page-load', initialize, {
+    signal: lifetime.signal
+  });
+  document.addEventListener('astro:before-swap', () => cleanupPage(), {
+    signal: lifetime.signal
+  });
+
+  window[key] = () => {
+    lifetime.abort();
+    cleanupPage();
+  };
+
+  initialize();
+})();
     </script>
     <!-- STEP13_MAILERLITE_SCRIPT_START -->
     <script is:inline>

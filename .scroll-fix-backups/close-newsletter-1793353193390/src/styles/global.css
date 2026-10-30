@@ -1,0 +1,1641 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-outer-obsidian: #08090C;
+  --bg-header: rgba(10, 12, 16, 0.88);
+  --bg-washi-scroll: #E6DFCF;
+  --bg-washi-subtle: rgba(28, 26, 23, 0.04);
+  --ink-sumi: #1C1A17;
+  --ink-muted: #5A534A;
+  --header-text: #E6DFCF;
+  --header-muted: #A09A8E;
+  --accent-indigo: #0A367E;
+  --accent-crimson: #6E2B25;
+  --border-ink: rgba(28, 26, 23, 0.15);
+  --color-washi: #E6DFCF;
+  --color-washi-dark: #D8CEB8;
+  --color-sumi: #1C1A17;
+  --color-sumi-muted: #5A534A;
+  --color-crimson: #6E2B25;
+  --color-crimson-light: #8C3B33;
+  --home-click-rhythm: 1.8s;
+}
+
+html {
+  background-color: var(--bg-outer-obsidian);
+  color: var(--ink-sumi);
+  font-family: 'EB Garamond', Georgia, 'Yu Mincho', serif;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-outer-obsidian);
+  color: var(--ink-sumi);
+  font-family: 'EB Garamond', Georgia, 'Yu Mincho', serif;
+  line-height: 1.85;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================================================
+   LAYER 1: STATIC BACKGROUND (The Road & Hidden Apple)
+   ========================================================================== */
+.fixed-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center 84%;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+.backdrop-dimmer {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(
+    circle at 50% 72%,
+    rgba(8, 9, 12, var(--center-dim, 0.58)) 0%,
+    rgba(8, 9, 12, var(--edge-dim, 0.84)) 100%
+  );
+  transition: background 0.35s ease;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   PERSISTENT WEBSITE HEADER (Outside the Scroll)
+   ========================================================================== */
+header.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg-header);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(230, 223, 207, 0.16);
+  padding: 12px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.header-logo-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--bg-washi-scroll);
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  transition: all 0.25s ease;
+}
+
+.header-logo-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.header-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-jp {
+  font-size: 0.72rem;
+  letter-spacing: 0.25em;
+  color: var(--header-muted);
+  line-height: 1.3;
+}
+
+.header-en {
+  font-size: 1.2rem;
+  letter-spacing: 0.14em;
+  color: var(--header-text);
+  font-weight: normal;
+  line-height: 1.2;
+}
+
+nav.site-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.nav-btn {
+  background: transparent;
+  border: none;
+  color: var(--header-muted);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.76rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  padding: 7px 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+  text-decoration: none;
+}
+
+.nav-btn:hover {
+  color: var(--header-text);
+}
+
+.nav-btn.active {
+  color: var(--header-text);
+  border-bottom: 2px solid var(--accent-crimson);
+}
+
+.nav-btn.donate-btn {
+  background: var(--accent-crimson);
+  color: #F4F1EA;
+  padding: 7px 15px;
+  margin-left: 8px;
+  border-radius: 2px;
+  border-bottom: none;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.nav-btn.donate-btn:hover {
+  filter: brightness(1.12);
+  color: #F4F1EA;
+}
+
+/* ==========================================================================
+   LAYER 2: SEPARATE PAGE SCROLL & WOODEN ROLLERS
+   ========================================================================== */
+.scroll-stage {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  padding-top: 28px;
+  margin-bottom: 10vh;
+}
+
+.scroll-roller-top,
+.scroll-roller-bottom {
+  max-width: 776px;
+  width: 96vw;
+  height: 20px;
+  margin: 0 auto;
+  background: linear-gradient(180deg, #3A2618 0%, #1F130B 55%, #0F0905 100%);
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.9);
+  position: relative;
+  z-index: 12;
+}
+
+.scroll-roller-top::before,
+.scroll-roller-top::after,
+.scroll-roller-bottom::before,
+.scroll-roller-bottom::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 14px;
+  background: linear-gradient(180deg, #9C7A44, #59411E);
+  border-radius: 3px;
+}
+
+.scroll-roller-top::before,
+.scroll-roller-bottom::before {
+  left: 0;
+}
+
+.scroll-roller-top::after,
+.scroll-roller-bottom::after {
+  right: 0;
+}
+
+.washi-scroll {
+  max-width: 740px;
+  width: 92vw;
+  margin: 0 auto;
+  background-color: var(--bg-washi-scroll);
+  background-image:
+    linear-gradient(90deg, rgba(160, 145, 118, 0.28) 0%, transparent 6%, transparent 94%, rgba(160, 145, 118, 0.28) 100%),
+    repeating-linear-gradient(0deg, rgba(28, 26, 23, 0.015) 0px, rgba(28, 26, 23, 0.015) 1px, transparent 1px, transparent 3px);
+  box-shadow:
+    0 20px 70px rgba(0, 0, 0, 0.9),
+    0 0 0 1px rgba(28, 26, 23, 0.25);
+  padding: 52px 64px 64px;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes unfurl {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 680px) {
+  header.site-header { padding: 10px 16px; }
+  .washi-scroll { padding: 36px 24px 48px; }
+}
+
+/* ==========================================================================
+   TYPOGRAPHY & CONTAINERLESS DIVIDERS INSIDE EACH SCROLL
+   ========================================================================== */
+.scroll-title-block {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.scroll-eyebrow {
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.73rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent-crimson);
+  margin-bottom: 8px;
+}
+
+h1.page-heading {
+  font-size: 2rem;
+  font-weight: normal;
+  letter-spacing: 0.08em;
+  color: var(--ink-sumi);
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+
+.page-subtitle {
+  font-style: italic;
+  font-size: 0.96rem;
+  color: var(--ink-muted);
+}
+
+.page-break {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin: 44px 0;
+}
+
+.page-break .line {
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, transparent, var(--accent-crimson), transparent);
+  opacity: 0.55;
+}
+
+.page-break .kanji {
+  font-size: 0.85rem;
+  letter-spacing: 0.26em;
+  color: var(--accent-crimson);
+  text-transform: uppercase;
+}
+
+.stream-item {
+  display: block;
+  padding: 22px 12px;
+  border-bottom: 1px solid var(--border-ink);
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.stream-item:hover {
+  background: var(--bg-washi-subtle);
+}
+
+.stream-item:last-child {
+  border-bottom: none;
+}
+
+.stream-meta {
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  color: var(--accent-crimson);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.stream-title {
+  font-size: 1.32rem;
+  color: var(--ink-sumi);
+  margin-bottom: 6px;
+  font-weight: normal;
+}
+
+.stream-excerpt {
+  font-size: 0.98rem;
+  color: var(--ink-muted);
+  margin-bottom: 8px;
+}
+
+.stream-read-link {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-crimson);
+  font-weight: 600;
+}
+
+.ink-action-btn {
+  display: inline-block;
+  background: transparent;
+  border: 1px solid var(--accent-crimson);
+  color: var(--accent-crimson);
+  padding: 10px 24px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ink-action-btn:hover {
+  background: var(--accent-crimson);
+  color: #F4F1EA;
+}
+
+.scroll-foot-hint {
+  text-align: center;
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-ink);
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   BOTTOM SURPRISE REVEAL CAPTION (Below the wooden roller on every page)
+   ========================================================================== */
+.apple-reveal-stage {
+  position: relative;
+  z-index: 5;
+  height: 82vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding-bottom: 6vh;
+  pointer-events: none;
+}
+
+.apple-whisper {
+  font-family: 'EB Garamond', Georgia, serif;
+  color: #F4F1EA;
+  text-align: center;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.95);
+  background: rgba(8, 9, 12, 0.6);
+  padding: 12px 28px;
+  border-top: 1px solid rgba(244, 241, 234, 0.25);
+  border-bottom: 1px solid rgba(244, 241, 234, 0.25);
+  letter-spacing: 0.14em;
+  font-size: 0.95rem;
+}
+
+/* Editorial Essay Typography */
+.essay-prose {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 1.1rem;
+  line-height: 1.85;
+  color: var(--ink-sumi);
+}
+
+.essay-prose p {
+  margin-top: 0;
+  margin-bottom: 22px;
+  text-align: justify;
+}
+
+.essay-prose > p:first-of-type::first-letter {
+  float: left;
+  font-size: 3.3rem;
+  line-height: 0.82;
+  padding-top: 4px;
+  padding-right: 12px;
+  color: var(--accent-crimson);
+}
+
+.essay-prose blockquote {
+  margin: 30px 0;
+  padding-left: 20px;
+  border-left: 2px solid var(--accent-crimson);
+  font-style: italic;
+  font-size: 1.12rem;
+  color: var(--ink-sumi);
+}
+
+/* STEP9_SCROLL_AND_HEADERS_START */
+/* ==========================================================================
+   STEP 9: SCROLL UNFURL ANIMATION, ARTISAN JIKUGI ROLLERS & HEADER TYPOGRAPHY
+   ========================================================================== */
+
+:root {
+  --fade-duration: 0.8s;
+  --pause-duration: 0.1s;
+  --unfurl-duration: 8s;
+  --unfurl-delay: calc(var(--fade-duration) + var(--pause-duration));
+  --unfurl-easing: cubic-bezier(0.33, 1, 0.62, 1);
+}
+
+.scroll-stage {
+  transform: translateY(-20px);
+  animation: stageFadeIn var(--fade-duration) ease-out both;
+}
+
+.washi-scroll {
+  transform-origin: top center;
+  animation: scrollUnfurlDown
+    var(--unfurl-duration)
+    var(--unfurl-easing)
+    var(--unfurl-delay)
+    both;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  overflow: hidden;
+}
+
+/* Recreate the vertical padding as static inner blocks so the text never shifts relative to the top */
+.washi-scroll::before {
+  content: "";
+  display: block;
+  height: 52px;
+  width: 100%;
+}
+
+.washi-scroll::after {
+  content: "";
+  display: block;
+  height: 64px;
+  width: 100%;
+}
+
+/* Recreate the mobile padding overrides using the same logic */
+@media (max-width: 680px) {
+  .washi-scroll {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  .washi-scroll::before { 
+    height: 36px; 
+  }
+  .washi-scroll::after { 
+    height: 48px; 
+  }
+}
+
+/* No separate transform animation needed on .scroll-roller-bottom; 
+   it now sits directly against .scroll-roller-top and rides the bottom edge of .washi-scroll */
+.scroll-roller-bottom {
+  animation: none;
+}
+
+@keyframes stageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scrollUnfurlDown {
+  0% {
+    max-height: 0;
+    min-height: 0;
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  100% {
+    max-height: var(--scroll-unfurl-max-height, 500vh);
+    min-height: var(--scroll-unfurl-min-height, 72vh);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 680px) {
+  @keyframes scrollUnfurlDown {
+    0% {
+      max-height: 0;
+      min-height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      opacity: 0;
+    }
+    5% {
+      opacity: 1;
+    }
+    100% {
+      max-height: var(--scroll-unfurl-max-height, 500vh);
+      min-height: var(--scroll-unfurl-min-height, 72vh);
+      padding-top: 36px;
+      padding-bottom: 48px;
+      opacity: 1;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-stage, .washi-scroll, .scroll-roller-bottom {
+    animation: none !important;
+    max-height: none !important;
+    min-height: 72vh !important;
+  }
+}
+
+/* Intricate Traditional Scroll End-Rods / Staves (Jikugi & Jikubana) */
+.scroll-roller-top,
+.scroll-roller-bottom {
+  max-width: 792px;
+  width: 96vw;
+  height: 22px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 12;
+  border-radius: 11px;
+  background-image:
+    linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 27px,
+      rgba(10, 5, 2, 0.85) 27px,
+      rgba(212, 175, 55, 0.42) 28px,
+      rgba(10, 5, 2, 0.85) 29px,
+      transparent 29px,
+      transparent calc(100% - 29px),
+      rgba(10, 5, 2, 0.85) calc(100% - 29px),
+      rgba(212, 175, 55, 0.42) calc(100% - 28px),
+      rgba(10, 5, 2, 0.85) calc(100% - 27px),
+      transparent calc(100% - 27px),
+      transparent 100%
+    ),
+    linear-gradient(
+      180deg,
+      #2C1B10 0%,
+      #5A3A23 22%,
+      #382214 50%,
+      #170D07 82%,
+      #2B190F 100%
+    );
+  border-top: 1px solid rgba(212, 175, 55, 0.22);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.85);
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, 0.92),
+    inset 0 1px 2px rgba(255, 235, 200, 0.18);
+}
+
+/* Top Roller Center Crimson Braided Silk Tie Accent + Washi Mounting Grooves */
+.scroll-roller-top {
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.16) 0%,
+      transparent 42%,
+      rgba(0, 0, 0, 0.52) 100%
+    ),
+    linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 27px,
+      rgba(10, 5, 2, 0.85) 27px,
+      rgba(212, 175, 55, 0.42) 28px,
+      rgba(10, 5, 2, 0.85) 29px,
+      transparent 29px,
+      transparent calc(50% - 7px),
+      rgba(15, 8, 5, 0.88) calc(50% - 7px),
+      rgba(197, 155, 87, 0.65) calc(50% - 5px),
+      #6E1915 calc(50% - 4px),
+      #9E2A25 50%,
+      #6E1915 calc(50% + 4px),
+      rgba(197, 155, 87, 0.65) calc(50% + 5px),
+      rgba(15, 8, 5, 0.88) calc(50% + 7px),
+      transparent calc(50% + 7px),
+      transparent calc(100% - 29px),
+      rgba(10, 5, 2, 0.85) calc(100% - 29px),
+      rgba(212, 175, 55, 0.42) calc(100% - 28px),
+      rgba(10, 5, 2, 0.85) calc(100% - 27px),
+      transparent calc(100% - 27px),
+      transparent 100%
+    ),
+    linear-gradient(
+      180deg,
+      #2C1B10 0%,
+      #5A3A23 22%,
+      #382214 50%,
+      #170D07 82%,
+      #2B190F 100%
+    );
+}
+
+/* Stepped Finial End-Caps (Jikubana) with Recessed Brass Collars (Kanagu) */
+.scroll-roller-top::before,
+.scroll-roller-top::after,
+.scroll-roller-bottom::before,
+.scroll-roller-bottom::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 26px;
+  border-radius: 4px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.75);
+  background-blend-mode: overlay, normal;
+  pointer-events: none;
+}
+
+.scroll-roller-top::before,
+.scroll-roller-bottom::before {
+  left: 0;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.28) 0%,
+      transparent 45%,
+      rgba(0, 0, 0, 0.55) 100%
+    ),
+    linear-gradient(
+      90deg,
+      #18110C 0px,
+      #18110C 6px,
+      #C59B57 6px,
+      #C59B57 9px,
+      #3D2516 9px,
+      #3D2516 17px,
+      #A88242 17px,
+      #A88242 24px,
+      #140C06 24px,
+      #140C06 26px
+    );
+}
+
+.scroll-roller-top::after,
+.scroll-roller-bottom::after {
+  right: 0;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.28) 0%,
+      transparent 45%,
+      rgba(0, 0, 0, 0.55) 100%
+    ),
+    linear-gradient(
+      270deg,
+      #18110C 0px,
+      #18110C 6px,
+      #C59B57 6px,
+      #C59B57 9px,
+      #3D2516 9px,
+      #3D2516 17px,
+      #A88242 17px,
+      #A88242 24px,
+      #140C06 24px,
+      #140C06 26px
+    );
+}
+
+/* Standardized Forum Title Block Typography Rules */
+.scroll-title-block {
+  text-align: center;
+  margin-bottom: 1.35rem;
+}
+
+.scroll-title-block .scroll-eyebrow,
+.scroll-eyebrow {
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.73rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent-crimson);
+  margin-bottom: 8px;
+}
+
+.scroll-title-block h1.page-heading,
+h1.page-heading {
+  font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+  font-size: 2.15rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: var(--ink-sumi);
+  line-height: 1.25;
+  margin-bottom: 8px;
+}
+
+.scroll-title-block .page-subtitle,
+.page-subtitle {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 0.98rem;
+  color: var(--ink-muted);
+  max-width: 36rem;
+  margin: 0 auto;
+}
+/* STEP9_SCROLL_AND_HEADERS_END */
+
+
+/* Forum composer scrolls: the same unfurl curve is used for opening, with a reverse-style furl on close. */
+@keyframes scrollFurlUp {
+  from {
+    max-height: var(--scroll-furl-from-max-height, var(--scroll-unfurl-max-height, 500vh));
+    min-height: var(--scroll-furl-from-min-height, var(--scroll-unfurl-min-height, 72vh));
+    opacity: 1;
+  }
+  to {
+    max-height: 0;
+    min-height: 0;
+    opacity: 0;
+  }
+}
+
+.forum-compose-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.forum-compose-scroll-stage {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  max-width: calc(100vw - 20px);
+  max-height: calc(100dvh - 20px);
+  overflow: hidden;
+  filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.35));
+  pointer-events: auto;
+  /* Composer fades should be much faster than the full-page stage entrance. */
+  animation: stageFadeIn var(--composer-scroll-fade-duration, 180ms) ease-out both;
+}
+
+.forum-compose-scroll-stage.is-dragging {
+  user-select: none;
+  filter: drop-shadow(0 22px 36px rgba(0, 0, 0, 0.4));
+}
+
+.forum-compose-scroll-stage .scroll-roller-top {
+  cursor: grab;
+  touch-action: none;
+}
+
+.forum-compose-scroll-stage.is-dragging .scroll-roller-top {
+  cursor: grabbing;
+}
+
+.forum-compose-scroll-stage .scroll-roller-top,
+.forum-compose-scroll-stage .scroll-roller-bottom {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  flex: 0 0 20px;
+}
+
+.forum-compose-scroll-stage .washi-scroll {
+  /* Small-scroll timing is intentionally independent from the 8s main parchment. */
+  --scroll-unfurl-max-height: min(72vh, calc(100dvh - 80px));
+  --scroll-unfurl-min-height: min(72vh, calc(100dvh - 100px));
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+  padding-left: 28px;
+  padding-right: 28px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: rgba(110, 43, 37, 0.55) rgba(216, 206, 184, 0.45);
+  animation: scrollUnfurlDown var(--composer-scroll-unfurl-duration, 900ms) var(--unfurl-easing, cubic-bezier(0.33, 1, 0.62, 1)) var(--composer-scroll-open-delay, 0ms) both;
+}
+
+.forum-compose-scroll-stage .forum-form-panel,
+.forum-compose-scroll-stage .reply-form-box {
+  margin: 0;
+  padding: 0.5rem 0;
+  border: 0;
+  background: transparent;
+}
+
+.forum-compose-scroll-stage .forum-form-panel .forum-form-title,
+.forum-compose-scroll-stage .reply-form-box .forum-form-title {
+  padding-right: 0.5rem;
+}
+
+.forum-compose-scroll-stage.is-closing {
+  min-height: 0;
+}
+
+.forum-compose-scroll-stage.is-closing .washi-scroll {
+  overflow: hidden;
+}
+
+@media (max-width: 680px) {
+  .forum-compose-scroll-stage .washi-scroll {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .forum-compose-scroll-stage,
+  .forum-compose-scroll-stage .washi-scroll {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+  }
+  .forum-compose-scroll-stage .washi-scroll {
+    min-height: min(72vh, calc(100dvh - 100px)) !important;
+  }
+}
+
+/* ==========================================================================
+   STEP 16: Mobile Header Scroll-Hide Behavior
+   ========================================================================== */
+header.site-header {
+  transition: transform 0.64s cubic-bezier(0.22, 1, 0.36, 1), background 0.35s ease;
+}
+
+@media (max-width: 680px) {
+  header.site-header.is-hidden {
+    transform: translateY(-100%);
+  }
+}
+
+/* STEP17_MOBILE_SCROLL_PHYSICS_START */
+/* ALL_PAGES_MOBILE_DRAG_V1 */
+/*
+ * Desktop declarations and keyframes remain untouched.
+ * Direct-child selectors exclude the independent Forum composer scroll.
+ */
+@media (max-width: 680px) {
+  /* SCROLL_ENTRANCE_FIX_V1: the stage fades while JS controls unfurling. */
+  body > .scroll-stage {
+    animation: stageFadeIn var(--fade-duration, 0.8s) ease-out both;
+    transform: translateY(0);
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+    max-height: none !important;
+    margin-bottom: 0 !important;
+    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box;
+  }
+
+  body > .scroll-stage[data-mobile-physics="true"] > main.washi-scroll {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    clip-path: none;
+    -webkit-clip-path: none;
+  }
+
+  body > .scroll-stage[data-mobile-physics="true"] > main.washi-scroll::after {
+    height: calc(48px + env(safe-area-inset-bottom, 0px));
+  }
+
+  body > .scroll-stage[data-mobile-physics="true"] > .scroll-roller-bottom {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  body > .scroll-stage[data-mobile-physics="true"][data-step17-physics="true"] {
+    /*
+     * Clipping this outer stage removes hidden paper from scroll overflow.
+     * Its measured height always includes the roller and safe bottom area.
+     */
+    height: var(--step17-stage-height, 100dvh) !important;
+    overflow: hidden !important;
+    overflow: clip !important;
+    overflow-anchor: none;
+  }
+
+  body > .scroll-stage[data-mobile-physics="true"][data-step17-physics="true"][data-step17-open="true"] {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body > .scroll-stage[data-mobile-physics="true"][data-step17-physics="true"] > .scroll-roller-bottom {
+    /* Keep direct manipulation enabled even at 100% open. */
+    touch-action: none !important;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    cursor: grab;
+  }
+
+  body > .scroll-stage[data-mobile-physics="true"][data-step17-physics="true"] > .scroll-roller-bottom:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 6px;
+  }
+
+  html[data-step17-header-hidden="true"] header.site-header {
+    transform: translateY(-100%) !important;
+    transition: none !important;
+    pointer-events: none;
+  }
+
+  .step17-unfurl-tooltip {
+    position: absolute;
+    left: 50%;
+    z-index: 14;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    width: max-content;
+    max-width: calc(100vw - 32px);
+    margin: 0;
+    padding: 0;
+    color: #fff;
+    font-family: 'EB Garamond', 'Cormorant Garamond', Georgia, serif;
+    font-size: 17px;
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1.2;
+    text-align: center;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
+    opacity: 0;
+    transform: translate(-50%, -5px);
+    transition:
+      opacity 320ms ease,
+      transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .step17-unfurl-tooltip.is-visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  .step17-unfurl-arrow {
+    display: block;
+    color: #fff;
+    font-family: Georgia, serif;
+    font-size: 30px;
+    font-weight: 400;
+    font-style: normal;
+    line-height: 1;
+    animation: step17ArrowFloat 1.6s ease-in-out infinite;
+  }
+
+  @keyframes step17ArrowFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(5px); }
+  }
+
+  /* Other pages retain the original paper minimum height. */
+  body > .scroll-stage[data-mobile-start-closed="false"] > main.washi-scroll {
+    min-height: var(--scroll-unfurl-min-height, 72vh) !important;
+  }
+}
+
+@media (min-width: 681px) {
+  .step17-unfurl-tooltip {
+    display: none !important;
+  }
+}
+
+@media (max-width: 680px) and (prefers-reduced-motion: reduce) {
+  .step17-unfurl-tooltip {
+    transition: opacity 150ms ease;
+  }
+
+  .step17-unfurl-arrow {
+    animation: none;
+  }
+}
+
+/* STEP17_FAST_RELEASE_AND_STABLE_BACKDROP_V1 */
+@media (max-width: 680px) {
+  /*
+   * 100lvh represents the viewport with retractable browser UI hidden.
+   * Its height stays stable when the address bar changes visibility.
+   * The image's existing background-size and background-position remain.
+   */
+  .fixed-backdrop,
+  .backdrop-dimmer {
+    top: 0 !important;
+    right: 0 !important;
+    bottom: auto !important;
+    left: 0 !important;
+    height: 100vh !important;
+    height: 100lvh !important;
+    min-height: 100vh !important;
+    min-height: 100lvh !important;
+  }
+}
+/* STEP17_MOBILE_SCROLL_PHYSICS_END */
+
+/* STEP13_HEADER_SPOTLIGHT_NEWSLETTER_START */
+:root {
+  --ink-primary: #1C1A17;
+}
+
+/* 1. Configurable Header Dropdown Menu */
+.nav-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.nav-dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.nav-caret {
+  font-size: 0.68rem;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.nav-dropdown:hover .nav-caret,
+.nav-dropdown.open .nav-caret {
+  transform: rotate(180deg);
+}
+
+.nav-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 176px;
+  padding: 6px 0;
+  background: rgba(10, 12, 16, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(230, 223, 207, 0.2);
+  border-top: 2px solid var(--accent-crimson);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.85);
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+  z-index: 150;
+}
+
+.nav-dropdown::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 10px;
+}
+
+.nav-dropdown:hover .nav-dropdown-menu,
+.nav-dropdown.open .nav-dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.nav-dropdown-item {
+  display: block;
+  padding: 9px 16px;
+  color: var(--header-muted);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.74rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.nav-dropdown-item:hover {
+  color: var(--header-text);
+  background: rgba(230, 223, 207, 0.06);
+  border-left-color: rgba(110, 43, 37, 0.65);
+}
+
+.nav-dropdown-item.active {
+  color: var(--header-text);
+  background: rgba(110, 43, 37, 0.18);
+  border-left-color: var(--accent-crimson);
+}
+
+/* 2. Home Page Forum Spotlight */
+.forum-spotlight-section {
+  margin-top: 8px;
+}
+
+.spotlight-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.spotlight-label {
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.spotlight-toggle-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spotlight-toggle-pill {
+  background: rgba(28, 26, 23, 0.05);
+  border: 1px solid rgba(28, 26, 23, 0.2);
+  color: var(--ink-muted);
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  padding: 5px 11px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.spotlight-toggle-pill:hover {
+  color: var(--ink-sumi);
+  border-color: var(--accent-crimson);
+}
+
+.spotlight-toggle-pill.active {
+  background: var(--accent-crimson);
+  border-color: var(--accent-crimson);
+  color: #F4F1EA;
+}
+
+.spotlight-thread-card {
+  display: block;
+  background: rgba(216, 206, 184, 0.45);
+  border: 1px solid rgba(28, 26, 23, 0.22);
+  border-left: 3px solid var(--accent-crimson);
+  padding: 24px 26px;
+  text-decoration: none;
+  color: var(--ink-sumi);
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.spotlight-thread-card:hover {
+  background: rgba(216, 206, 184, 0.68);
+  box-shadow: 0 6px 20px rgba(28, 26, 23, 0.08);
+}
+
+.spotlight-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.71rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 10px;
+}
+
+.spotlight-category-badge {
+  background: rgba(110, 43, 37, 0.12);
+  border: 1px solid rgba(110, 43, 37, 0.35);
+  color: var(--accent-crimson);
+  padding: 2px 8px;
+  border-radius: 2px;
+  font-weight: 500;
+}
+
+.spotlight-meta-sep {
+  opacity: 0.55;
+}
+
+.spotlight-title {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 1.4rem;
+  font-weight: normal;
+  line-height: 1.35;
+  color: var(--ink-sumi);
+  margin: 0 0 10px;
+}
+
+.spotlight-excerpt {
+  font-size: 0.98rem;
+  line-height: 1.7;
+  color: var(--ink-muted);
+  margin: 0 0 14px;
+}
+
+/* 3. Global Washi Newsletter Footer Outside the Scroll */
+.apple-reveal-stage {
+  height: auto;
+  min-height: 82vh;
+  padding-left: 16px;
+  padding-right: 16px;
+  box-sizing: border-box;
+  pointer-events: auto;
+}
+
+.spacer-for-apple {
+  width: 100%;
+  height: 80vh;
+  min-height: 400px;
+  pointer-events: none;
+}
+
+.global-newsletter-box {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto 40px;
+  padding: 32px;
+  background: rgba(216, 206, 184, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(28, 26, 23, 0.2);
+  border-radius: 4px;
+  text-align: center;
+  color: var(--ink-primary);
+  box-sizing: border-box;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+  pointer-events: auto;
+}
+
+.newsletter-eyebrow {
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent-crimson);
+  margin-bottom: 6px;
+}
+
+.newsletter-heading {
+  font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+  font-size: 1.65rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--ink-primary);
+  margin: 0 0 10px;
+}
+
+.newsletter-copy {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: var(--ink-sumi);
+  margin: 0 0 20px;
+}
+
+.newsletter-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.newsletter-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 14px;
+  background: rgba(244, 241, 234, 0.85);
+  border: 1px solid rgba(28, 26, 23, 0.28);
+  border-radius: 2px;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 1rem;
+  color: var(--ink-primary);
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.newsletter-input::placeholder {
+  color: var(--ink-muted);
+}
+
+.newsletter-input:focus {
+  border-color: var(--accent-crimson);
+  background: #F4F1EA;
+}
+
+.newsletter-submit-btn {
+  width: 100%;
+  padding: 11px 20px;
+  background: var(--accent-crimson);
+  color: #F4F1EA;
+  border: 1px solid var(--accent-crimson);
+  border-radius: 2px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: filter 0.2s ease;
+}
+
+.newsletter-submit-btn:hover {
+  filter: brightness(1.12);
+}
+
+.newsletter-submit-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.newsletter-response-msg {
+  margin-top: 14px;
+  padding: 10px 12px;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 0.94rem;
+  line-height: 1.55;
+  border-radius: 2px;
+}
+
+.newsletter-response-msg.is-success {
+  background: rgba(28, 26, 23, 0.08);
+  border-left: 3px solid var(--accent-crimson);
+  color: var(--ink-primary);
+}
+
+.newsletter-response-msg.is-error {
+  background: rgba(110, 43, 37, 0.14);
+  border-left: 3px solid var(--accent-crimson);
+  color: var(--accent-crimson);
+}
+/* STEP13_HEADER_SPOTLIGHT_NEWSLETTER_END */
+
+
+/* HOME_DESKTOP_CLICK_V1 */
+@media (min-width: 681px) {
+  body > .scroll-stage[data-desktop-click-unfurl="true"] {
+    /* 28px stage padding + half the two 22px rollers. */
+    margin-top: max(0px, calc(50svh - 50px));
+  }
+
+  body > .scroll-stage[data-desktop-click-unfurl="true"][data-home-unfurl="moving"],
+  body > .scroll-stage[data-desktop-click-unfurl="true"][data-home-unfurl="opening"] {
+    margin-top: 0;
+  }
+
+  body > .scroll-stage[data-desktop-click-unfurl="true"]:not([data-home-unfurl="opening"]) > main.washi-scroll {
+    animation: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none;
+  }
+
+  body > .scroll-stage[data-desktop-click-unfurl="true"][data-home-unfurl="opening"] > main.washi-scroll {
+    animation: scrollUnfurlDown var(--unfurl-duration, 8s) var(--unfurl-easing, cubic-bezier(0.33, 1, 0.62, 1)) 0s both;
+  }
+
+  body > .scroll-stage[data-desktop-click-unfurl="true"]:not([data-home-unfurl="opening"]) > .scroll-roller-top,
+  body > .scroll-stage[data-desktop-click-unfurl="true"]:not([data-home-unfurl="opening"]) > .scroll-roller-bottom {
+    cursor: pointer;
+  }
+
+  body > .scroll-stage[data-desktop-click-unfurl="true"] > [role="button"]:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 6px;
+  }
+
+  body:has(> .scroll-stage[data-desktop-click-unfurl="true"]:not([data-home-unfurl="opening"])) > .apple-reveal-stage {
+    visibility: hidden;
+  }
+
+  .home-click-hint {
+    position: absolute;
+    top: calc(100% + 18px);
+    left: 50%;
+    z-index: 15;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    width: max-content;
+    color: white;
+    font: italic 300 17px 'EB Garamond', Georgia, serif;
+    text-shadow: 0 2px 10px rgba(0,0,0,.85);
+    pointer-events: none;
+    animation: homeClickHintIn 450ms ease calc(var(--fade-duration, .8s) + .2s) both;
+  }
+
+  .home-click-hint svg {
+    overflow: visible;
+    fill: none;
+    stroke: white;
+    stroke-width: 1.7;
+    stroke-linejoin: round;
+  }
+
+  .home-click-pointer {
+    transform-origin: 10px 7px;
+    animation: homePointerClick 1.6s ease-in-out infinite;
+  }
+
+  .home-click-ring {
+    transform-origin: 10px 7px;
+    animation: homeClickRing 1.6s ease-out infinite;
+  }
+
+  [data-home-unfurl="moving"] > .home-click-hint {
+    visibility: hidden;
+  }
+
+  @keyframes homeClickHintIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -5px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+
+  @keyframes homePointerClick {
+    0%, 35%, 65%, 100% { transform: scale(1); }
+    48% { transform: scale(.88); }
+  }
+
+  @keyframes homeClickRing {
+    0%, 42% {
+      opacity: 0;
+      transform: scale(.5);
+    }
+    48% {
+      opacity: 1;
+      transform: scale(.7);
+    }
+    80%, 100% {
+      opacity: 0;
+      transform: scale(2);
+    }
+  }
+}
+
+@media (min-width: 681px) and (prefers-reduced-motion: reduce) {
+  .home-click-hint {
+    animation: none;
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+
+  .home-click-pointer,
+  .home-click-ring {
+    animation: none;
+  }
+
+  .home-click-ring {
+    opacity: 0;
+  }
+
+  body > .scroll-stage[data-desktop-click-unfurl="true"][data-home-unfurl="opening"] > main.washi-scroll {
+    animation: none !important;
+    min-height: 72vh !important;
+    max-height: none !important;
+    opacity: 1;
+  }
+}
+
+
+/* HOME_CLICK_POSITION_V2 */
+@media (min-width: 681px) {
+  /* Prevent browser anchoring from following the centered scroll. */
+  html:has(body > .scroll-stage[data-desktop-click-unfurl="true"]) {
+    overflow-anchor: none;
+  }
+
+  body > .scroll-stage[data-desktop-click-unfurl="true"] {
+    margin-top: 0 !important;
+
+    /* Independent of the transform used by stageFadeIn. */
+    translate: 0 max(0px, calc(50svh - 50px));
+  }
+
+  body > .scroll-stage[data-desktop-click-unfurl="true"][data-home-unfurl="moving"],
+  body > .scroll-stage[data-desktop-click-unfurl="true"][data-home-unfurl="opening"] {
+    translate: 0 0;
+  }
+
+  .home-click-hint svg {
+    width: 26px;
+    height: 29px;
+    fill: none;
+    stroke: white;
+    stroke-width: 1.35;
+    stroke-linecap: round;
+    stroke-linejoin: miter;
+  }
+
+  /* Keep the pointer still; only the click marks animate. */
+  .home-click-pointer {
+    animation: none;
+    transform: none;
+  }
+
+  .home-click-rays {
+    fill: none;
+    transform-origin: 12px 11px;
+    animation: homeVintageClick var(--home-click-rhythm) ease-out infinite;
+    animation-delay: calc(var(--home-click-rhythm) * 0.1);
+  }
+
+  @keyframes homeVintageClick {
+    0%, 30% {
+      opacity: 0;
+      transform: scale(.8);
+    }
+    38%, 48% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    65%, 100% {
+      opacity: 0;
+      transform: scale(1.15);
+    }
+  }
+}
+
+@media (min-width: 681px) and (prefers-reduced-motion: reduce) {
+  .home-click-rays {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (min-width: 681px) {
+  .home-click-pointer {
+    transform-origin: 12px 11px;
+    animation: homePointerClick var(--home-click-rhythm) ease-in-out infinite;
+  }
+
+  @keyframes homePointerClick {
+    0%, 35%, 65%, 100% { transform: scale(1); }
+    48% { transform: scale(.88); }
+  }
+}
+
+@media (min-width: 681px) and (prefers-reduced-motion: reduce) {
+  .home-click-pointer {
+    animation: none;
+    transform: none;
+  }
+}
+
+/*=============================== */
+/* SCROLL ANCHORING CONTROL START */
+/* ============================== */
+
+/* Toggle anchoring sitewide */
+html {
+  overflow-anchor: auto; /*none*/
+}
+
+/* Disable anchoring on pages with the opt-out marker. */
+html:has([data-scroll-anchor="off"]) {
+  overflow-anchor: none;
+}
+
+/* Use this marker to restore anchoring if it was disabled site-wide. */
+html:has([data-scroll-anchor="on"]) {
+  overflow-anchor: auto;
+}
+
+/*============================= */
+/* SCROLL ANCHORING CONTROL END */
+/*============================= */
