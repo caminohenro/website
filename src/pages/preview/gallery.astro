@@ -10,6 +10,7 @@ const supabaseAnonKey = ''; // Stripped for Sneak Preview security
   <section
     class="gallery-scroll-container"
     id="gallery-app"
+    data-scroll-loading="true"
     data-supabase-url={supabaseUrl}
     data-supabase-key={supabaseAnonKey}
   >
@@ -1856,8 +1857,10 @@ const supabaseAnonKey = ''; // Stripped for Sneak Preview security
     await fetchAndRenderPendingSubmissions(passcode);
   });
 
-  // Initial load
-  loadGalleryPhotos();
+  // INITIAL_SCROLL_READY_V1: publish readiness after the initial grid has rendered.
+  loadGalleryPhotos().finally(() => {
+    document.getElementById('gallery-app')?.removeAttribute('data-scroll-loading');
+  });
 </script>
 
 <style>

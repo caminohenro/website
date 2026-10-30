@@ -46,6 +46,7 @@ const {
    <div
       class="scroll-stage"
       data-desktop-click-unfurl={Astro.url.pathname === '/' ? 'true' : undefined}
+      data-scroll-initial-wait={Astro.url.pathname !== '/' ? 'true' : undefined}
       data-mobile-physics="true"
       data-mobile-start-closed={Astro.url.pathname === '/' ? 'true' : 'false'}
     >
@@ -123,6 +124,65 @@ const {
         dimmer.style.setProperty('--center-dim', centerAlpha);
         dimmer.style.setProperty('--edge-dim', edgeAlpha);
       });
+    </script>
+    <!-- INITIAL_SCROLL_READY_V1 -->
+    <script is:inline>
+(function readinessCode() {
+  // INITIAL_SCROLL_READY_V1
+  window.scrollContentReady = async function (paper) {
+    if (document.readyState === 'loading') {
+      await new Promise(resolve =>
+        document.addEventListener('DOMContentLoaded', resolve, {
+          once: true
+        })
+      );
+    }
+
+    if (!paper.isConnected) return;
+
+    // Page scripts remove these markers after their first render,
+    // including when they render fallback content.
+    await new Promise(resolve => {
+      const pending = () =>
+        paper.querySelector('[data-scroll-loading="true"]');
+
+      if (!pending()) {
+        resolve();
+        return;
+      }
+
+      const observer = new MutationObserver(() => {
+        if (!pending() || !paper.isConnected) {
+          observer.disconnect();
+          document.removeEventListener('astro:before-swap', cancel);
+          resolve();
+        }
+      });
+
+      function cancel() {
+        observer.disconnect();
+        document.removeEventListener('astro:before-swap', cancel);
+        resolve();
+      }
+
+      observer.observe(paper, {
+        subtree: true,
+        attributes: true,
+        childList: true
+      });
+
+      document.addEventListener('astro:before-swap', cancel, {
+        once: true
+      });
+    });
+
+    if (!paper.isConnected) return;
+
+    // Make newly rendered text participate in font loading.
+    void paper.offsetHeight;
+    if (document.fonts) await document.fonts.ready;
+  };
+})();
     </script>
   <!-- STEP17_MOBILE_SCROLL_PHYSICS_START -->
     <script is:inline>
@@ -1184,11 +1244,7 @@ const {
 
       probe.style.transitionDelay = delayText.trim();
 
-      probe.style.height =
-
-        styles.getPropertyValue('--scroll-unfurl-max-height').trim() ||
-
-        '500vh';
+      probe.style.height = '0px';
 
 
 
@@ -1206,7 +1262,7 @@ const {
 
         (delayValue.endsWith('ms') ? 1 : 1000);
 
-      const distance = probe.getBoundingClientRect().height;
+      
 
 
 
@@ -1214,9 +1270,7 @@ const {
 
 
 
-      // Use the existing opening curve over its original max-height
-
-      // distance, matching the CSS entrance speed.
+      // Apply the original easing over the measured paper height.
 
       opening = {
 
@@ -1230,7 +1284,7 @@ const {
 
         start: 0,
 
-        remaining: distance > 0 ? distance : height,
+        remaining: height,
 
         duration: settings.duration,
 
@@ -1248,7 +1302,12 @@ const {
 
 
     measure(true);
-    beginAutomaticOpening();
+    window.scrollContentReady(paper).then(() => {
+      if (disposed || !paper.isConnected) return;
+      measure(false);
+      stage.removeAttribute('data-scroll-initial-wait');
+      beginAutomaticOpening();
+    });
 
     cleanupCurrent = function () {
       disposed = true;
@@ -1873,10 +1932,17 @@ const {
       stage.dataset.desktopClickUnfurl !== 'true' &&
       !paper.hasAttribute('data-initial-unfurl-prepared')
     ) {
-      window.prepareScrollUnfurl(paper);
       paper.setAttribute('data-initial-unfurl-prepared', '');
+      window.scrollContentReady(paper).then(() => {
+        if (disposed || !paper.isConnected || !desktop.matches) return;
+        window.prepareScrollUnfurl(paper);
+        stage.removeAttribute('data-scroll-initial-wait');
+      });
     }
 
+    if (desktop.matches && reduced.matches) {
+      stage.removeAttribute('data-scroll-initial-wait');
+    }
     const controls = new AbortController();
     const signal = controls.signal;
     const previousInert = paper.inert;

@@ -1680,3 +1680,14 @@ body > .scroll-stage > .scroll-roller-top[role="button"]:focus-visible {
     opacity: 1 !important;
   }
 }
+
+/* INITIAL_SCROLL_READY_V1: measure after initial content and fonts are ready. */
+@media (min-width: 681px) {
+  body > .scroll-stage[data-scroll-initial-wait="true"] > main.washi-scroll {
+    animation: none !important;
+    max-height: 0 !important;
+    min-height: 0 !important;
+    opacity: 0 !important;
+    overflow: hidden !important;
+  }
+}
