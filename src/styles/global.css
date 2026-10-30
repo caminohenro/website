@@ -20,6 +20,7 @@
   --color-sumi-muted: #5A534A;
   --color-crimson: #6E2B25;
   --color-crimson-light: #8C3B33;
+  --home-click-rhythm: 1.8s;
 }
 
 html {
@@ -883,6 +884,7 @@ header.site-header {
 }
 
 /* STEP17_MOBILE_SCROLL_PHYSICS_START */
+/* ALL_PAGES_MOBILE_DRAG_V1 */
 /*
  * Desktop declarations and keyframes remain untouched.
  * Direct-child selectors exclude the independent Forum composer scroll.
@@ -899,7 +901,6 @@ header.site-header {
     padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
     box-sizing: border-box;
   }
-}
 
   body > .scroll-stage[data-mobile-physics="true"] > main.washi-scroll {
     animation: none !important;
@@ -1009,6 +1010,12 @@ header.site-header {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(5px); }
   }
+
+  /* Other pages retain the original paper minimum height. */
+  body > .scroll-stage[data-mobile-start-closed="false"] > main.washi-scroll {
+    min-height: var(--scroll-unfurl-min-height, 72vh) !important;
+  }
+}
 
 @media (min-width: 681px) {
   .step17-unfurl-tooltip {
@@ -1387,3 +1394,248 @@ header.site-header {
   color: var(--accent-crimson);
 }
 /* STEP13_HEADER_SPOTLIGHT_NEWSLETTER_END */
+
+
+/* HOME_DESKTOP_CLICK_V1 */
+@media (min-width: 681px) {
+  body > .scroll-stage[data-desktop-click-unfurl="true"] {
+    /* 28px stage padding + half the two 22px rollers. */
+    margin-top: max(0px, calc(50svh - 50px));
+  }
+
+  body > .scroll-stage[data-desktop-click-unfurl="true"][data-home-unfurl="moving"],
+  body > .scroll-stage[data-desktop-click-unfurl="true"][data-home-unfurl="opening"] {
+    margin-top: 0;
+  }
+
+  body > .scroll-stage[data-desktop-click-unfurl="true"]:not([data-home-unfurl="opening"]) > main.washi-scroll {
+    animation: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none;
+  }
+
+  body > .scroll-stage[data-desktop-click-unfurl="true"][data-home-unfurl="opening"] > main.washi-scroll {
+    animation: scrollUnfurlDown var(--unfurl-duration, 8s) var(--unfurl-easing, cubic-bezier(0.33, 1, 0.62, 1)) 0s both;
+  }
+
+  body > .scroll-stage[data-desktop-click-unfurl="true"]:not([data-home-unfurl="opening"]) > .scroll-roller-top,
+  body > .scroll-stage[data-desktop-click-unfurl="true"]:not([data-home-unfurl="opening"]) > .scroll-roller-bottom {
+    cursor: pointer;
+  }
+
+  body > .scroll-stage[data-desktop-click-unfurl="true"] > [role="button"]:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 6px;
+  }
+
+  body:has(> .scroll-stage[data-desktop-click-unfurl="true"]:not([data-home-unfurl="opening"])) > .apple-reveal-stage {
+    visibility: hidden;
+  }
+
+  .home-click-hint {
+    position: absolute;
+    top: calc(100% + 18px);
+    left: 50%;
+    z-index: 15;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    width: max-content;
+    color: white;
+    font: italic 300 17px 'EB Garamond', Georgia, serif;
+    text-shadow: 0 2px 10px rgba(0,0,0,.85);
+    pointer-events: none;
+    animation: homeClickHintIn 450ms ease calc(var(--fade-duration, .8s) + .2s) both;
+  }
+
+  .home-click-hint svg {
+    overflow: visible;
+    fill: none;
+    stroke: white;
+    stroke-width: 1.7;
+    stroke-linejoin: round;
+  }
+
+  .home-click-pointer {
+    transform-origin: 10px 7px;
+    animation: homePointerClick 1.6s ease-in-out infinite;
+  }
+
+  .home-click-ring {
+    transform-origin: 10px 7px;
+    animation: homeClickRing 1.6s ease-out infinite;
+  }
+
+  [data-home-unfurl="moving"] > .home-click-hint {
+    visibility: hidden;
+  }
+
+  @keyframes homeClickHintIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -5px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+
+  @keyframes homePointerClick {
+    0%, 35%, 65%, 100% { transform: scale(1); }
+    48% { transform: scale(.88); }
+  }
+
+  @keyframes homeClickRing {
+    0%, 42% {
+      opacity: 0;
+      transform: scale(.5);
+    }
+    48% {
+      opacity: 1;
+      transform: scale(.7);
+    }
+    80%, 100% {
+      opacity: 0;
+      transform: scale(2);
+    }
+  }
+}
+
+@media (min-width: 681px) and (prefers-reduced-motion: reduce) {
+  .home-click-hint {
+    animation: none;
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+
+  .home-click-pointer,
+  .home-click-ring {
+    animation: none;
+  }
+
+  .home-click-ring {
+    opacity: 0;
+  }
+
+  body > .scroll-stage[data-desktop-click-unfurl="true"][data-home-unfurl="opening"] > main.washi-scroll {
+    animation: none !important;
+    min-height: 72vh !important;
+    max-height: none !important;
+    opacity: 1;
+  }
+}
+
+
+/* HOME_CLICK_POSITION_V2 */
+@media (min-width: 681px) {
+  /* Prevent browser anchoring from following the centered scroll. */
+  html:has(body > .scroll-stage[data-desktop-click-unfurl="true"]) {
+    overflow-anchor: none;
+  }
+
+  body > .scroll-stage[data-desktop-click-unfurl="true"] {
+    margin-top: 0 !important;
+
+    /* Independent of the transform used by stageFadeIn. */
+    translate: 0 max(0px, calc(50svh - 50px));
+  }
+
+  body > .scroll-stage[data-desktop-click-unfurl="true"][data-home-unfurl="moving"],
+  body > .scroll-stage[data-desktop-click-unfurl="true"][data-home-unfurl="opening"] {
+    translate: 0 0;
+  }
+
+  .home-click-hint svg {
+    width: 26px;
+    height: 29px;
+    fill: none;
+    stroke: white;
+    stroke-width: 1.35;
+    stroke-linecap: round;
+    stroke-linejoin: miter;
+  }
+
+  /* Keep the pointer still; only the click marks animate. */
+  .home-click-pointer {
+    animation: none;
+    transform: none;
+  }
+
+  .home-click-rays {
+    fill: none;
+    transform-origin: 12px 11px;
+    animation: homeVintageClick var(--home-click-rhythm) ease-out infinite;
+    animation-delay: calc(var(--home-click-rhythm) * 0.1);
+  }
+
+  @keyframes homeVintageClick {
+    0%, 30% {
+      opacity: 0;
+      transform: scale(.8);
+    }
+    38%, 48% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    65%, 100% {
+      opacity: 0;
+      transform: scale(1.15);
+    }
+  }
+}
+
+@media (min-width: 681px) and (prefers-reduced-motion: reduce) {
+  .home-click-rays {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (min-width: 681px) {
+  .home-click-pointer {
+    transform-origin: 12px 11px;
+    animation: homePointerClick var(--home-click-rhythm) ease-in-out infinite;
+  }
+
+  @keyframes homePointerClick {
+    0%, 35%, 65%, 100% { transform: scale(1); }
+    48% { transform: scale(.88); }
+  }
+}
+
+@media (min-width: 681px) and (prefers-reduced-motion: reduce) {
+  .home-click-pointer {
+    animation: none;
+    transform: none;
+  }
+}
+
+/*=============================== */
+/* SCROLL ANCHORING CONTROL START */
+/* ============================== */
+
+/* Toggle anchoring sitewide */
+html {
+  overflow-anchor: auto; /*none*/
+}
+
+/* Disable anchoring on pages with the opt-out marker. */
+html:has([data-scroll-anchor="off"]) {
+  overflow-anchor: none;
+}
+
+/* Use this marker to restore anchoring if it was disabled site-wide. */
+html:has([data-scroll-anchor="on"]) {
+  overflow-anchor: auto;
+}
+
+/*============================= */
+/* SCROLL ANCHORING CONTROL END */
+/*============================= */
