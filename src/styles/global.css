@@ -1691,3 +1691,21 @@ body > .scroll-stage > .scroll-roller-top[role="button"]:focus-visible {
     overflow: hidden !important;
   }
 }
+
+
+/* MOBILE_SMOOTH_UNFURL_V1 */
+@media (max-width: 680px) {
+  :root {
+    /* Average opening speed in pixels per second. Lower = slower. */
+    --mobile-unfurl-speed: 900;
+
+    /* Downward release speed needed for full opening, in px/second. */
+    --mobile-release-threshold: 350;
+
+    /* Maximum initial completion speed after releasing, in px/second. */
+    --mobile-release-speed-cap: 900;
+
+    /* Minimum opening/completion duration, in milliseconds. */
+    --mobile-unfurl-min-duration: 1200;
+  }
+}
