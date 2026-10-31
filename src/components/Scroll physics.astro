@@ -99,7 +99,6 @@
     let bottomHeight = 0;
     let stagePaddingBottom = 0;
     let dragging = false;
-    let grabbedDuringPeek = false;
     let touchId = null;
     let lastClientY = 0;
     let lastDocumentY = 0;
@@ -261,7 +260,7 @@
       // Avoid restarting timers while already counting down
       if (hintTimer || peekDelayTimer) return;
 
-      // 1. Tooltip appears 400ms after load/close
+      // 1. Tooltip appears 400ms after centering completes
       hintTimer = window.setTimeout(function () {
         hintTimer = 0;
 
@@ -647,7 +646,6 @@
     function onTouchStart(event) {
       if (event.touches.length !== 1) return;
 
-      grabbedDuringPeek = Boolean(peekFrame);
       stopPeek(false);
       stopFrame();
       opening = null;
@@ -715,18 +713,9 @@
       const now = performance.now();
 
       dragging = false;
+      updateHint();
       touchId = null;
       stopFrame();
-
-      // If the user merely tapped the roller mid-peek without dragging, close back to 0
-      if (!gestureMoved && grabbedDuringPeek) {
-        grabbedDuringPeek = false;
-        velocity = 0;
-        revealed = 0;
-        render();
-        return;
-      }
-      grabbedDuringPeek = false;
 
       if (!gestureMoved || now - lastInputTime > 100) {
         velocity = 0;
@@ -734,16 +723,13 @@
 
       if (reducedMotion.matches) velocity = 0;
 
-      updateHint();
-
       if (velocity > 0 && beginOriginalOpening(velocity)) return;
 
       if (Math.abs(velocity) >= 0.012) beginFrame();
     }
 
     function onTouchCancel() {
-      const resetPosition = Boolean(peekFrame || grabbedDuringPeek);
-      grabbedDuringPeek = false;
+      const resetPosition = Boolean(peekFrame);
       opening = null;
       dragging = false;
       touchId = null;
@@ -795,7 +781,7 @@
 
     function onVisibilityChange() {
       if (document.hidden) {
-        const wasPeeking = Boolean(peekFrame || grabbedDuringPeek);
+        const wasPeeking = Boolean(peekFrame);
         if (dragging) {
           onTouchCancel();
         }
@@ -912,14 +898,7 @@
         view.top + view.height / 2 - rollerCenter
       );
 
-      // Snap immediately on first page load so hintTimer starts without a 1,000ms delay
-      if (!mobileHasInteracted) {
-        mobileOffset = target;
-        setStyle(stage, 'translate', '0px ' + mobileOffset + 'px');
-        updateHint();
-      } else {
-        moveMobilePosition(target, updateHint);
-      }
+      moveMobilePosition(target, updateHint);
     }
 
     function returnMobileToTop() {
