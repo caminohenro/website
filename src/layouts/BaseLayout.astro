@@ -46,7 +46,6 @@ const {
    <div
       class="scroll-stage"
       data-desktop-click-unfurl={Astro.url.pathname === '/' ? 'true' : undefined}
-      data-scroll-initial-wait={Astro.url.pathname !== '/' ? 'true' : undefined}
       data-mobile-physics="true"
       data-mobile-start-closed={Astro.url.pathname === '/' ? 'true' : 'false'}
     >
@@ -124,120 +123,6 @@ const {
         dimmer.style.setProperty('--center-dim', centerAlpha);
         dimmer.style.setProperty('--edge-dim', edgeAlpha);
       });
-    </script>
-    <!-- INITIAL_SCROLL_READY_V1 -->
-    <script is:inline>
-(function readinessCode() {
-
-  // INITIAL_SCROLL_READY_V1
-
-  window.scrollContentReady = async function (paper) {
-
-    if (document.readyState === 'loading') {
-
-      await new Promise(resolve =>
-
-        document.addEventListener('DOMContentLoaded', resolve, {
-
-          once: true
-
-        })
-
-      );
-
-    }
-
-
-
-    if (!paper.isConnected) return;
-
-
-
-    // Page scripts remove these markers after their first render,
-
-    // including when they render fallback content.
-
-    await new Promise(resolve => {
-
-      const pending = () =>
-
-        paper.querySelector('[data-scroll-loading="true"]');
-
-
-
-      if (!pending()) {
-
-        resolve();
-
-        return;
-
-      }
-
-
-
-      const observer = new MutationObserver(() => {
-
-        if (!pending() || !paper.isConnected) {
-
-          observer.disconnect();
-
-          document.removeEventListener('astro:before-swap', cancel);
-
-          resolve();
-
-        }
-
-      });
-
-
-
-      function cancel() {
-
-        observer.disconnect();
-
-        document.removeEventListener('astro:before-swap', cancel);
-
-        resolve();
-
-      }
-
-
-
-      observer.observe(paper, {
-
-        subtree: true,
-
-        attributes: true,
-
-        childList: true
-
-      });
-
-
-
-      document.addEventListener('astro:before-swap', cancel, {
-
-        once: true
-
-      });
-
-    });
-
-
-
-    if (!paper.isConnected) return;
-
-
-
-    // Make newly rendered text participate in font loading.
-
-    void paper.offsetHeight;
-
-    if (document.fonts) await document.fonts.ready;
-
-  };
-
-})();
     </script>
   <!-- STEP17_MOBILE_SCROLL_PHYSICS_START -->
     <script is:inline>
@@ -347,6 +232,7 @@ const {
     let initialHeaderHidden = startsClosed;
     let opening = null;
     let headerScrollAnchor = window.scrollY;
+    let peekFrame = 0;
     // STEP17_FAST_RELEASE_AND_STABLE_BACKDROP_V1
 
     function clamp(value, minimum, maximum) {
@@ -362,14 +248,84 @@ const {
       };
     }
 
+    function stopPeek() {
+      if (peekFrame) {
+        window.cancelAnimationFrame(peekFrame);
+        peekFrame = 0;
+      }
+    }
+
+    function startPeek() {
+      if (
+        peekFrame ||
+        reducedMotion.matches ||
+        disposed ||
+        dragging ||
+        opening ||
+        mobilePositionFrame ||
+        topCloseFrame ||
+        revealed > 0.01
+      ) {
+        return;
+      }
+
+      const cycleStartedAt = performance.now();
+      const pullDownDuration = 750;
+      const holdOpenDuration = 220;
+      const rollUpDuration = 650;
+      const pauseBetweenCycles = 1600;
+      const totalCycle =
+        pullDownDuration + holdOpenDuration + rollUpDuration + pauseBetweenCycles;
+
+      function peekStep(now) {
+        if (
+          disposed ||
+          dragging ||
+          opening ||
+          mobilePositionFrame ||
+          topCloseFrame ||
+          Math.abs(velocity) >= 0.012
+        ) {
+          peekFrame = 0;
+          return;
+        }
+
+        const elapsed = (now - cycleStartedAt) % totalCycle;
+        const peekDistance = Math.min(34, Math.max(18, height * 0.05));
+        let nextRevealed = 0;
+
+        if (elapsed < pullDownDuration) {
+          const p = elapsed / pullDownDuration;
+          const ease = 1 - Math.pow(1 - p, 3);
+          nextRevealed = peekDistance * ease;
+        } else if (elapsed < pullDownDuration + holdOpenDuration) {
+          nextRevealed = peekDistance;
+        } else if (elapsed < pullDownDuration + holdOpenDuration + rollUpDuration) {
+          const p =
+            (elapsed - pullDownDuration - holdOpenDuration) / rollUpDuration;
+          const ease = p * p * (3 - 2 * p);
+          nextRevealed = peekDistance * (1 - ease);
+        } else {
+          nextRevealed = 0;
+        }
+
+        revealed = nextRevealed;
+        render();
+        peekFrame = window.requestAnimationFrame(peekStep);
+      }
+
+      peekFrame = window.requestAnimationFrame(peekStep);
+    }
+
     function dismissHint() {
       window.clearTimeout(hintTimer);
       hintTimer = 0;
+      stopPeek();
       hint.classList.remove('is-visible');
     }
 
     function updateHint() {
-      if (mobilePositionFrame || opening) {
+      if (mobilePositionFrame || opening || topCloseFrame) {
         dismissHint();
         return;
       }
@@ -383,7 +339,7 @@ const {
         centerClosedMobile();
         return;
       }
-      if (revealed > 0 || dragging) {
+      if (dragging || (revealed > 0.01 && !peekFrame)) {
         dismissHint();
         return;
       }
@@ -394,8 +350,9 @@ const {
       hintTimer = window.setTimeout(function () {
         hintTimer = 0;
 
-        if (!disposed && revealed === 0 && !dragging) {
+        if (!disposed && revealed <= 0.01 && !dragging && !opening && !topCloseFrame) {
           hint.classList.add('is-visible');
+          startPeek();
         }
       }, 1000);
     }
@@ -466,7 +423,7 @@ const {
 
       height = paper.getBoundingClientRect().height;
 
-      if (opening && !opening.automatic && !opening.followHeight && Math.abs(previousHeight - height) > 0.5) {
+      if (opening && !opening.automatic && Math.abs(previousHeight - height) > 0.5) {
         opening = null;
         velocity = 0;
         stopFrame();
@@ -483,7 +440,7 @@ const {
       } else if (previouslyOpen && !dragging && !opening) {
         // Loaded replies and other dynamic content remain fully readable.
         revealed = height;
-      } else {
+      } else if (!peekFrame) {
         // Preserve the exposed length while the Forum changes underneath.
         revealed = clamp(revealed, 0, height);
       }
@@ -672,63 +629,44 @@ const {
       );
     }
 
-
-    // MOBILE_SMOOTH_UNFURL_V1
-    function mobileOpeningSettings() {
-      const styles = window.getComputedStyle(paper);
-
-      function number(name, fallback) {
-        const value = Number.parseFloat(styles.getPropertyValue(name));
-        return Number.isFinite(value) && value > 0 ? value : fallback;
-      }
-
-      return {
-        speed: number('--mobile-unfurl-speed', 900) / 1000,
-        threshold: number('--mobile-release-threshold', 350) / 1000,
-        releaseCap: number('--mobile-release-speed-cap', 900) / 1000,
-        minimum: number('--mobile-unfurl-min-duration', 1200),
-      };
-    }
-
-    function mobileOpeningDuration(distance, settings) {
-      return Math.max(settings.minimum, distance / settings.speed);
-    }
-
-    function beginOriginalOpening(releaseSpeed) {
-      const remaining = Math.max(0, height - revealed);
-      const settings = mobileOpeningSettings();
-
-      if (
-        reducedMotion.matches ||
-        remaining <= 0 ||
-        releaseSpeed < settings.threshold
-      ) return false;
-
-      const duration = mobileOpeningDuration(remaining, settings);
-      const initialSpeed = Math.min(releaseSpeed, settings.releaseCap);
-
-      // Set the curve's initial slope from the release speed.
-      // Restrict its control point to keep progress monotonic.
-      const firstY = clamp(
-        initialSpeed * duration / remaining * 0.33,
-        0,
-        1
-      );
-
-      opening = {
-        followHeight: true,
-        startedAt: performance.now(),
-        start: revealed,
-        remaining,
-        duration,
-        points: [0.33, firstY, 0.67, 1],
-      };
-
-      velocity = 0;
-      beginFrame();
-      return true;
-    }
+    function beginOriginalOpening(releaseSpeed) {
+      const remaining = height - revealed;
+      if (remaining <= 0 || releaseSpeed <= 0) return false;
 
+      const settings = originalOpeningSettings();
+
+      // Initial CSS opening speed:
+      //
+      // pixels/ms = full paper height / original duration * y1/x1
+      //
+      // For cubic-bezier(0.33, 1, 0.62, 1), y1/x1 is approximately 3.03.
+      const threshold =
+        height * settings.initialSlope / settings.duration * 0.7;
+
+      if (releaseSpeed < threshold) return false;
+
+      // Use the original curve over the remaining distance.
+      // Choose its duration so its initial velocity equals the actual
+      // release velocity, avoiding a sudden acceleration or slowdown:
+      //
+      // releaseSpeed = remaining * initialSlope / duration
+      const duration =
+        remaining * settings.initialSlope / releaseSpeed;
+
+      if (!Number.isFinite(duration) || duration <= 0) return false;
+
+      opening = {
+        startedAt: performance.now(),
+        start: revealed,
+        remaining: remaining,
+        duration: duration,
+        points: settings.points,
+      };
+
+      velocity = 0;
+      beginFrame();
+      return true;
+    }
 
     function tick(now) {
       if (disposed) return;
@@ -745,7 +683,7 @@ const {
           1
         );
 
-        revealed = clamp(opening.start + (opening.followHeight ? Math.max(0, height - opening.start) : opening.remaining) *
+        revealed = clamp(opening.start + opening.remaining *
           originalOpeningProgress(progress, opening.points), 0, height);
 
         if (progress >= 1) {
@@ -807,6 +745,7 @@ const {
     function onTouchStart(event) {
       if (event.touches.length !== 1) return;
 
+      stopPeek();
       stopFrame();
       opening = null;
 
@@ -896,6 +835,7 @@ const {
       dragging = false;
       touchId = null;
       velocity = 0;
+      stopPeek();
       stopFrame();
       updateHint();
     }
@@ -1195,6 +1135,7 @@ const {
           topCloseFrame = window.requestAnimationFrame(closeStep);
         } else {
           topCloseFrame = 0;
+          updateHint();
         }
       }
 
@@ -1266,65 +1207,127 @@ const {
 
     // ALL_PAGES_MOBILE_DRAG_V1
 
-
-    function beginAutomaticOpening() {
-      if (startsClosed) return;
-      dismissHint();
-
-      if (reducedMotion.matches) {
-        revealed = height;
-        render();
-        return;
-      }
-
-      // Preserve the existing delay, including CSS calc() values.
-      const styles = window.getComputedStyle(paper);
-      const probe = document.createElement('div');
-
-      probe.style.cssText =
-        'position:fixed;visibility:hidden;pointer-events:none;' +
-        'width:0;height:0;padding:0;border:0;margin:0;';
-
-      probe.style.transitionDelay =
-        styles.getPropertyValue('--unfurl-delay').trim() || '0.9s';
-
-      paper.appendChild(probe);
-
-      const delayText = window.getComputedStyle(probe).transitionDelay;
-      const delay = parseFloat(delayText) *
-        (delayText.endsWith('ms') ? 1 : 1000);
-
-      probe.remove();
-
-      const settings = mobileOpeningSettings();
-
-      opening = {
-        automatic: true,
-        followHeight: true,
-        startedAt: performance.now() +
-          (Number.isFinite(delay) ? Math.max(0, delay) : 900),
-        start: 0,
-        remaining: height,
-        duration: mobileOpeningDuration(height, settings),
-        // Gradual acceleration and deceleration; zero initial speed.
-        points: [0.42, 0, 0.58, 1],
-      };
-
-      velocity = 0;
-      beginFrame();
-    }
+    function beginAutomaticOpening() {
+
+      if (startsClosed) return;
+
+      dismissHint();
+
+
+
+      if (reducedMotion.matches) {
+
+        revealed = height;
+
+        render();
+
+        return;
+
+      }
+
+
+
+      const settings = originalOpeningSettings();
+
+      const styles = window.getComputedStyle(paper);
+
+      const rootStyles = window.getComputedStyle(html);
+
+
+
+      const delayText =
+
+        styles.getPropertyValue('--unfurl-delay') ||
+
+        rootStyles.getPropertyValue('--unfurl-delay') ||
+
+        '0.9s';
+
+
+
+      // Resolve CSS calculations, variables, time and viewport units.
+
+      const probe = document.createElement('div');
+
+      probe.style.cssText =
+
+        'position:fixed;visibility:hidden;pointer-events:none;' +
+
+        'width:0;padding:0;border:0;margin:0;box-sizing:border-box;';
+
+
+
+      probe.style.transitionDelay = delayText.trim();
+
+      probe.style.height =
+
+        styles.getPropertyValue('--scroll-unfurl-max-height').trim() ||
+
+        '500vh';
+
+
+
+      paper.appendChild(probe);
+
+
+
+      const delayValue =
+
+        window.getComputedStyle(probe).transitionDelay;
+
+      const delay =
+
+        parseFloat(delayValue) *
+
+        (delayValue.endsWith('ms') ? 1 : 1000);
+
+      const distance = probe.getBoundingClientRect().height;
+
+
+
+      probe.remove();
+
+
+
+      // Use the existing opening curve over its original max-height
+
+      // distance, matching the CSS entrance speed.
+
+      opening = {
+
+        automatic: true,
+
+        startedAt: performance.now() + (
+
+          Number.isFinite(delay) ? Math.max(0, delay) : 900
+
+        ),
+
+        start: 0,
+
+        remaining: distance > 0 ? distance : height,
+
+        duration: settings.duration,
+
+        points: settings.points,
+
+      };
+
+
+
+      velocity = 0;
+
+      beginFrame();
+
+    }
 
 
     measure(true);
-    window.scrollContentReady(paper).then(() => {
-      if (disposed || !paper.isConnected) return;
-      measure(false);
-      stage.removeAttribute('data-scroll-initial-wait');
-      beginAutomaticOpening();
-    });
+    beginAutomaticOpening();
 
     cleanupCurrent = function () {
       disposed = true;
+      stopPeek();
       window.cancelAnimationFrame(mobilePositionFrame);
       cancelTopClose();
       controller.abort();
@@ -1946,17 +1949,10 @@ const {
       stage.dataset.desktopClickUnfurl !== 'true' &&
       !paper.hasAttribute('data-initial-unfurl-prepared')
     ) {
+      window.prepareScrollUnfurl(paper);
       paper.setAttribute('data-initial-unfurl-prepared', '');
-      window.scrollContentReady(paper).then(() => {
-        if (disposed || !paper.isConnected || !desktop.matches) return;
-        window.prepareScrollUnfurl(paper);
-        stage.removeAttribute('data-scroll-initial-wait');
-      });
     }
 
-    if (desktop.matches && reduced.matches) {
-      stage.removeAttribute('data-scroll-initial-wait');
-    }
     const controls = new AbortController();
     const signal = controls.signal;
     const previousInert = paper.inert;
