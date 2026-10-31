@@ -240,7 +240,7 @@ const {
     const HINT_ENTRY_DELAY = 400;
 
     // TWEAK 2: Delay between the hint appearing and the first peek.
-    const PEEK_ENTRY_DELAY = 500;
+    const PEEK_ENTRY_DELAY = 1000;
 
     let peekDelayTimer = 0;
 
@@ -259,10 +259,19 @@ const {
       };
     }
 
-    function stopPeek() {
-      // Cancel any pending initial peek.
+    function stopPeek(resetToZero = false) {
       window.clearTimeout(peekDelayTimer);
       peekDelayTimer = 0;
+      if (peekFrame) {
+        window.cancelAnimationFrame(peekFrame);
+        peekFrame = 0;
+      }
+      if (resetToZero && !dragging && !opening && !topCloseFrame) {
+        revealed = 0;
+        render();
+      }
+    }
+
 
       // Cancel an active peek animation.
       if (peekFrame) {
@@ -924,7 +933,19 @@ const {
     }
 
     function onVisibilityChange() {
-      if (document.hidden) onTouchCancel();
+      if (document.hidden) {
+        if (!dragging) {
+          stopPeek(true);
+          dismissHint();
+        } else {
+          onTouchCancel();
+        }
+      } else {
+        // Tab / screen restored
+        if (!disposed && !dragging && !opening && revealed <= 0.01) {
+          updateHint();
+        }
+      }
     }
 
     function onNativeScroll() {
