@@ -117,4 +117,1973 @@ const {
         if (!dimmer) return;
         const scrollBottom = window.scrollY + window.innerHeight;
         const docHeight = document.documentElement.scrollHeight;
-        const revealProgress =
+        const revealProgress = Math.max(0, Math.min(1, (scrollBottom - (docHeight - window.innerHeight * 0.85)) / (window.innerHeight * 0.6)));
+        const centerAlpha = (0.58 - revealProgress * 0.48).toFixed(2);
+        const edgeAlpha = (0.84 - revealProgress * 0.35).toFixed(2);
+        dimmer.style.setProperty('--center-dim', centerAlpha);
+        dimmer.style.setProperty('--edge-dim', edgeAlpha);
+      });
+    </script>
+  <!-- STEP17_MOBILE_SCROLL_PHYSICS_START -->
+    <script is:inline>
+(function mobileScrollPhysics() {
+  'use strict';
+
+  const key = '__step17MobileScrollPhysics';
+
+  if (typeof window[key] === 'function') window[key]();
+
+  const lifetime = new AbortController();
+  const mobile = window.matchMedia('(max-width: 680px)');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  let cleanupCurrent = null;
+
+  function initialize() {
+    if (cleanupCurrent) cleanupCurrent();
+    cleanupCurrent = null;
+
+    if (!mobile.matches || window.innerWidth > 680) return;
+
+    const stage = document.querySelector(
+     'body > .scroll-stage[data-mobile-physics="true"]'
+    );
+    if (!stage) return;
+    const startsClosed = stage.dataset.mobileStartClosed === 'true';
+
+    const paper = stage.querySelector(':scope > main.washi-scroll');
+    const roller = stage.querySelector(':scope > .scroll-roller-bottom');
+    const topRoller = stage.querySelector(':scope > .scroll-roller-top');
+
+    if (!paper || !roller || !topRoller) return;
+
+    const controller = new AbortController();
+    const signal = controller.signal;
+    const html = document.documentElement;
+
+    const styleSnapshots = new Map();
+    const attributeSnapshots = new Map();
+
+    function setStyle(element, property, value) {
+      if (!styleSnapshots.has(element)) {
+        styleSnapshots.set(element, new Map());
+      }
+
+      const properties = styleSnapshots.get(element);
+
+      if (!properties.has(property)) {
+        properties.set(property, {
+          value: element.style.getPropertyValue(property),
+          priority: element.style.getPropertyPriority(property),
+        });
+      }
+
+      element.style.setProperty(property, value);
+    }
+
+    function setAttribute(element, name, value) {
+      if (!attributeSnapshots.has(element)) {
+        attributeSnapshots.set(element, new Map());
+      }
+
+      const attributes = attributeSnapshots.get(element);
+
+      if (!attributes.has(name)) {
+        attributes.set(name, element.getAttribute(name));
+      }
+
+      if (value === null) element.removeAttribute(name);
+      else element.setAttribute(name, value);
+    }
+
+    const hint = document.createElement('div');
+    hint.className = 'step17-unfurl-tooltip';
+    hint.setAttribute('aria-hidden', 'true');
+
+    const arrow = document.createElement('span');
+    arrow.className = 'step17-unfurl-arrow';
+    arrow.textContent = '\u2193';
+
+    const label = document.createElement('span');
+    label.textContent = 'Drag to unfurl';
+
+    hint.append(arrow, label);
+    stage.appendChild(hint);
+
+    let disposed = false;
+    let height = 0;
+    let revealed = 0;
+    let paperTop = 0;
+    let bottomHeight = 0;
+    let stagePaddingBottom = 0;
+    let dragging = false;
+    let touchId = null;
+    let lastClientY = 0;
+    let lastDocumentY = 0;
+    let lastInputTime = 0;
+    let samples = [];
+    let velocity = 0;
+    let frameId = 0;
+    let measurementId = 0;
+    let hintTimer = 0;
+    let peekDelayTimer = 0;
+    let peekFrame = 0;
+    let previousFrameTime = 0;
+    let gestureMoved = false;
+    let fullyOpen = false;
+    let initialHeaderHidden = startsClosed;
+    let opening = null;
+    let headerScrollAnchor = window.scrollY;
+    // STEP17_FAST_RELEASE_AND_STABLE_BACKDROP_V1
+
+    function clamp(value, minimum, maximum) {
+      return Math.max(minimum, Math.min(maximum, value));
+    }
+
+    function viewport() {
+      const visual = window.visualViewport;
+
+      return {
+        top: visual ? visual.offsetTop : 0,
+        height: visual ? visual.height : window.innerHeight,
+      };
+    }
+
+    function stopPeek() {
+      window.clearTimeout(peekDelayTimer);
+      peekDelayTimer = 0;
+      if (peekFrame) {
+        window.cancelAnimationFrame(peekFrame);
+        peekFrame = 0;
+      }
+    }
+
+    function startPeek() {
+      if (
+        peekFrame ||
+        reducedMotion.matches ||
+        disposed ||
+        dragging ||
+        opening ||
+        mobilePositionFrame ||
+        topCloseFrame ||
+        revealed > 0.01
+      ) {
+        return;
+      }
+
+      // Shifting the phase forward starts the pull motion without initial stillness
+      const phaseOffset = 150;
+      const cycleStartedAt = performance.now() - phaseOffset;
+      const pullDownDuration = 750;
+      const holdOpenDuration = 220;
+      const rollUpDuration = 650;
+      const pauseBetweenCycles = 1600;
+      const totalCycle =
+        pullDownDuration + holdOpenDuration + rollUpDuration + pauseBetweenCycles;
+
+      function peekStep(now) {
+        if (
+          disposed ||
+          dragging ||
+          opening ||
+          mobilePositionFrame ||
+          topCloseFrame ||
+          Math.abs(velocity) >= 0.012
+        ) {
+          peekFrame = 0;
+          return;
+        }
+
+        const elapsed = (now - cycleStartedAt) % totalCycle;
+        const peekDistance = Math.min(34, Math.max(18, height * 0.05));
+        let nextRevealed = 0;
+
+        if (elapsed < pullDownDuration) {
+          const p = elapsed / pullDownDuration;
+          const ease = 1 - Math.pow(1 - p, 3);
+          nextRevealed = peekDistance * ease;
+        } else if (elapsed < pullDownDuration + holdOpenDuration) {
+          nextRevealed = peekDistance;
+        } else if (elapsed < pullDownDuration + holdOpenDuration + rollUpDuration) {
+          const p =
+            (elapsed - pullDownDuration - holdOpenDuration) / rollUpDuration;
+          const ease = p * p * (3 - 2 * p);
+          nextRevealed = peekDistance * (1 - ease);
+        } else {
+          nextRevealed = 0;
+        }
+
+        revealed = nextRevealed;
+        render();
+        peekFrame = window.requestAnimationFrame(peekStep);
+      }
+
+      peekFrame = window.requestAnimationFrame(peekStep);
+    }
+
+    function dismissHint() {
+      window.clearTimeout(hintTimer);
+      hintTimer = 0;
+      stopPeek();
+      hint.classList.remove('is-visible');
+    }
+
+    function updateHint() {
+      if (mobilePositionFrame || opening || topCloseFrame) {
+        dismissHint();
+        return;
+      }
+
+      if (
+        revealed <= 0.01 &&
+        !dragging &&
+        !mobileCentered &&
+        (startsClosed || mobileHasInteracted)
+      ) {
+        centerClosedMobile();
+        return;
+      }
+
+      if (dragging || (revealed > 0.01 && !peekFrame)) {
+        dismissHint();
+        return;
+      }
+
+      // Avoid restarting the timers while already waiting or visible
+      if (hintTimer || peekDelayTimer || hint.classList.contains('is-visible')) return;
+
+      // Tooltip appears after 400ms
+      hintTimer = window.setTimeout(function () {
+        hintTimer = 0;
+
+        if (!disposed && revealed <= 0.01 && !dragging && !opening && !topCloseFrame) {
+          hint.classList.add('is-visible');
+
+          // Peek animation begins 500ms after the tooltip is displayed
+          peekDelayTimer = window.setTimeout(function () {
+            peekDelayTimer = 0;
+            if (!disposed && revealed <= 0.01 && !dragging && !opening && !topCloseFrame) {
+              startPeek();
+            }
+          }, 500);
+        }
+      }, 400);
+    }
+
+    function releaseInitialHeader() {
+      if (!initialHeaderHidden) return;
+      initialHeaderHidden = false;
+      setAttribute(html, 'data-step17-header-hidden', null);
+    }
+
+    function render() {
+      revealed = clamp(revealed, 0, height);
+
+      const hidden = Math.max(0, height - revealed);
+      fullyOpen = hidden < 0.01;
+
+      setAttribute(stage, 'data-step17-open', fullyOpen ? 'true' : 'false');
+
+      if (fullyOpen) {
+        revealed = height;
+        setStyle(paper, 'clip-path', 'none');
+        setStyle(paper, '-webkit-clip-path', 'none');
+      } else {
+        const clip = 'inset(0 -90px ' + hidden.toFixed(3) + 'px -90px)';
+        setStyle(paper, 'clip-path', clip);
+        setStyle(paper, '-webkit-clip-path', clip);
+      }
+
+      setStyle(
+        roller,
+        'transform',
+        'translateY(' + (-hidden).toFixed(3) + 'px)'
+      );
+
+      const visibleStageHeight =
+        paperTop + revealed + bottomHeight + stagePaddingBottom;
+
+      setStyle(
+        stage,
+        '--step17-stage-height',
+        visibleStageHeight.toFixed(3) + 'px'
+      );
+
+      hint.style.top =
+        (paperTop + revealed + bottomHeight + 15).toFixed(3) + 'px';
+
+      setAttribute(
+        roller,
+        'aria-label',
+        fullyOpen
+          ? 'Scroll roller. Drag up to furl the page.'
+          : 'Scroll roller. Drag down to unfurl or up to furl.'
+      );
+      updateHint();
+    }
+
+    function measure(first) {
+      if (disposed) return;
+
+      const previouslyOpen = fullyOpen;
+      const previousHeight = height;
+
+      height = paper.getBoundingClientRect().height;
+
+      if (opening && !opening.automatic && Math.abs(previousHeight - height) > 0.5) {
+        opening = null;
+        velocity = 0;
+        stopFrame();
+      }
+
+      paperTop = paper.offsetTop;
+      bottomHeight = roller.offsetHeight;
+      stagePaddingBottom =
+        parseFloat(window.getComputedStyle(stage).paddingBottom) || 112;
+
+      if (first) {
+        revealed = 0;
+      } else if (previouslyOpen && !dragging && !opening) {
+        revealed = height;
+      } else if (!peekFrame) {
+        revealed = clamp(revealed, 0, height);
+      }
+
+      if (dragging && Math.abs(previousHeight - height) > 0.5) {
+        lastDocumentY = lastClientY + window.scrollY;
+        samples = [{
+          y: lastClientY,
+          time: performance.now(),
+        }];
+      }
+
+      render();
+    }
+
+    function scheduleMeasurement() {
+      if (disposed || measurementId) return;
+
+      measurementId = window.requestAnimationFrame(function () {
+        measurementId = 0;
+        measure(false);
+      });
+    }
+
+    function stopFrame() {
+      window.cancelAnimationFrame(frameId);
+      frameId = 0;
+    }
+
+    function findTouch(list) {
+      for (let index = 0; index < list.length; index += 1) {
+        if (list[index].identifier === touchId) return list[index];
+      }
+
+      return null;
+    }
+
+    function recordVelocity(clientY, now) {
+      samples.push({ y: clientY, time: now });
+
+      while (
+        samples.length > 2 &&
+        samples[0].time < now - 90
+      ) {
+        samples.shift();
+      }
+
+      const first = samples[0];
+      const elapsed = now - first.time;
+
+      velocity = elapsed > 0
+        ? (clientY - first.y) / elapsed
+        : 0;
+    }
+
+    function scrollDuringDrag(elapsed) {
+      if (!dragging) return;
+
+      const view = viewport();
+      const edgeZone = Math.min(90, view.height * 0.15);
+      const upperEdge = view.top + edgeZone;
+      const lowerEdge = view.top + view.height - edgeZone;
+
+      let speed = 0;
+
+      if (lastClientY > lowerEdge && revealed < height) {
+        speed = clamp((lastClientY - lowerEdge) / edgeZone, 0, 1) * 0.65;
+      } else if (lastClientY < upperEdge && revealed > 0) {
+        speed = -clamp((upperEdge - lastClientY) / edgeZone, 0, 1) * 0.65;
+      }
+
+      if (speed === 0) return;
+
+      const previousScroll = window.scrollY;
+
+      window.scrollTo({
+        top: previousScroll + speed * elapsed,
+        behavior: 'instant',
+      });
+
+      const actualScroll = window.scrollY - previousScroll;
+
+      if (actualScroll !== 0) {
+        revealed = clamp(revealed + actualScroll, 0, height);
+        lastDocumentY += actualScroll;
+        render();
+      }
+    }
+
+    function originalOpeningSettings() {
+      const paperStyle = window.getComputedStyle(paper);
+      const rootStyle = window.getComputedStyle(html);
+
+      const durationText = (
+        paperStyle.getPropertyValue('--unfurl-duration') ||
+        rootStyle.getPropertyValue('--unfurl-duration') ||
+        '8s'
+      ).trim();
+
+      const durationMatch = durationText.match(/^([\d.]+)\s*(ms|s)$/i);
+
+      let duration = 8000;
+
+      if (durationMatch) {
+        const amount = Number(durationMatch[1]);
+        duration = amount * (
+          durationMatch[2].toLowerCase() === 'ms' ? 1 : 1000
+        );
+      }
+
+      if (!Number.isFinite(duration) || duration <= 0) duration = 8000;
+
+      const easingText = (
+        paperStyle.getPropertyValue('--unfurl-easing') ||
+        rootStyle.getPropertyValue('--unfurl-easing') ||
+        'cubic-bezier(0.33, 1, 0.62, 1)'
+      ).trim();
+
+      const easingMatch = easingText.match(
+        /^cubic-bezier\(\s*([-+\d.e]+)\s*,\s*([-+\d.e]+)\s*,\s*([-+\d.e]+)\s*,\s*([-+\d.e]+)\s*\)$/i
+      );
+
+      let points = [0.33, 1, 0.62, 1];
+
+      if (easingMatch) {
+        const parsed = easingMatch.slice(1).map(Number);
+
+        if (
+          parsed.every(Number.isFinite) &&
+          parsed[0] > 0 &&
+          parsed[0] <= 1 &&
+          parsed[1] > 0 &&
+          parsed[1] <= 1 &&
+          parsed[2] >= 0 &&
+          parsed[2] <= 1 &&
+          parsed[3] >= parsed[1] &&
+          parsed[3] <= 1
+        ) {
+          points = parsed;
+        }
+      }
+
+      return {
+        duration: duration,
+        points: points,
+        initialSlope: points[1] / points[0],
+      };
+    }
+
+    function bezierCoordinate(parameter, first, second) {
+      const inverse = 1 - parameter;
+
+      return (
+        3 * inverse * inverse * parameter * first +
+        3 * inverse * parameter * parameter * second +
+        parameter * parameter * parameter
+      );
+    }
+
+    function originalOpeningProgress(timeProgress, points) {
+      if (timeProgress <= 0) return 0;
+      if (timeProgress >= 1) return 1;
+
+      let low = 0;
+      let high = 1;
+
+      for (let index = 0; index < 30; index += 1) {
+        const middle = (low + high) / 2;
+        const x = bezierCoordinate(middle, points[0], points[2]);
+
+        if (x < timeProgress) low = middle;
+        else high = middle;
+      }
+
+      return bezierCoordinate(
+        (low + high) / 2,
+        points[1],
+        points[3]
+      );
+    }
+
+    function beginOriginalOpening(releaseSpeed) {
+      const remaining = height - revealed;
+      if (remaining <= 0 || releaseSpeed <= 0) return false;
+
+      const settings = originalOpeningSettings();
+      const threshold =
+        height * settings.initialSlope / settings.duration * 0.7;
+
+      if (releaseSpeed < threshold) return false;
+
+      const duration =
+        remaining * settings.initialSlope / releaseSpeed;
+
+      if (!Number.isFinite(duration) || duration <= 0) return false;
+
+      opening = {
+        startedAt: performance.now(),
+        start: revealed,
+        remaining: remaining,
+        duration: duration,
+        points: settings.points,
+      };
+
+      velocity = 0;
+      beginFrame();
+      return true;
+    }
+
+    function tick(now) {
+      if (disposed) return;
+
+      frameId = 0;
+
+      const elapsed = clamp(now - previousFrameTime, 0, 32);
+      previousFrameTime = now;
+
+      if (opening) {
+        const progress = clamp(
+          (now - opening.startedAt) / opening.duration,
+          0,
+          1
+        );
+
+        revealed = clamp(opening.start + opening.remaining *
+          originalOpeningProgress(progress, opening.points), 0, height);
+
+        if (progress >= 1) {
+          revealed = height;
+          opening = null;
+          velocity = 0;
+          render();
+          return;
+        }
+
+        render();
+        frameId = window.requestAnimationFrame(tick);
+        return;
+      }
+
+      if (dragging) {
+        scrollDuringDrag(elapsed);
+        frameId = window.requestAnimationFrame(tick);
+        return;
+      }
+
+      if (Math.abs(velocity) < 0.012) {
+        velocity = 0;
+        return;
+      }
+
+      const friction = 0.0045;
+      const decay = Math.exp(-friction * elapsed);
+      const displacement = velocity * (1 - decay) / friction;
+      const proposed = revealed + displacement;
+
+      revealed = clamp(proposed, 0, height);
+      velocity *= decay;
+
+      if (proposed <= 0 || proposed >= height) {
+        velocity = 0;
+      }
+
+      render();
+
+      if (Math.abs(velocity) >= 0.012) {
+        frameId = window.requestAnimationFrame(tick);
+      }
+    }
+
+    function beginFrame() {
+      stopFrame();
+      previousFrameTime = performance.now();
+      frameId = window.requestAnimationFrame(tick);
+    }
+
+    function onTouchStart(event) {
+      if (event.touches.length !== 1) return;
+
+      stopPeek();
+      stopFrame();
+      opening = null;
+
+      const touch = event.touches[0];
+      const now = performance.now();
+
+      dragging = true;
+      returnMobileToTop();
+      dismissHint();
+      touchId = touch.identifier;
+      lastClientY = touch.clientY;
+      lastDocumentY = touch.clientY + window.scrollY;
+      lastInputTime = now;
+      gestureMoved = false;
+      velocity = 0;
+      samples = [{ y: touch.clientY, time: now }];
+
+      beginFrame();
+    }
+
+    function onTouchMove(event) {
+      if (!dragging) return;
+
+      if (event.touches.length !== 1) {
+        onTouchCancel();
+        return;
+      }
+
+      const touch = findTouch(event.touches);
+      if (!touch) return;
+
+      if (!event.cancelable) {
+        onTouchCancel();
+        return;
+      }
+
+      event.preventDefault();
+
+      const now = performance.now();
+      const documentY = touch.clientY + window.scrollY;
+      const displacement = documentY - lastDocumentY;
+
+      if (Math.abs(displacement) > 0) {
+        gestureMoved = true;
+        dismissHint();
+      }
+
+      revealed = clamp(revealed + displacement, 0, height);
+
+      lastDocumentY = documentY;
+      lastClientY = touch.clientY;
+      lastInputTime = now;
+
+      recordVelocity(touch.clientY, now);
+      render();
+    }
+
+    function onTouchEnd(event) {
+      if (!dragging) return;
+
+      const touch = findTouch(event.changedTouches);
+      if (!touch) return;
+
+      const now = performance.now();
+
+      dragging = false;
+      updateHint();
+      touchId = null;
+      stopFrame();
+
+      if (!gestureMoved || now - lastInputTime > 100) {
+        velocity = 0;
+      }
+
+      if (reducedMotion.matches) velocity = 0;
+
+      if (velocity > 0 && beginOriginalOpening(velocity)) return;
+
+      if (Math.abs(velocity) >= 0.012) beginFrame();
+    }
+
+    function onTouchCancel() {
+      opening = null;
+      dragging = false;
+      touchId = null;
+      velocity = 0;
+      stopPeek();
+      stopFrame();
+      updateHint();
+    }
+
+    function onKeyDown(event) {
+      const increment = Math.max(40, viewport().height * 0.15);
+      let next = revealed;
+
+      if (event.key === 'ArrowDown') next += increment;
+      else if (event.key === 'ArrowUp') next -= increment;
+      else if (event.key === 'PageDown') next += viewport().height * 0.8;
+      else if (event.key === 'PageUp') next -= viewport().height * 0.8;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = height;
+      else if (event.key === 'Enter' || event.key === ' ') {
+        next = fullyOpen ? 0 : height;
+      } else {
+        return;
+      }
+
+      event.preventDefault();
+      onTouchCancel();
+      dismissHint();
+
+      revealed = clamp(next, 0, height);
+      render();
+    }
+
+    function onFocusIn(event) {
+      if (!paper.contains(event.target) || fullyOpen) return;
+
+      onTouchCancel();
+      dismissHint();
+      revealed = height;
+      render();
+    }
+
+    function onVisibilityChange() {
+      if (document.hidden) onTouchCancel();
+    }
+
+    function onNativeScroll() {
+      const currentY = window.scrollY;
+
+      if (dragging) {
+        headerScrollAnchor = currentY;
+        return;
+      }
+
+      if (currentY >= headerScrollAnchor) {
+        headerScrollAnchor = currentY;
+        return;
+      }
+
+      if (headerScrollAnchor - currentY >= 3) {
+        releaseInitialHeader();
+
+        const header = document.querySelector('header.site-header');
+        if (header) header.classList.remove('is-hidden');
+
+        headerScrollAnchor = currentY;
+      }
+    }
+
+    setAttribute(stage, 'data-step17-physics', 'true');
+    if (startsClosed) setAttribute(html, 'data-step17-header-hidden', 'true');
+    setAttribute(roller, 'role', 'button');
+    setAttribute(roller, 'tabindex', '0');
+
+    roller.addEventListener('touchstart', onTouchStart, {
+      passive: true,
+      signal,
+    });
+
+    roller.addEventListener('touchmove', onTouchMove, {
+      passive: false,
+      signal,
+    });
+
+    roller.addEventListener('touchend', onTouchEnd, {
+      passive: true,
+      signal,
+    });
+
+    roller.addEventListener('touchcancel', onTouchCancel, {
+      passive: true,
+      signal,
+    });
+
+    let mobilePositionFrame = 0;
+    let mobileOffset = 0;
+    let mobileCentered = false;
+    let mobileHasInteracted = false;
+
+    function moveMobilePosition(target, finished) {
+      window.cancelAnimationFrame(mobilePositionFrame);
+      dismissHint();
+
+      const from = mobileOffset;
+      const startedAt = performance.now();
+      const duration = reducedMotion.matches ? 0 : 1000;
+
+      function step(now) {
+        if (disposed) return;
+
+        const progress = duration
+          ? Math.min(1, (now - startedAt) / duration)
+          : 1;
+
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const previousOffset = mobileOffset;
+
+        mobileOffset = from + (target - from) * eased;
+        setStyle(stage, 'translate', '0px ' + mobileOffset + 'px');
+
+        if (dragging) {
+          revealed = clamp(
+            revealed + previousOffset - mobileOffset,
+            0,
+            height
+          );
+          render();
+        }
+
+        if (progress < 1) {
+          mobilePositionFrame = window.requestAnimationFrame(step);
+        } else {
+          mobilePositionFrame = 0;
+          if (finished) finished();
+        }
+      }
+
+      mobilePositionFrame = window.requestAnimationFrame(step);
+    }
+
+    function centerClosedMobile() {
+      if (mobileCentered || dragging || opening || revealed > 0.01) return;
+
+      mobileCentered = true;
+      window.scrollTo({ top: 0, behavior: 'instant' });
+
+      const rollerCenter =
+        (
+          topRoller.getBoundingClientRect().top +
+          roller.getBoundingClientRect().bottom
+        ) / 2 + window.scrollY - mobileOffset;
+
+      const view = viewport();
+      const target = Math.max(
+        0,
+        view.top + view.height / 2 - rollerCenter
+      );
+
+      moveMobilePosition(target, updateHint);
+    }
+
+    function returnMobileToTop() {
+      mobileHasInteracted = true;
+
+      if (!mobileCentered && mobileOffset === 0) return;
+      mobileCentered = false;
+      moveMobilePosition(0, updateHint);
+    }
+
+    let topCloseFrame = 0;
+
+    function cancelTopClose() {
+      window.cancelAnimationFrame(topCloseFrame);
+      topCloseFrame = 0;
+    }
+
+    function closeFromTop(event) {
+      if (
+        event.type === 'keydown' &&
+        event.key !== 'Enter' &&
+        event.key !== ' '
+      ) return;
+
+      event.preventDefault();
+      dismissHint();
+      onTouchCancel();
+      cancelTopClose();
+
+      const start = revealed;
+      const startedAt = performance.now();
+      const duration = reducedMotion.matches ? 0 : 900;
+
+      function closeStep(now) {
+        if (disposed) return;
+        const progress = duration
+          ? Math.min(1, (now - startedAt) / duration)
+          : 1;
+
+        const eased = progress * progress * (3 - 2 * progress);
+        const previous = revealed;
+        revealed = start * (1 - eased);
+
+        const paperDocumentTop =
+          stage.getBoundingClientRect().top + window.scrollY + paperTop;
+        const removed = Math.max(0, previous - revealed);
+        const targetY = Math.max(
+          0,
+          window.scrollY -
+            Math.min(removed, Math.max(0, window.scrollY - paperDocumentTop))
+        );
+
+        render();
+        window.scrollTo({ top: targetY, behavior: 'instant' });
+
+        if (progress < 1) {
+          topCloseFrame = window.requestAnimationFrame(closeStep);
+        } else {
+          topCloseFrame = 0;
+          updateHint();
+        }
+      }
+
+      topCloseFrame = window.requestAnimationFrame(closeStep);
+    }
+
+    setAttribute(topRoller, 'role', 'button');
+    setAttribute(topRoller, 'tabindex', '0');
+    setAttribute(topRoller, 'aria-label', 'Close the scroll');
+
+    topRoller.addEventListener('click', closeFromTop, { signal });
+    topRoller.addEventListener('keydown', closeFromTop, { signal });
+
+    roller.addEventListener('touchstart', cancelTopClose, {
+      passive: true,
+      signal
+    });
+    roller.addEventListener('keydown', cancelTopClose, { signal });
+
+    roller.addEventListener('keydown', onKeyDown, { signal });
+    paper.addEventListener('focusin', onFocusIn, { signal });
+
+    window.addEventListener('resize', scheduleMeasurement, {
+      passive: true,
+      signal,
+    });
+
+    window.addEventListener('scroll', onNativeScroll, {
+      passive: true,
+      signal,
+    });
+
+    document.addEventListener('visibilitychange', onVisibilityChange, {
+      signal,
+    });
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', scheduleMeasurement, {
+        passive: true,
+        signal,
+      });
+    }
+
+    const observer = typeof ResizeObserver === 'function'
+      ? new ResizeObserver(function () {
+          if (disposed) return;
+          window.cancelAnimationFrame(measurementId);
+          measurementId = 0;
+          measure(false);
+        })
+      : null;
+
+    if (observer) observer.observe(paper);
+
+    paper.addEventListener('load', scheduleMeasurement, {
+      capture: true,
+      signal,
+    });
+
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () {
+        if (!disposed) scheduleMeasurement();
+      });
+    }
+
+    function beginAutomaticOpening() {
+      if (startsClosed) return;
+      dismissHint();
+
+      if (reducedMotion.matches) {
+        revealed = height;
+        render();
+        return;
+      }
+
+      const settings = originalOpeningSettings();
+      const styles = window.getComputedStyle(paper);
+      const rootStyles = window.getComputedStyle(html);
+
+      const delayText =
+        styles.getPropertyValue('--unfurl-delay') ||
+        rootStyles.getPropertyValue('--unfurl-delay') ||
+        '0.9s';
+
+      const probe = document.createElement('div');
+      probe.style.cssText =
+        'position:fixed;visibility:hidden;pointer-events:none;' +
+        'width:0;padding:0;border:0;margin:0;box-sizing:border-box;';
+
+      probe.style.transitionDelay = delayText.trim();
+      probe.style.height =
+        styles.getPropertyValue('--scroll-unfurl-max-height').trim() ||
+        '500vh';
+
+      paper.appendChild(probe);
+
+      const delayValue =
+        window.getComputedStyle(probe).transitionDelay;
+      const delay =
+        parseFloat(delayValue) *
+        (delayValue.endsWith('ms') ? 1 : 1000);
+      const distance = probe.getBoundingClientRect().height;
+
+      probe.remove();
+
+      opening = {
+        automatic: true,
+        startedAt: performance.now() + (
+          Number.isFinite(delay) ? Math.max(0, delay) : 900
+        ),
+        start: 0,
+        remaining: distance > 0 ? distance : height,
+        duration: settings.duration,
+        points: settings.points,
+      };
+
+      velocity = 0;
+      beginFrame();
+    }
+
+    measure(true);
+    beginAutomaticOpening();
+
+    cleanupCurrent = function () {
+      disposed = true;
+      stopPeek();
+      window.cancelAnimationFrame(mobilePositionFrame);
+      cancelTopClose();
+      controller.abort();
+      stopFrame();
+      window.cancelAnimationFrame(measurementId);
+      window.clearTimeout(hintTimer);
+
+      if (observer) observer.disconnect();
+
+      hint.remove();
+
+      attributeSnapshots.forEach(function (attributes, element) {
+        attributes.forEach(function (value, name) {
+          if (value === null) element.removeAttribute(name);
+          else element.setAttribute(name, value);
+        });
+      });
+
+      styleSnapshots.forEach(function (properties, element) {
+        properties.forEach(function (saved, property) {
+          if (saved.value) {
+            element.style.setProperty(property, saved.value, saved.priority);
+          } else {
+            element.style.removeProperty(property);
+          }
+        });
+      });
+    };
+  }
+
+  function destroy() {
+    lifetime.abort();
+    if (cleanupCurrent) cleanupCurrent();
+    cleanupCurrent = null;
+  }
+
+  window[key] = destroy;
+
+  mobile.addEventListener('change', initialize, {
+    signal: lifetime.signal,
+  });
+
+  document.addEventListener('astro:before-swap', function () {
+    if (cleanupCurrent) cleanupCurrent();
+    cleanupCurrent = null;
+  }, { signal: lifetime.signal });
+
+  document.addEventListener('astro:page-load', initialize, {
+    signal: lifetime.signal,
+  });
+
+  initialize();
+})();
+    </script>
+    <!-- STEP17_MOBILE_SCROLL_PHYSICS_END -->
+    <!-- SHARED_SCROLL_MOTION_V1 -->
+    <script is:inline>
+(function sharedScrollHelpers() {
+
+  const pendingUnfurls = new WeakMap();
+
+  window.scrollMovePosition = function (stage, targetY, from) {
+
+    const styles = window.getComputedStyle(stage);
+
+    const durationText = styles
+
+      .getPropertyValue('--scroll-move-duration')
+
+      .trim();
+
+    const match = durationText.match(/^([\d.]+)(ms|s)$/i);
+
+    const duration = match
+
+      ? Number(match[1]) *
+
+        (match[2].toLowerCase() === 's' ? 1000 : 1)
+
+      : 1000;
+
+    const easing =
+
+      styles.getPropertyValue('--scroll-move-easing').trim() ||
+
+      'cubic-bezier(0.25, 0.1, 0.25, 1)';
+
+    const origin = from || styles.translate;
+
+    return stage.animate(
+
+      [
+
+        { translate: origin === 'none' ? '0px 0px' : origin },
+
+        { translate: '0px ' + targetY + 'px' }
+
+      ],
+
+      { duration, easing, fill: 'both' }
+
+    );
+
+  };
+
+  window.prepareScrollUnfurl = function (paper) {
+
+    pendingUnfurls.get(paper)?.();
+
+    const names = [
+
+      'animation',
+
+      'height',
+
+      'min-height',
+
+      'max-height'
+
+    ];
+
+    const saved = names.map(name => ({
+
+      name,
+
+      value: paper.style.getPropertyValue(name),
+
+      priority: paper.style.getPropertyPriority(name)
+
+    }));
+
+    let targetHeight;
+
+    try {
+
+      paper.style.setProperty('animation', 'none', 'important');
+
+      paper.style.setProperty('height', 'auto', 'important');
+
+      paper.style.setProperty(
+
+        'min-height',
+
+        'var(--scroll-unfurl-min-height, 72vh)',
+
+        'important'
+
+      );
+
+      paper.style.setProperty('max-height', 'none', 'important');
+
+      targetHeight = window.getComputedStyle(paper).height;
+
+    } finally {
+
+      saved.forEach(({ name, value, priority }) => {
+
+        if (value) {
+
+          paper.style.setProperty(name, value, priority);
+
+        } else {
+
+          paper.style.removeProperty(name);
+
+        }
+
+      });
+
+    }
+
+    paper.style.setProperty(
+
+      '--scroll-unfurl-max-height',
+
+      targetHeight
+
+    );
+
+    function detach() {
+
+      paper.removeEventListener('animationend', onEnd);
+
+      pendingUnfurls.delete(paper);
+
+    }
+
+    function onEnd(event) {
+
+      if (
+
+        event.target !== paper ||
+
+        event.animationName !== 'scrollUnfurlDown'
+
+      ) return;
+
+      paper.style.setProperty('--scroll-unfurl-max-height', 'none');
+
+      detach();
+
+    }
+
+    pendingUnfurls.set(paper, detach);
+
+    paper.addEventListener('animationend', onEnd);
+
+  };
+
+})();
+    </script>
+    <!-- HOME_DESKTOP_CLICK_V1 -->
+    <script is:inline>
+  (function () {
+
+    const key = '__homeDesktopClickUnfurl';
+
+    if (typeof window[key] === 'function') window[key]();
+
+    const lifetime = new AbortController();
+
+    const desktop = window.matchMedia('(min-width: 681px)');
+
+    const reduced = window.matchMedia(
+
+      '(prefers-reduced-motion: reduce)'
+
+    );
+
+    let cleanup = null;
+
+    function initialize() {
+
+      if (cleanup) cleanup();
+
+      cleanup = null;
+
+      if (!desktop.matches) return;
+
+      const stage = document.querySelector(
+
+        'body > .scroll-stage[data-desktop-click-unfurl="true"]'
+
+      );
+
+      if (!stage) return;
+
+      const paper = stage.querySelector(
+
+        ':scope > main.washi-scroll'
+
+      );
+
+      const rollers = [...stage.querySelectorAll(
+
+        ':scope > .scroll-roller-top, ' +
+
+        ':scope > .scroll-roller-bottom'
+
+      )];
+
+      if (!paper || rollers.length !== 2) return;
+
+      const controls = new AbortController();
+
+      const snapshots = rollers.map(element => ({
+
+        element,
+
+        attributes: [
+
+          'role',
+
+          'tabindex',
+
+          'aria-label',
+
+          'aria-expanded'
+
+        ].map(name => [name, element.getAttribute(name)])
+
+      }));
+
+      const previousInert = paper.inert;
+
+      let disposed = false;
+
+      let activated = false;
+
+      let movement = null;
+
+      const hint = document.createElement('div');
+
+      hint.className = 'home-click-hint';
+
+      hint.setAttribute('aria-hidden', 'true');
+
+      // HOME_CLICK_POSITION_V2
+      hint.innerHTML =
+        '<svg viewBox="0 0 36 40" width="26" height="29" aria-hidden="true">' +
+          '<g class="home-click-pointer">' +
+            '<path d="M12 11V31L17 26L21 35L25 33L21 24H29Z"/>' +
+          '</g>' +
+          '<g class="home-click-rays">' +
+            '<path d="M12 2V5M4 5L6.5 7.5M2 13H5M20 5L17.5 7.5M4 21L6.5 18.5"/>' +
+          '</g>' +
+        '</svg>' +
+        '<span>Click to unfurl</span>';
+
+      stage.appendChild(hint);
+
+      stage.dataset.homeUnfurl = 'waiting';
+
+      paper.inert = true;
+
+      function restoreControls() {
+
+        snapshots.forEach(({ element, attributes }) => {
+
+          attributes.forEach(([name, value]) => {
+
+            if (value === null) element.removeAttribute(name);
+
+            else element.setAttribute(name, value);
+
+          });
+
+        });
+
+      }
+
+      async function open() {
+
+        if (activated || disposed) return;
+
+        activated = true;
+
+        const from = window.getComputedStyle(stage).translate;
+
+        stage.dataset.homeUnfurl = 'moving';
+
+        if (!reduced.matches) {
+
+          movement = window.scrollMovePosition(stage, 0, from);
+
+          await movement.finished.catch(() => {});
+
+        }
+
+        if (disposed) return;
+
+        window.prepareScrollUnfurl(paper);
+        stage.dataset.homeUnfurl = 'opening';
+
+        if (movement) {
+
+          movement.cancel();
+
+          movement = null;
+
+        }
+
+        paper.inert = previousInert;
+
+        restoreControls();
+
+        hint.remove();
+
+      }
+
+      rollers.forEach(roller => {
+
+        roller.setAttribute('role', 'button');
+
+        roller.setAttribute('tabindex', '0');
+
+        roller.setAttribute(
+
+          'aria-label',
+
+          'Click to unfurl the scroll'
+
+        );
+
+        roller.setAttribute('aria-expanded', 'false');
+
+        roller.addEventListener('click', open, {
+
+          signal: controls.signal
+
+        });
+
+        roller.addEventListener('keydown', event => {
+
+          if (event.key === 'Enter' || event.key === ' ') {
+
+            event.preventDefault();
+
+            void open();
+
+          }
+
+        }, {
+
+          signal: controls.signal
+
+        });
+
+      });
+
+      cleanup = () => {
+
+        disposed = true;
+
+        controls.abort();
+
+        if (movement) movement.cancel();
+
+        hint.remove();
+
+        paper.inert = previousInert;
+
+        restoreControls();
+
+        delete stage.dataset.homeUnfurl;
+
+      };
+
+    }
+
+    function destroy() {
+
+      lifetime.abort();
+
+      if (cleanup) cleanup();
+
+      cleanup = null;
+
+    }
+
+    window[key] = destroy;
+
+    desktop.addEventListener('change', initialize, {
+
+      signal: lifetime.signal
+
+    });
+
+    document.addEventListener('astro:page-load', initialize, {
+
+      signal: lifetime.signal
+
+    });
+
+    document.addEventListener('astro:before-swap', () => {
+
+      if (cleanup) cleanup();
+
+      cleanup = null;
+
+    }, {
+
+      signal: lifetime.signal
+
+    });
+
+    initialize();
+
+  })();
+    </script>
+
+    <!-- SCROLL_CLOSE_NEWSLETTER_V1 desktop and newsletter -->
+    <script is:inline>
+(function desktopAndNewsletterCode() {
+  const key = '__scrollCloseNewsletterV1';
+  if (typeof window[key] === 'function') window[key]();
+
+  const lifetime = new AbortController();
+  const desktop = window.matchMedia('(min-width: 681px)');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let cleanupPage = () => {};
+
+  function initialize() {
+    cleanupPage();
+
+    const stage = document.querySelector('body > .scroll-stage');
+    const paper = stage?.querySelector(':scope > main.washi-scroll');
+    const top = stage?.querySelector(':scope > .scroll-roller-top');
+    const bottom = stage?.querySelector(':scope > .scroll-roller-bottom');
+    const spacer = document.querySelector(
+      'body > .apple-reveal-stage > .spacer-for-apple'
+    );
+
+    if (!stage || !paper || !top || !bottom || !spacer) return;
+
+    if (
+      desktop.matches &&
+      !reduced.matches &&
+      stage.dataset.desktopClickUnfurl !== 'true' &&
+      !paper.hasAttribute('data-initial-unfurl-prepared')
+    ) {
+      window.prepareScrollUnfurl(paper);
+      paper.setAttribute('data-initial-unfurl-prepared', '');
+    }
+
+    const controls = new AbortController();
+    const signal = controls.signal;
+    const previousInert = paper.inert;
+    const previousGap = spacer.style.getPropertyValue('--newsletter-gap');
+    const snapshots = [top, bottom].map(element => ({
+      element,
+      attributes: ['role', 'tabindex', 'aria-label', 'aria-expanded']
+        .map(name => [name, element.getAttribute(name)])
+    }));
+
+    let frame = 0;
+    let disposed = false;
+    let owned = false;
+    let closed = false;
+    let closing = false;
+
+    function placeNewsletter() {
+      if (disposed) return;
+
+      const visual = window.visualViewport;
+      const viewportHeight = Math.max(
+        window.innerHeight,
+        visual ? visual.height + visual.offsetTop : 0
+      );
+
+      const spacerTop =
+        spacer.getBoundingClientRect().top + window.scrollY;
+
+      const gap = Math.max(24, viewportHeight + 24 - spacerTop);
+      spacer.style.setProperty('--newsletter-gap', gap + 'px');
+    }
+
+    function homeIsWaiting() {
+      return (
+        stage.dataset.desktopClickUnfurl === 'true' &&
+        stage.dataset.homeUnfurl !== 'opening'
+      );
+    }
+
+    function refreshControls() {
+      if (!desktop.matches || (!owned && homeIsWaiting())) return;
+
+      top.setAttribute('role', 'button');
+      top.setAttribute('tabindex', '0');
+      top.setAttribute(
+        'aria-label',
+        closed || closing ? 'Open the scroll' : 'Close the scroll'
+      );
+      top.setAttribute('aria-expanded', String(!closed && !closing));
+
+      if (owned) {
+        bottom.setAttribute('role', 'button');
+        bottom.setAttribute('tabindex', '0');
+        bottom.setAttribute(
+          'aria-label',
+          closed || closing ? 'Open the scroll' : 'Scroll is open'
+        );
+        bottom.setAttribute('aria-expanded', String(!closed && !closing));
+      }
+    }
+
+    const savedStageTranslate = stage.style.translate;
+    const savedPaperAnimation = paper.style.animation;
+
+    let repeatMovement = null;
+    let repeatHintTimer = 0;
+    let repeatEpoch = 0;
+
+    const repeatHint =
+      stage.querySelector('.home-click-hint')?.cloneNode(true) ||
+      document.createElement('div');
+
+    repeatHint.className = 'home-click-hint';
+
+    if (!repeatHint.innerHTML.trim()) {
+      repeatHint.innerHTML =
+        '<svg viewBox="0 0 36 40" width="26" height="29" aria-hidden="true">' +
+          '<g class="home-click-pointer">' +
+            '<path d="M12 11V31L17 26L21 35L25 33L21 24H29Z"/>' +
+          '</g>' +
+          '<g class="home-click-rays">' +
+            '<path d="M12 2V5M4 5L6.5 7.5M2 13H5M20 5L17.5 7.5"/>' +
+          '</g>' +
+        '</svg><span>Click to unfurl</span>';
+    }
+
+    repeatHint.setAttribute('aria-hidden', 'true');
+    repeatHint.style.display = 'none';
+    repeatHint.style.animation = 'none';
+    repeatHint.style.opacity = '1';
+    repeatHint.style.transform = 'translateX(-50%)';
+    stage.appendChild(repeatHint);
+
+    function hideRepeatHint() {
+      window.clearTimeout(repeatHintTimer);
+      repeatHintTimer = 0;
+      repeatHint.style.display = 'none';
+    }
+
+    function showRepeatHintLater() {
+      hideRepeatHint();
+      repeatHintTimer = window.setTimeout(() => {
+        repeatHintTimer = 0;
+        if (!disposed && closed && !closing) {
+          repeatHint.style.display = 'flex';
+          repeatHint.style.animation = 'homeClickHintIn 450ms ease both';
+        }
+      }, 1000);
+    }
+
+    async function moveDesktopPosition(target) {
+      if (repeatMovement) repeatMovement.cancel();
+
+      const from = window.getComputedStyle(stage).translate;
+      const destination = '0px ' + target + 'px';
+
+      if (!reduced.matches) {
+        repeatMovement = window.scrollMovePosition(stage, target, from);
+        const current = repeatMovement;
+        await current.finished.catch(() => {});
+
+        if (disposed || repeatMovement !== current) return false;
+
+        stage.style.translate = destination;
+        current.cancel();
+        repeatMovement = null;
+      } else {
+        stage.style.translate = destination;
+      }
+
+      placeNewsletter();
+      return true;
+    }
+
+    async function animateScroll(shouldClose) {
+      const epoch = ++repeatEpoch;
+      hideRepeatHint();
+      window.cancelAnimationFrame(frame);
+
+      if (repeatMovement) {
+        stage.style.translate = window.getComputedStyle(stage).translate;
+        repeatMovement.cancel();
+        repeatMovement = null;
+      }
+
+      owned = true;
+
+      if (!shouldClose) {
+        closed = false;
+        closing = false;
+        refreshControls();
+
+        const completed = await moveDesktopPosition(0);
+        if (!completed || disposed || epoch !== repeatEpoch) return;
+
+        stage.dataset.homeUnfurl = 'opening';
+        paper.style.animation = 'none';
+        delete stage.dataset.wholeScrollControl;
+        stage.style.removeProperty('--whole-scroll-height');
+
+        void paper.offsetHeight;
+
+        paper.inert = previousInert;
+        window.prepareScrollUnfurl(paper);
+        paper.style.animation = 'scrollUnfurlDown var(--unfurl-duration, 8s) ' +
+          'var(--unfurl-easing, cubic-bezier(0.33, 1, 0.62, 1)) ' +
+          'var(--pause-duration, 0.1s) both';
+
+        refreshControls();
+        placeNewsletter();
+        return;
+      }
+
+      const from = paper.getBoundingClientRect().height;
+      stage.style.setProperty('--whole-scroll-height', from + 'px');
+      stage.dataset.wholeScrollControl = 'true';
+
+      closing = true;
+      closed = false;
+      top.focus({ preventScroll: true });
+      paper.inert = true;
+      refreshControls();
+
+      const startedAt = performance.now();
+      const duration = reduced.matches ? 0 : 900;
+      let previousHeight = from;
+
+      function step(now) {
+        if (disposed || epoch !== repeatEpoch) return;
+
+        const progress = duration
+          ? Math.min(1, (now - startedAt) / duration)
+          : 1;
+        const eased = progress * progress * (3 - 2 * progress);
+        const nextHeight = from * (1 - eased);
+
+        const documentTop =
+          paper.getBoundingClientRect().top + window.scrollY;
+        const removed = Math.max(0, previousHeight - nextHeight);
+        const targetY = Math.max(
+          0,
+          window.scrollY -
+            Math.min(removed, Math.max(0, window.scrollY - documentTop))
+        );
+
+        stage.style.setProperty('--whole-scroll-height', nextHeight + 'px');
+        previousHeight = nextHeight;
+        placeNewsletter();
+        window.scrollTo({ top: targetY, behavior: 'instant' });
+
+        if (progress < 1) {
+          frame = window.requestAnimationFrame(step);
+          return;
+        }
+
+        frame = 0;
+        closed = true;
+        closing = false;
+        refreshControls();
+
+        window.scrollTo({ top: 0, behavior: 'instant' });
+
+        const currentTranslate = window.getComputedStyle(stage).translate;
+        const offset = currentTranslate === 'none'
+          ? 0
+          : parseFloat(currentTranslate.split(/\s+/)[1]) || 0;
+
+        const center =
+          (
+            top.getBoundingClientRect().top +
+            bottom.getBoundingClientRect().bottom
+          ) / 2 + window.scrollY - offset;
+
+        const visual = window.visualViewport;
+        const screenCenter = visual
+          ? visual.offsetTop + visual.height / 2
+          : window.innerHeight / 2;
+
+        moveDesktopPosition(Math.max(0, screenCenter - center)).then(ok => {
+          if (ok && !disposed && epoch === repeatEpoch && closed) {
+            showRepeatHintLater();
+          }
+        });
+      }
+
+      frame = window.requestAnimationFrame(step);
+    }
+
+    function onRoller(event) {
+      if (!desktop.matches) return;
+
+      if (
+        event.type === 'keydown' &&
+        event.key !== 'Enter' &&
+        event.key !== ' '
+      ) return;
+
+      if (!owned && homeIsWaiting()) return;
+
+      const isTop = event.currentTarget === top;
+      if (!isTop && !closed && !closing) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      animateScroll(closed || closing ? false : true);
+    }
+
+    for (const roller of [top, bottom]) {
+      roller.addEventListener('click', onRoller, {
+        capture: true,
+        signal
+      });
+      roller.addEventListener('keydown', onRoller, {
+        capture: true,
+        signal
+      });
+    }
+
+    const attributes = new MutationObserver(() => {
+      refreshControls();
+      placeNewsletter();
+    });
+    attributes.observe(stage, {
+      attributes: true,
+      attributeFilter: ['data-home-unfurl']
+    });
+
+    const sizes = new ResizeObserver(placeNewsletter);
+    sizes.observe(stage);
+
+    window.addEventListener('resize', placeNewsletter, {
+      passive: true,
+      signal
+    });
+    window.visualViewport?.addEventListener('resize', placeNewsletter, {
+      passive: true,
+      signal
+    });
+    document.fonts?.ready.then(() => {
+      if (!disposed) placeNewsletter();
+    });
+
+    refreshControls();
+    placeNewsletter();
+
+    cleanupPage = () => {
+      disposed = true;
+      window.cancelAnimationFrame(frame);
+      controls.abort();
+      repeatEpoch++;
+      hideRepeatHint();
+      if (repeatMovement) repeatMovement.cancel();
+      repeatHint.remove();
+      stage.style.translate = savedStageTranslate;
+      paper.style.animation = savedPaperAnimation;
+      sizes.disconnect();
+      attributes.disconnect();
+
+      if (owned) {
+        delete stage.dataset.wholeScrollControl;
+        stage.style.removeProperty('--whole-scroll-height');
+        paper.inert = previousInert;
+      }
+
+      if (previousGap) {
+        spacer.style.setProperty('--newsletter-gap', previousGap);
+      } else {
+        spacer.style.removeProperty('--newsletter-gap');
+      }
+
+      snapshots.forEach(({ element, attributes }) => {
+        attributes.forEach(([name, value]) => {
+          if (value === null) element.removeAttribute(name);
+          else element.setAttribute(name, value);
+        });
+      });
+    };
+  }
+
+  desktop.addEventListener('change', initialize, {
+    signal: lifetime.signal
+  });
+  document.addEventListener('astro:page-load', initialize, {
+    signal: lifetime.signal
+  });
+  document.addEventListener('astro:before-swap', () => cleanupPage(), {
+    signal: lifetime.signal
+  });
+
+  window[key] = () => {
+    lifetime.abort();
+    cleanupPage();
+  };
+
+  initialize();
+})();
+    </script>
+    <!-- STEP13_MAILERLITE_SCRIPT_START -->
+    <script is:inline>
+      (function () {
+        const form = document.getElementById('global-newsletter-form');
+        const box = document.getElementById('global-newsletter-box');
+        const msgEl = document.getElementById('global-newsletter-msg');
+
+        if (!form || !box || !msgEl) return;
+
+        form.addEventListener('submit', async function (event) {
+          event.preventDefault();
+
+          const honeypot = form.querySelector('input[name="confirm_email_honeypot"]');
+          if (honeypot && honeypot.value) {
+            return;
+          }
+
+          const emailInput = form.querySelector('input[name="fields[email]"]');
+          const email = emailInput ? emailInput.value.trim() : '';
+
+          if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            msgEl.hidden = false;
+            msgEl.className = 'newsletter-response-msg is-error';
+            msgEl.textContent = 'Please enter a valid email address.';
+            return;
+          }
+
+          const formActionUrl = (box.getAttribute('data-form-action') || '').trim();
+          const submitBtn = form.querySelector('.newsletter-submit-btn');
+          if (submitBtn) submitBtn.disabled = true;
+
+          const isConfigured =
+            formActionUrl &&
+            !formActionUrl.includes('YOUR_ACCOUNT_ID') &&
+            !formActionUrl.includes('YOUR_FORM_ID') &&
+            formActionUrl !== '#';
+
+          if (isConfigured) {
+            try {
+              const formData = new FormData(form);
+              await fetch(formActionUrl, {
+                method: 'POST',
+                body: formData,
+                mode: 'no-cors',
+              });
+              form.reset();
+              msgEl.hidden = false;
+              msgEl.className = 'newsletter-response-msg is-success';
+              msgEl.textContent =
+                '印 Thank you. Your address has been inscribed in the dispatch ledger. Please check your inbox to confirm.';
+            } catch (_err) {
+              msgEl.hidden = false;
+              msgEl.className = 'newsletter-response-msg is-error';
+              msgEl.textContent =
+                'Unable to reach the dispatch ledger right now. Please try again shortly.';
+            } finally {
+              if (submitBtn) submitBtn.disabled = false;
+            }
+          } else {
+            form.reset();
+            if (submitBtn) submitBtn.disabled = false;
+            msgEl.hidden = false;
+            msgEl.className = 'newsletter-response-msg is-success';
+            msgEl.textContent =
+              '印 Thank you. Your address has been inscribed in the dispatch ledger. Please check your inbox to confirm. (Local Preview Mode: To enable live subscriptions, paste your MailerLite Form Action URL into "mailerlite.formActionUrl" inside src/data/siteConfig.json.)';
+          }
+        });
+      })();
+    </script>
+    <!-- STEP13_MAILERLITE_SCRIPT_END -->
+  </body>
+</html>
