@@ -998,6 +998,43 @@ header.site-header {
     transform: translate(-50%, 0);
   }
 
+  .step17-open-all-btn {
+    position: absolute;
+    left: 50%;
+    z-index: 15;
+    padding: 6px 20px;
+    background: transparent;
+    color: #fff;
+    border: 1.5px solid rgba(255, 255, 255, 0.9);
+    border-radius: 9999px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    line-height: 1.2;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.75);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    transform: translate(-50%, -5px);
+    transition:
+      opacity 320ms ease,
+      transform 400ms cubic-bezier(0.22, 1, 0.36, 1),
+      background 200ms ease;
+    pointer-events: none;
+    user-select: none;
+    cursor: pointer;
+  }
+
+  .step17-open-all-btn.is-visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    pointer-events: auto;
+  }
+
+  .step17-open-all-btn:active {
+    background: rgba(255, 255, 255, 0.14);
+  }
+
   .step17-unfurl-arrow {
     display: block;
     color: #fff;
@@ -1022,6 +1059,9 @@ header.site-header {
 
 @media (min-width: 681px) {
   .step17-unfurl-tooltip {
+    display: none !important;
+  }
+  .step17-open-all-btn {
     display: none !important;
   }
 }
@@ -1707,5 +1747,30 @@ body > .scroll-stage > .scroll-roller-top[role="button"]:focus-visible {
 
     /* Minimum opening/completion duration, in milliseconds. */
     --mobile-unfurl-min-duration: 1200;
+
+    /* Minimum revealed paper height (px) before showing "Open all". */
+    --mobile-open-all-threshold: 48;
+  }
+}
+
+/* SNEAK_PEEK_AND_NEWSLETTER_DELAY_V1 */
+:root {
+  /* Periodic "yo-yo" sneak peek configuration */
+  --sneak-peek-cycle: 5200ms;     /* Total period between bounce starts */
+  --sneak-peek-phase: 2200ms;     /* Initial delay / phase offset */
+  --sneak-peek-duration: 950ms;   /* Duration of one down-and-up yo-yo motion */
+  --sneak-peek-distance: 26px;    /* Peak unfurl distance in px */
+
+  /* Delay before recalculating page height / moving newsletter up after scroll closes */
+  --newsletter-close-delay: 450ms;
+}
+
+@media (min-width: 681px) {
+  body > .scroll-stage[data-desktop-click-unfurl="true"]:not([data-home-unfurl="opening"]) > main.washi-scroll,
+  body > .scroll-stage[data-whole-scroll-control="true"][data-scroll-closed="true"] > main.washi-scroll {
+    height: var(--sneak-peek-offset, 0px) !important;
+    min-height: var(--sneak-peek-offset, 0px) !important;
+    max-height: var(--sneak-peek-offset, 0px) !important;
+    opacity: var(--sneak-peek-opacity, 0) !important;
   }
 }
