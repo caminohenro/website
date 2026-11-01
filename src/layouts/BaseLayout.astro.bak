@@ -1,0 +1,1523 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import siteConfig from '../data/siteConfig.json';
+import '../styles/global.css';
+
+// Per-page scroll behavior. Add a normalized pathname here to override the
+// defaults without changing the physics implementation.
+const defaultScrollPageSettings = {
+  mobilePhysics: true,
+  initiallyClosed: false,
+  openingPhysics: true,
+  desktopClickUnfurl: false,
+  openAllThreshold: 84,
+  openAllDelay: 2000,
+  newsletterCloseDelay: 140,
+  sneakPeek: {
+    enabled: true,
+    cycleMs: 2000,
+    phaseMs: 650,
+    durationMs: 760,
+    distancePx: 24,
+  },
+};
+
+type ScrollPageOverrides = Partial<Omit<typeof defaultScrollPageSettings, 'sneakPeek'>> & {
+  sneakPeek?: Partial<typeof defaultScrollPageSettings.sneakPeek>;
+};
+
+const scrollPageSettingsByPath: Record<string, ScrollPageOverrides> = {
+  '/': {
+    initiallyClosed: true,
+    desktopClickUnfurl: true,
+  },
+};
+
+const normalizedScrollPath = Astro.url.pathname === '/'
+  ? '/'
+  : Astro.url.pathname.replace(/\/+$/, '') + '/';
+const pageScrollSettings = {
+  ...defaultScrollPageSettings,
+  ...(scrollPageSettingsByPath[normalizedScrollPath] || {}),
+  sneakPeek: {
+    ...defaultScrollPageSettings.sneakPeek,
+    ...(scrollPageSettingsByPath[normalizedScrollPath]?.sneakPeek || {}),
+  },
+};
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = siteConfig.siteTitleJp + ' | ' + siteConfig.siteTitleEn,
+  description = siteConfig.tagline,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href={siteConfig.crestImage} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+JP:wght@400;600&family=Shippori+Mincho:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="selection:bg-[#6E2B25] selection:text-[#E6DFCF]">
+    <!-- LAYER 1: Fixed Road & Apple Background -->
+    <div
+      class="fixed-backdrop"
+      style="background-image: url('/assets/apple-bg.jpeg'), url('/assets/apple-diff.jpg');"
+    ></div>
+    <div class="backdrop-dimmer" id="dimmer"></div>
+
+    <!-- PERSISTENT WEBSITE HEADER (Outside the Scroll) -->
+    <Header />
+
+    <!-- LAYER 2: THE INDIVIDUAL PAGE SCROLL WITH WOODEN ROLLERS -->
+   <div
+      class="scroll-stage"
+      data-desktop-click-unfurl={pageScrollSettings.desktopClickUnfurl ? 'true' : undefined}
+      data-scroll-initial-wait={!pageScrollSettings.desktopClickUnfurl ? 'true' : undefined}
+      data-mobile-physics={pageScrollSettings.mobilePhysics ? 'true' : undefined}
+      data-mobile-start-closed={pageScrollSettings.initiallyClosed ? 'true' : 'false'}
+      data-mobile-opening-physics={pageScrollSettings.openingPhysics ? 'true' : 'false'}
+      data-open-all-threshold={pageScrollSettings.openAllThreshold}
+      data-open-all-delay={pageScrollSettings.openAllDelay}
+      data-newsletter-close-delay={pageScrollSettings.newsletterCloseDelay}
+      data-sneak-peek-enabled={pageScrollSettings.sneakPeek.enabled ? 'true' : 'false'}
+      data-sneak-peek-cycle={pageScrollSettings.sneakPeek.cycleMs}
+      data-sneak-peek-phase={pageScrollSettings.sneakPeek.phaseMs}
+      data-sneak-peek-duration={pageScrollSettings.sneakPeek.durationMs}
+      data-sneak-peek-distance={pageScrollSettings.sneakPeek.distancePx}
+    >
+      <div class="scroll-roller-top"></div>
+      <main class="washi-scroll">
+        <slot />
+        <Footer />
+      </main>
+      <div class="scroll-roller-bottom"></div>
+    </div>
+
+    <!-- THE SURPRISE REVEAL AT THE BOTTOM OF EVERY PAGE -->
+    <div class="apple-reveal-stage">
+      <div class="spacer-for-apple"></div>
+      <div
+        class="global-newsletter-box"
+        id="global-newsletter-box"
+        data-form-action={siteConfig.mailerlite?.formActionUrl || ''}
+      >
+        <div class="newsletter-eyebrow">書簡 • DISPATCHES</div>
+        <h2 class="newsletter-heading">Pilgrimage Newsletter</h2>
+        <p class="newsletter-copy">
+          No noise, no algorithms—only a quiet note in your inbox whenever a new dispatch is written from the trail. Sent via MailerLite.
+        </p>
+        <form
+          class="newsletter-form"
+          id="global-newsletter-form"
+          action={siteConfig.mailerlite?.formActionUrl || '#'}
+          method="post"
+          novalidate
+        >
+          <input
+            type="email"
+            name="fields[email]"
+            class="newsletter-input"
+            placeholder="Enter your email address..."
+            required
+            aria-label="Email Address"
+          />
+          <div style="position:absolute; left:-5000px;" aria-hidden="true">
+            <input
+              type="text"
+              name="confirm_email_honeypot"
+              tabindex="-1"
+              value=""
+              autocomplete="off"
+            />
+          </div>
+          <input type="hidden" name="ml-submit" value="1" />
+          <input type="hidden" name="anticsrf" value="true" />
+          <button type="submit" class="newsletter-submit-btn">
+            Subscribe to Dispatches 印
+          </button>
+        </form>
+        <div
+          class="newsletter-response-msg"
+          id="global-newsletter-msg"
+          role="status"
+          aria-live="polite"
+          hidden
+        ></div>
+      </div>
+    </div>
+
+    <script is:inline>
+      // Gently brighten the road & apple as the user scrolls past the bottom roller
+      window.addEventListener('scroll', function () {
+        const dimmer = document.getElementById('dimmer');
+        if (!dimmer) return;
+        const scrollBottom = window.scrollY + window.innerHeight;
+        const docHeight = document.documentElement.scrollHeight;
+        const revealProgress = Math.max(0, Math.min(1, (scrollBottom - (docHeight - window.innerHeight * 0.85)) / (window.innerHeight * 0.6)));
+        const centerAlpha = (0.58 - revealProgress * 0.48).toFixed(2);
+        const edgeAlpha = (0.84 - revealProgress * 0.35).toFixed(2);
+        dimmer.style.setProperty('--center-dim', centerAlpha);
+        dimmer.style.setProperty('--edge-dim', edgeAlpha);
+      });
+    </script>
+    <!-- INITIAL_SCROLL_READY_V1 -->
+    <script is:inline>
+(function readinessCode() {
+
+  // INITIAL_SCROLL_READY_V1
+
+  window.scrollContentReady = async function (paper) {
+
+    if (document.readyState === 'loading') {
+
+      await new Promise(resolve =>
+
+        document.addEventListener('DOMContentLoaded', resolve, {
+
+          once: true
+
+        })
+
+      );
+
+    }
+
+
+
+    if (!paper.isConnected) return;
+
+
+
+    // Page scripts remove these markers after their first render,
+
+    // including when they render fallback content.
+
+    await new Promise(resolve => {
+
+      const pending = () =>
+
+        paper.querySelector('[data-scroll-loading="true"]');
+
+
+
+      if (!pending()) {
+
+        resolve();
+
+        return;
+
+      }
+
+
+
+      const observer = new MutationObserver(() => {
+
+        if (!pending() || !paper.isConnected) {
+
+          observer.disconnect();
+
+          document.removeEventListener('astro:before-swap', cancel);
+
+          resolve();
+
+        }
+
+      });
+
+
+
+      function cancel() {
+
+        observer.disconnect();
+
+        document.removeEventListener('astro:before-swap', cancel);
+
+        resolve();
+
+      }
+
+
+
+      observer.observe(paper, {
+
+        subtree: true,
+
+        attributes: true,
+
+        childList: true
+
+      });
+
+
+
+      document.addEventListener('astro:before-swap', cancel, {
+
+        once: true
+
+      });
+
+    });
+
+
+
+    if (!paper.isConnected) return;
+
+
+
+    // Make newly rendered text participate in font loading.
+
+    void paper.offsetHeight;
+
+    if (document.fonts) await document.fonts.ready;
+
+  };
+
+})();
+    </script>
+  <!-- STEP17_MOBILE_SCROLL_PHYSICS_START -->
+    <script is:inline>
+      // Keep the initial mobile clip from flashing open while the extracted
+      // physics module is being loaded and initialized.
+      if (window.matchMedia('(max-width: 680px)').matches) {
+        const pendingStage = document.querySelector('body > .scroll-stage');
+        if (pendingStage?.dataset.mobilePhysics === 'true') {
+          pendingStage.setAttribute('data-mobile-physics-pending', 'true');
+        } else {
+          pendingStage?.removeAttribute('data-scroll-initial-wait');
+        }
+      }
+    </script>
+    <style is:inline>
+      @media (max-width: 680px) {
+        body > .scroll-stage[data-mobile-physics-pending="true"] {
+          visibility: hidden !important;
+        }
+      }
+    </style>
+    <script>
+      import '../components/ScrollPhysics.js';
+    </script>
+    <!-- STEP17_MOBILE_SCROLL_PHYSICS_END -->
+    <!-- SHARED_SCROLL_MOTION_V1 -->
+    <script is:inline>
+(function sharedScrollHelpers() {
+
+  const pendingUnfurls = new WeakMap();
+
+
+
+  window.scrollMovePosition = function (stage, targetY, from) {
+
+    const styles = window.getComputedStyle(stage);
+
+    const durationText = styles
+
+      .getPropertyValue('--scroll-move-duration')
+
+      .trim();
+
+
+
+    const match = durationText.match(/^([\d.]+)(ms|s)$/i);
+
+
+
+    const duration = match
+
+      ? Number(match[1]) *
+
+        (match[2].toLowerCase() === 's' ? 1000 : 1)
+
+      : 1000;
+
+
+
+    const easing =
+
+      styles.getPropertyValue('--scroll-move-easing').trim() ||
+
+      'cubic-bezier(0.25, 0.1, 0.25, 1)';
+
+
+
+    const origin = from || styles.translate;
+
+
+
+    return stage.animate(
+
+      [
+
+        { translate: origin === 'none' ? '0px 0px' : origin },
+
+        { translate: '0px ' + targetY + 'px' }
+
+      ],
+
+      { duration, easing, fill: 'both' }
+
+    );
+
+  };
+
+
+
+  window.prepareScrollUnfurl = function (paper) {
+
+    // Remove an unfinished entrance's previous completion listener.
+
+    pendingUnfurls.get(paper)?.();
+
+
+
+    const names = [
+
+      'animation',
+
+      'height',
+
+      'min-height',
+
+      'max-height'
+
+    ];
+
+
+
+    const saved = names.map(name => ({
+
+      name,
+
+      value: paper.style.getPropertyValue(name),
+
+      priority: paper.style.getPropertyPriority(name)
+
+    }));
+
+
+
+    let targetHeight;
+
+
+
+    try {
+
+      // Measure natural height synchronously, before the next paint.
+
+      paper.style.setProperty('animation', 'none', 'important');
+
+      paper.style.setProperty('height', 'auto', 'important');
+
+      paper.style.setProperty(
+
+        'min-height',
+
+        'var(--scroll-unfurl-min-height, 72vh)',
+
+        'important'
+
+      );
+
+      paper.style.setProperty('max-height', 'none', 'important');
+
+
+
+      targetHeight = window.getComputedStyle(paper).height;
+
+    } finally {
+
+      saved.forEach(({ name, value, priority }) => {
+
+        if (value) {
+
+          paper.style.setProperty(name, value, priority);
+
+        } else {
+
+          paper.style.removeProperty(name);
+
+        }
+
+      });
+
+    }
+
+
+
+    paper.style.setProperty(
+
+      '--scroll-unfurl-max-height',
+
+      targetHeight
+
+    );
+
+
+
+    function detach() {
+
+      paper.removeEventListener('animationend', onEnd);
+
+      pendingUnfurls.delete(paper);
+
+    }
+
+
+
+    function onEnd(event) {
+
+      if (
+
+        event.target !== paper ||
+
+        event.animationName !== 'scrollUnfurlDown'
+
+      ) return;
+
+
+
+      // Release the cap for later loaded or expanded content.
+
+      paper.style.setProperty('--scroll-unfurl-max-height', 'none');
+
+      detach();
+
+    }
+
+
+
+    pendingUnfurls.set(paper, detach);
+
+    paper.addEventListener('animationend', onEnd);
+
+  };
+
+})();
+    </script>
+    <!-- HOME_DESKTOP_CLICK_V1 -->
+    <script is:inline>
+
+
+  (function () {
+
+    const key = '__homeDesktopClickUnfurl';
+
+
+
+    if (typeof window[key] === 'function') window[key]();
+
+
+
+    const lifetime = new AbortController();
+
+    const desktop = window.matchMedia('(min-width: 681px)');
+
+    const reduced = window.matchMedia(
+
+      '(prefers-reduced-motion: reduce)'
+
+    );
+
+
+
+    let cleanup = null;
+
+
+
+    function initialize() {
+
+      if (cleanup) cleanup();
+
+      cleanup = null;
+
+
+
+      if (!desktop.matches) return;
+
+
+
+      const stage = document.querySelector(
+
+        'body > .scroll-stage[data-desktop-click-unfurl="true"]'
+
+      );
+
+      if (!stage) return;
+
+
+
+      const paper = stage.querySelector(
+
+        ':scope > main.washi-scroll'
+
+      );
+
+      const rollers = [...stage.querySelectorAll(
+
+        ':scope > .scroll-roller-top, ' +
+
+        ':scope > .scroll-roller-bottom'
+
+      )];
+
+
+
+      if (!paper || rollers.length !== 2) return;
+
+
+
+      const controls = new AbortController();
+
+
+
+      const snapshots = rollers.map(element => ({
+
+        element,
+
+        attributes: [
+
+          'role',
+
+          'tabindex',
+
+          'aria-label',
+
+          'aria-expanded'
+
+        ].map(name => [name, element.getAttribute(name)])
+
+      }));
+
+
+
+      const previousInert = paper.inert;
+
+      let disposed = false;
+
+      let activated = false;
+
+      let movement = null;
+
+
+
+      const hint = document.createElement('div');
+
+      hint.className = 'home-click-hint';
+
+      hint.setAttribute('aria-hidden', 'true');
+
+
+
+      // HOME_CLICK_POSITION_V2
+      hint.innerHTML =
+        '<svg viewBox="0 0 36 40" width="26" height="29" aria-hidden="true">' +
+          '<g class="home-click-pointer">' +
+            '<path d="M12 11V31L17 26L21 35L25 33L21 24H29Z"/>' +
+          '</g>' +
+          '<g class="home-click-rays">' +
+            '<path d="M12 2V5M4 5L6.5 7.5M2 13H5M20 5L17.5 7.5M4 21L6.5 18.5"/>' +
+          '</g>' +
+        '</svg>' +
+        '<span>Click to unfurl</span>';
+
+
+
+      stage.appendChild(hint);
+
+      stage.dataset.homeUnfurl = 'waiting';
+
+      paper.inert = true;
+
+
+
+      function restoreControls() {
+
+        snapshots.forEach(({ element, attributes }) => {
+
+          attributes.forEach(([name, value]) => {
+
+            if (value === null) element.removeAttribute(name);
+
+            else element.setAttribute(name, value);
+
+          });
+
+        });
+
+      }
+
+
+
+      async function open() {
+
+        if (activated || disposed) return;
+
+        activated = true;
+
+
+
+        const from = window.getComputedStyle(stage).translate;
+
+        stage.dataset.homeUnfurl = 'moving';
+
+
+
+        if (!reduced.matches) {
+
+          movement = window.scrollMovePosition(stage, 0, from);
+
+
+
+          await movement.finished.catch(() => {});
+
+        }
+
+
+
+        if (disposed) return;
+
+
+
+        // Hold the final position before cancelling the movement.
+
+        // Only this state allows the paper to begin unfurling.
+
+        window.prepareScrollUnfurl(paper);
+        stage.dataset.homeUnfurl = 'opening';
+
+
+
+        if (movement) {
+
+          movement.cancel();
+
+          movement = null;
+
+        }
+
+
+
+        paper.inert = previousInert;
+
+        restoreControls();
+
+        hint.remove();
+
+      }
+
+
+
+      rollers.forEach(roller => {
+
+        roller.setAttribute('role', 'button');
+
+        roller.setAttribute('tabindex', '0');
+
+        roller.setAttribute(
+
+          'aria-label',
+
+          'Click to unfurl the scroll'
+
+        );
+
+        roller.setAttribute('aria-expanded', 'false');
+
+
+
+        roller.addEventListener('click', open, {
+
+          signal: controls.signal
+
+        });
+
+
+
+        roller.addEventListener('keydown', event => {
+
+          if (event.key === 'Enter' || event.key === ' ') {
+
+            event.preventDefault();
+
+            void open();
+
+          }
+
+        }, {
+
+          signal: controls.signal
+
+        });
+
+      });
+
+
+
+      cleanup = () => {
+
+        disposed = true;
+
+        controls.abort();
+
+
+
+        if (movement) movement.cancel();
+
+
+
+        hint.remove();
+
+        paper.inert = previousInert;
+
+        restoreControls();
+
+        delete stage.dataset.homeUnfurl;
+
+      };
+
+    }
+
+
+
+    function destroy() {
+
+      lifetime.abort();
+
+      if (cleanup) cleanup();
+
+      cleanup = null;
+
+    }
+
+
+
+    window[key] = destroy;
+
+
+
+    desktop.addEventListener('change', initialize, {
+
+      signal: lifetime.signal
+
+    });
+
+
+
+    document.addEventListener('astro:page-load', initialize, {
+
+      signal: lifetime.signal
+
+    });
+
+
+
+    document.addEventListener('astro:before-swap', () => {
+
+      if (cleanup) cleanup();
+
+      cleanup = null;
+
+    }, {
+
+      signal: lifetime.signal
+
+    });
+
+
+
+    initialize();
+
+  })();
+
+
+    </script>
+
+    <!-- SCROLL_CLOSE_NEWSLETTER_V1 desktop and newsletter -->
+    <script is:inline>
+(function desktopAndNewsletterCode() {
+  const key = '__scrollCloseNewsletterV1';
+  if (typeof window[key] === 'function') window[key]();
+
+  const lifetime = new AbortController();
+  const desktop = window.matchMedia('(min-width: 681px)');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let cleanupPage = () => {};
+
+  function initialize() {
+    cleanupPage();
+
+    const stage = document.querySelector('body > .scroll-stage');
+    const paper = stage?.querySelector(':scope > main.washi-scroll');
+    const top = stage?.querySelector(':scope > .scroll-roller-top');
+    const bottom = stage?.querySelector(':scope > .scroll-roller-bottom');
+    const spacer = document.querySelector(
+      'body > .apple-reveal-stage > .spacer-for-apple'
+    );
+
+    if (!stage || !paper || !top || !bottom || !spacer) return;
+
+    // Prepare the automatic initial unfurl on regular desktop pages.
+    if (
+      desktop.matches &&
+      !reduced.matches &&
+      stage.dataset.desktopClickUnfurl !== 'true' &&
+      !paper.hasAttribute('data-initial-unfurl-prepared')
+    ) {
+      paper.setAttribute('data-initial-unfurl-prepared', '');
+      window.scrollContentReady(paper).then(() => {
+        if (disposed || !paper.isConnected || !desktop.matches) return;
+        window.prepareScrollUnfurl(paper);
+        stage.removeAttribute('data-scroll-initial-wait');
+      });
+    }
+
+    if (desktop.matches && reduced.matches) {
+      stage.removeAttribute('data-scroll-initial-wait');
+    }
+    const controls = new AbortController();
+    const signal = controls.signal;
+    const previousInert = paper.inert;
+    const previousGap = spacer.style.getPropertyValue('--newsletter-gap');
+    const snapshots = [top, bottom].map(element => ({
+      element,
+      attributes: ['role', 'tabindex', 'aria-label', 'aria-expanded']
+        .map(name => [name, element.getAttribute(name)])
+    }));
+
+    let frame = 0;
+    let disposed = false;
+    let owned = false;
+    let closed = false;
+    let closing = false;
+
+    function placeNewsletter() {
+      if (disposed) return;
+
+      const visual = window.visualViewport;
+      const viewportHeight = Math.max(
+        window.innerHeight,
+        visual ? visual.height + visual.offsetTop : 0
+      );
+
+      // Document position, independent of the user's current scroll position.
+      const spacerTop =
+        spacer.getBoundingClientRect().top + window.scrollY;
+
+      const gap = Math.max(24, viewportHeight + 24 - spacerTop);
+      spacer.style.setProperty('--newsletter-gap', gap + 'px');
+    }
+
+    function homeIsWaiting() {
+      return (
+        stage.dataset.desktopClickUnfurl === 'true' &&
+        stage.dataset.homeUnfurl !== 'opening'
+      );
+    }
+
+    function refreshControls() {
+      if (!desktop.matches || (!owned && homeIsWaiting())) return;
+
+      top.setAttribute('role', 'button');
+      top.setAttribute('tabindex', '0');
+      top.setAttribute(
+        'aria-label',
+        closed || closing ? 'Open the scroll' : 'Close the scroll'
+      );
+      top.setAttribute('aria-expanded', String(!closed && !closing));
+
+      if (owned) {
+        bottom.setAttribute('role', 'button');
+        bottom.setAttribute('tabindex', '0');
+        bottom.setAttribute(
+          'aria-label',
+          closed || closing ? 'Open the scroll' : 'Scroll is open'
+        );
+        bottom.setAttribute('aria-expanded', String(!closed && !closing));
+      }
+    }
+
+
+
+    const savedStageTranslate = stage.style.translate;
+
+    const savedPaperAnimation = paper.style.animation;
+
+
+
+    let repeatMovement = null;
+
+    let repeatHintTimer = 0;
+
+    let repeatEpoch = 0;
+
+
+
+    const repeatHint =
+
+      stage.querySelector('.home-click-hint')?.cloneNode(true) ||
+
+      document.createElement('div');
+
+
+
+    repeatHint.className = 'home-click-hint';
+
+
+
+    if (!repeatHint.innerHTML.trim()) {
+
+      repeatHint.innerHTML =
+
+        '<svg viewBox="0 0 36 40" width="26" height="29" aria-hidden="true">' +
+
+          '<g class="home-click-pointer">' +
+
+            '<path d="M12 11V31L17 26L21 35L25 33L21 24H29Z"/>' +
+
+          '</g>' +
+
+          '<g class="home-click-rays">' +
+
+            '<path d="M12 2V5M4 5L6.5 7.5M2 13H5M20 5L17.5 7.5"/>' +
+
+          '</g>' +
+
+        '</svg><span>Click to unfurl</span>';
+
+    }
+
+
+
+    repeatHint.setAttribute('aria-hidden', 'true');
+
+    repeatHint.style.display = 'none';
+
+    repeatHint.style.animation = 'none';
+
+    repeatHint.style.opacity = '1';
+
+    repeatHint.style.transform = 'translateX(-50%)';
+
+    stage.appendChild(repeatHint);
+
+
+
+    function hideRepeatHint() {
+
+      window.clearTimeout(repeatHintTimer);
+
+      repeatHintTimer = 0;
+
+      repeatHint.style.display = 'none';
+
+    }
+
+
+
+    function showRepeatHintLater() {
+
+      hideRepeatHint();
+
+      repeatHintTimer = window.setTimeout(() => {
+
+        repeatHintTimer = 0;
+
+        if (!disposed && closed && !closing) {
+
+          repeatHint.style.display = 'flex';
+          repeatHint.style.animation = 'homeClickHintIn 450ms ease both';
+
+        }
+
+      }, 1000);
+
+    }
+
+
+
+    async function moveDesktopPosition(target) {
+
+      if (repeatMovement) repeatMovement.cancel();
+
+
+
+      const from = window.getComputedStyle(stage).translate;
+
+      const destination = '0px ' + target + 'px';
+
+
+
+      if (!reduced.matches) {
+
+        repeatMovement = window.scrollMovePosition(stage, target, from);
+
+
+
+        const current = repeatMovement;
+
+        await current.finished.catch(() => {});
+
+
+
+        if (disposed || repeatMovement !== current) return false;
+
+
+
+        stage.style.translate = destination;
+
+        current.cancel();
+
+        repeatMovement = null;
+
+      } else {
+
+        stage.style.translate = destination;
+
+      }
+
+
+
+      placeNewsletter();
+
+      return true;
+
+    }
+
+
+
+    async function animateScroll(shouldClose, sourceRoller = top) {
+
+      const epoch = ++repeatEpoch;
+
+      hideRepeatHint();
+
+      window.cancelAnimationFrame(frame);
+
+
+
+      if (repeatMovement) {
+
+        // Preserve the visible position before cancelling a movement.
+
+        stage.style.translate = window.getComputedStyle(stage).translate;
+
+        repeatMovement.cancel();
+
+        repeatMovement = null;
+
+      }
+
+
+
+      owned = true;
+
+
+
+      if (!shouldClose) {
+
+        closed = false;
+
+        closing = false;
+
+        refreshControls();
+
+
+
+        const completed = await moveDesktopPosition(0);
+
+        if (!completed || disposed || epoch !== repeatEpoch) return;
+
+
+
+        /*
+
+         * Release manual height control and replay the original CSS unfurl.
+
+         * The rollers then follow the paper through normal layout.
+
+         */
+
+        stage.dataset.homeUnfurl = 'opening';
+
+        paper.style.animation = 'none';
+
+        delete stage.dataset.wholeScrollControl;
+
+        stage.style.removeProperty('--whole-scroll-height');
+
+
+
+        void paper.offsetHeight;
+
+
+
+        paper.inert = previousInert;
+
+        window.prepareScrollUnfurl(paper);
+        paper.style.animation = 'scrollUnfurlDown var(--unfurl-duration, 8s) ' +
+
+          'var(--unfurl-easing, cubic-bezier(0.33, 1, 0.62, 1)) ' +
+
+          'var(--pause-duration, 0.1s) both';
+
+
+
+        refreshControls();
+
+        placeNewsletter();
+
+        return;
+
+      }
+
+
+
+      const from = paper.getBoundingClientRect().height;
+
+      stage.style.setProperty('--whole-scroll-height', from + 'px');
+
+      stage.dataset.wholeScrollControl = 'true';
+
+
+
+      closing = true;
+
+      closed = false;
+
+      top.focus({ preventScroll: true });
+
+      paper.inert = true;
+
+      refreshControls();
+
+
+
+      const startedAt = performance.now();
+
+      const duration = reduced.matches ? 0 : 900;
+
+      let previousHeight = from;
+
+
+
+      function step(now) {
+
+        if (disposed || epoch !== repeatEpoch) return;
+
+
+
+        const progress = duration
+
+          ? Math.min(1, (now - startedAt) / duration)
+
+          : 1;
+
+        const eased = progress * progress * (3 - 2 * progress);
+
+        const nextHeight = from * (1 - eased);
+
+
+
+        const documentTop =
+
+          paper.getBoundingClientRect().top + window.scrollY;
+
+        const removed = Math.max(0, previousHeight - nextHeight);
+
+        const targetY = Math.max(
+
+          0,
+
+          window.scrollY -
+
+            Math.min(removed, Math.max(0, window.scrollY - documentTop))
+
+        );
+
+
+
+        stage.style.setProperty('--whole-scroll-height', nextHeight + 'px');
+
+        previousHeight = nextHeight;
+
+        placeNewsletter();
+
+        window.scrollTo({ top: targetY, behavior: 'instant' });
+
+
+
+        if (progress < 1) {
+
+          frame = window.requestAnimationFrame(step);
+
+          return;
+
+        }
+
+
+
+        frame = 0;
+
+        closed = true;
+
+        closing = false;
+
+        refreshControls();
+
+
+
+        window.scrollTo({ top: 0, behavior: 'instant' });
+
+
+
+        const currentTranslate = window.getComputedStyle(stage).translate;
+
+        const offset = currentTranslate === 'none'
+
+          ? 0
+
+          : parseFloat(currentTranslate.split(/\s+/)[1]) || 0;
+
+
+
+        const center =
+
+          (
+
+            top.getBoundingClientRect().top +
+
+            bottom.getBoundingClientRect().bottom
+
+          ) / 2 + window.scrollY - offset;
+
+
+
+        const visual = window.visualViewport;
+
+        const screenCenter = visual
+
+          ? visual.offsetTop + visual.height / 2
+
+          : window.innerHeight / 2;
+
+
+
+        moveDesktopPosition(Math.max(0, screenCenter - center)).then(ok => {
+
+          if (ok && !disposed && epoch === repeatEpoch && closed) {
+
+            showRepeatHintLater();
+            stage.dispatchEvent(new Event('scroll:closed'));
+
+          }
+
+        });
+
+      }
+
+
+
+      frame = window.requestAnimationFrame(step);
+
+    }
+
+
+
+    function onRoller(event) {
+      if (!desktop.matches) return;
+
+      if (
+        event.type === 'keydown' &&
+        event.key !== 'Enter' &&
+        event.key !== ' '
+      ) return;
+
+      // Retain the home's existing first-opening interaction.
+      if (!owned && homeIsWaiting()) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      // Both rollers toggle the same scroll state on desktop.
+      animateScroll(closed || closing ? false : true, event.currentTarget);
+    }
+
+    for (const roller of [top, bottom]) {
+      roller.addEventListener('click', onRoller, {
+        capture: true,
+        signal
+      });
+      roller.addEventListener('keydown', onRoller, {
+        capture: true,
+        signal
+      });
+    }
+
+    // The existing desktop home controller changes this attribute after
+    // its opening movement. Restore top-roller accessibility afterwards.
+    const attributes = new MutationObserver(() => {
+      refreshControls();
+      placeNewsletter();
+    });
+    attributes.observe(stage, {
+      attributes: true,
+      attributeFilter: ['data-home-unfurl']
+    });
+
+    const sizes = new ResizeObserver(placeNewsletter);
+    sizes.observe(stage);
+
+    window.addEventListener('resize', placeNewsletter, {
+      passive: true,
+      signal
+    });
+    window.visualViewport?.addEventListener('resize', placeNewsletter, {
+      passive: true,
+      signal
+    });
+    document.fonts?.ready.then(() => {
+      if (!disposed) placeNewsletter();
+    });
+
+    refreshControls();
+    placeNewsletter();
+
+    cleanupPage = () => {
+      disposed = true;
+      window.cancelAnimationFrame(frame);
+      controls.abort();
+      repeatEpoch++;
+      hideRepeatHint();
+      if (repeatMovement) repeatMovement.cancel();
+      repeatHint.remove();
+      stage.style.translate = savedStageTranslate;
+      paper.style.animation = savedPaperAnimation;
+      sizes.disconnect();
+      attributes.disconnect();
+
+      if (owned) {
+        delete stage.dataset.wholeScrollControl;
+        stage.style.removeProperty('--whole-scroll-height');
+        paper.inert = previousInert;
+      }
+
+      if (previousGap) {
+        spacer.style.setProperty('--newsletter-gap', previousGap);
+      } else {
+        spacer.style.removeProperty('--newsletter-gap');
+      }
+
+      snapshots.forEach(({ element, attributes }) => {
+        attributes.forEach(([name, value]) => {
+          if (value === null) element.removeAttribute(name);
+          else element.setAttribute(name, value);
+        });
+      });
+    };
+  }
+
+  desktop.addEventListener('change', initialize, {
+    signal: lifetime.signal
+  });
+  document.addEventListener('astro:page-load', initialize, {
+    signal: lifetime.signal
+  });
+  document.addEventListener('astro:before-swap', () => cleanupPage(), {
+    signal: lifetime.signal
+  });
+
+  window[key] = () => {
+    lifetime.abort();
+    cleanupPage();
+  };
+
+  initialize();
+})();
+    </script>
+    <!-- STEP13_MAILERLITE_SCRIPT_START -->
+    <script is:inline>
+      (function () {
+        const form = document.getElementById('global-newsletter-form');
+        const box = document.getElementById('global-newsletter-box');
+        const msgEl = document.getElementById('global-newsletter-msg');
+
+        if (!form || !box || !msgEl) return;
+
+        form.addEventListener('submit', async function (event) {
+          event.preventDefault();
+
+          const honeypot = form.querySelector('input[name="confirm_email_honeypot"]');
+          if (honeypot && honeypot.value) {
+            return;
+          }
+
+          const emailInput = form.querySelector('input[name="fields[email]"]');
+          const email = emailInput ? emailInput.value.trim() : '';
+
+          if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            msgEl.hidden = false;
+            msgEl.className = 'newsletter-response-msg is-error';
+            msgEl.textContent = 'Please enter a valid email address.';
+            return;
+          }
+
+          const formActionUrl = (box.getAttribute('data-form-action') || '').trim();
+          const submitBtn = form.querySelector('.newsletter-submit-btn');
+          if (submitBtn) submitBtn.disabled = true;
+
+          const isConfigured =
+            formActionUrl &&
+            !formActionUrl.includes('YOUR_ACCOUNT_ID') &&
+            !formActionUrl.includes('YOUR_FORM_ID') &&
+            formActionUrl !== '#';
+
+          if (isConfigured) {
+            try {
+              const formData = new FormData(form);
+              await fetch(formActionUrl, {
+                method: 'POST',
+                body: formData,
+                mode: 'no-cors',
+              });
+              form.reset();
+              msgEl.hidden = false;
+              msgEl.className = 'newsletter-response-msg is-success';
+              msgEl.textContent =
+                '印 Thank you. Your address has been inscribed in the dispatch ledger. Please check your inbox to confirm.';
+            } catch (_err) {
+              msgEl.hidden = false;
+              msgEl.className = 'newsletter-response-msg is-error';
+              msgEl.textContent =
+                'Unable to reach the dispatch ledger right now. Please try again shortly.';
+            } finally {
+              if (submitBtn) submitBtn.disabled = false;
+            }
+          } else {
+            form.reset();
+            if (submitBtn) submitBtn.disabled = false;
+            msgEl.hidden = false;
+            msgEl.className = 'newsletter-response-msg is-success';
+            msgEl.textContent =
+              '印 Thank you. Your address has been inscribed in the dispatch ledger. Please check your inbox to confirm. (Local Preview Mode: To enable live subscriptions, paste your MailerLite Form Action URL into "mailerlite.formActionUrl" inside src/data/siteConfig.json.)';
+          }
+        });
+      })();
+    </script>
+    <!-- STEP13_MAILERLITE_SCRIPT_END -->
+  </body>
+</html>

@@ -1,0 +1,1684 @@
+(function mobileScrollPhysics() {
+  'use strict';
+
+  const key = '__step17MobileScrollPhysics';
+
+  if (typeof window[key] === 'function') window[key]();
+
+  const lifetime = new AbortController();
+  const mobile = window.matchMedia('(max-width: 680px)');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  let cleanupCurrent = null;
+
+  function initialize() {
+    if (cleanupCurrent) cleanupCurrent();
+    cleanupCurrent = null;
+
+    if (!mobile.matches || window.innerWidth > 680) return;
+
+    const stage = document.querySelector(
+     'body > .scroll-stage[data-mobile-physics="true"]'
+    );
+    if (!stage) return;
+    const startsClosed = stage.dataset.mobileStartClosed === 'true';
+    const openingPhysicsEnabled = stage.dataset.mobileOpeningPhysics !== 'false';
+    const openAllThreshold = Math.max(1, Number(stage.dataset.openAllThreshold) || 84);
+    const openAllDelay = Math.max(0, Number(stage.dataset.openAllDelay) || 2000);
+    const newsletterCloseDelay = Math.max(0, Number(stage.dataset.newsletterCloseDelay) || 140);
+    const sneakPeekEnabled = stage.dataset.sneakPeekEnabled !== 'false';
+    const sneakPeekCycle = Math.max(800, Number(stage.dataset.sneakPeekCycle) || 2000);
+    const sneakPeekPhase = Math.max(0, Number(stage.dataset.sneakPeekPhase) || 0);
+    const sneakPeekDuration = Math.min(
+      sneakPeekCycle,
+      Math.max(250, Number(stage.dataset.sneakPeekDuration) || 760)
+    );
+    const sneakPeekDistance = Math.max(1, Number(stage.dataset.sneakPeekDistance) || 8);
+
+    const paper = stage.querySelector(':scope > main.washi-scroll');
+    const roller = stage.querySelector(':scope > .scroll-roller-bottom');
+    const topRoller = stage.querySelector(':scope > .scroll-roller-top');
+
+    if (!paper || !roller || !topRoller) return;
+
+    const controller = new AbortController();
+    const signal = controller.signal;
+    const html = document.documentElement;
+
+    const styleSnapshots = new Map();
+    const attributeSnapshots = new Map();
+
+    function setStyle(element, property, value) {
+      if (!styleSnapshots.has(element)) {
+        styleSnapshots.set(element, new Map());
+      }
+
+      const properties = styleSnapshots.get(element);
+
+      if (!properties.has(property)) {
+        properties.set(property, {
+          value: element.style.getPropertyValue(property),
+          priority: element.style.getPropertyPriority(property),
+        });
+      }
+
+      element.style.setProperty(property, value);
+    }
+
+    function setAttribute(element, name, value) {
+      if (!attributeSnapshots.has(element)) {
+        attributeSnapshots.set(element, new Map());
+      }
+
+      const attributes = attributeSnapshots.get(element);
+
+      if (!attributes.has(name)) {
+        attributes.set(name, element.getAttribute(name));
+      }
+
+      if (value === null) element.removeAttribute(name);
+      else element.setAttribute(name, value);
+    }
+
+    const hint = document.createElement('div');
+    hint.className = 'step17-unfurl-tooltip';
+    hint.setAttribute('aria-hidden', 'true');
+
+    const arrow = document.createElement('span');
+    arrow.className = 'step17-unfurl-arrow';
+    arrow.textContent = '\u2193';
+
+    const label = document.createElement('span');
+    label.textContent = 'Drag to unfurl';
+
+    hint.append(arrow, label);
+    stage.appendChild(hint);
+
+    const openAllButton = document.createElement('button');
+    openAllButton.type = 'button';
+    openAllButton.className = 'step17-open-all';
+    openAllButton.textContent = 'Open all';
+    openAllButton.setAttribute('aria-label', 'Open the entire scroll');
+    openAllButton.setAttribute('aria-hidden', 'true');
+    openAllButton.tabIndex = -1;
+    openAllButton.style.cssText = [
+      'position:absolute',
+      'left:50%',
+      'z-index:30',
+      'transform:translateX(-50%)',
+      'padding:8px 20px',
+      'border:1px solid rgba(255,255,255,.88)',
+      'border-radius:999px',
+      'background:transparent',
+      'color:#fff',
+      'font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+      'font-size:13px',
+      'font-weight:400',
+      'letter-spacing:.035em',
+      'line-height:1.2',
+      'white-space:nowrap',
+      'opacity:0',
+      'pointer-events:none',
+      'transition:opacity 350ms ease',
+      'cursor:pointer',
+      'appearance:none',
+      '-webkit-appearance:none'
+    ].join(';');
+    stage.appendChild(openAllButton);
+
+    let disposed = false;
+    let height = 0;
+    let revealed = 0;
+    let paperTop = 0;
+    let bottomHeight = 0;
+    let stagePaddingBottom = 0;
+    let dragging = false;
+    let touchId = null;
+    let lastClientY = 0;
+    let lastDocumentY = 0;
+    let lastInputTime = 0;
+    let samples = [];
+    let velocity = 0;
+    let frameId = 0;
+    let measurementId = 0;
+    let hintTimer = 0;
+    let previousFrameTime = 0;
+    let gestureMoved = false;
+    let fullyOpen = false;
+    let initialHeaderHidden = startsClosed;
+    let opening = null;
+    let headerScrollAnchor = window.scrollY;
+    let hasDraggedEnough = false;
+    let openAllTimer = 0;
+    let newsletterHeightTimer = 0;
+    let lastDragDirection = 0;
+    let sneakPeekTimer = 0;
+    let sneakPeekFrame = 0;
+    let sneakPeeking = false;
+    // STEP17_FAST_RELEASE_AND_STABLE_BACKDROP_V1
+
+    function clamp(value, minimum, maximum) {
+      return Math.max(minimum, Math.min(maximum, value));
+    }
+
+    function viewport() {
+      const visual = window.visualViewport;
+
+      return {
+        top: visual ? visual.offsetTop : 0,
+        height: visual ? visual.height : window.innerHeight,
+      };
+    }
+
+    function dismissHint() {
+      window.clearTimeout(hintTimer);
+      hintTimer = 0;
+      hint.classList.remove('is-visible');
+    }
+
+    function hideOpenAllButton() {
+      window.clearTimeout(openAllTimer);
+      openAllTimer = 0;
+      openAllButton.style.opacity = '0';
+      openAllButton.style.pointerEvents = 'none';
+      openAllButton.setAttribute('aria-hidden', 'true');
+      openAllButton.tabIndex = -1;
+    }
+
+    function isScrollMoving() {
+      return Boolean(
+        dragging || opening || frameId || mobilePositionFrame || topCloseFrame ||
+        Math.abs(velocity) >= 0.012
+      );
+    }
+
+    function updateOpenAllButton() {
+      if (
+        !hasDraggedEnough ||
+        fullyOpen ||
+        revealed <= 0.01 ||
+        isScrollMoving()
+      ) {
+        hideOpenAllButton();
+        return;
+      }
+
+      if (openAllTimer || openAllButton.style.opacity === '1') return;
+
+      openAllTimer = window.setTimeout(function () {
+        openAllTimer = 0;
+        if (
+          !disposed &&
+          hasDraggedEnough &&
+          !fullyOpen &&
+          revealed > 0.01 &&
+          !isScrollMoving()
+        ) {
+          openAllButton.style.opacity = '1';
+          openAllButton.style.pointerEvents = 'auto';
+          openAllButton.setAttribute('aria-hidden', 'false');
+          openAllButton.tabIndex = 0;
+        }
+      }, openAllDelay);
+    }
+
+    function stopSneakPeek() {
+      window.clearTimeout(sneakPeekTimer);
+      sneakPeekTimer = 0;
+
+      if (sneakPeekFrame) {
+        window.cancelAnimationFrame(sneakPeekFrame);
+        sneakPeekFrame = 0;
+      }
+
+      if (sneakPeeking) {
+        sneakPeeking = false;
+        revealed = 0;
+      }
+    }
+
+    function canSneakPeek() {
+      return Boolean(
+        !disposed &&
+        sneakPeekEnabled &&
+        !reducedMotion.matches &&
+        (revealed <= 0.01 || sneakPeeking) &&
+        !dragging &&
+        !opening &&
+        !mobilePositionFrame &&
+        !topCloseFrame &&
+        mobileCentered
+      );
+    }
+
+    function scheduleSneakPeek(isFirstCycle) {
+      if (!canSneakPeek() || sneakPeekTimer || sneakPeekFrame || sneakPeeking) {
+        return;
+      }
+
+      const delay = isFirstCycle
+        ? sneakPeekPhase
+        : Math.max(0, sneakPeekCycle - sneakPeekDuration);
+
+      sneakPeekTimer = window.setTimeout(function () {
+        sneakPeekTimer = 0;
+
+        if (!canSneakPeek()) return;
+
+        sneakPeeking = true;
+
+        const startedAt = performance.now();
+        const startingReveal = revealed;
+        const distance = Math.min(sneakPeekDistance, height);
+        const duration = reducedMotion.matches ? 0 : sneakPeekDuration;
+
+        function animatePeek(now) {
+          if (!sneakPeeking || disposed || dragging || opening) {
+            stopSneakPeek();
+            return;
+          }
+
+          const progress = duration
+            ? Math.min(1, (now - startedAt) / duration)
+            : 1;
+
+          // Smoothly reveal the parchment, then smoothly roll it back.
+          const eased = progress * progress * (3 - 2 * progress);
+          const yoYo = progress < 0.5
+            ? eased * 2
+            : (1 - eased) * 2;
+
+          revealed = startingReveal + distance * yoYo;
+
+          // The existing renderer moves the bottom roller and clips
+          // the parchment. The top roller is left completely untouched.
+          render();
+
+          if (progress < 1) {
+            sneakPeekFrame = window.requestAnimationFrame(animatePeek);
+          } else {
+            sneakPeekFrame = 0;
+            sneakPeeking = false;
+            revealed = 0;
+            render();
+            scheduleSneakPeek(false);
+          }
+        }
+
+        sneakPeekFrame = window.requestAnimationFrame(animatePeek);
+      }, delay);
+    }
+
+    function updateSneakPeekState() {
+      if (canSneakPeek()) {
+        scheduleSneakPeek(true);
+      } else if (!sneakPeeking) {
+        stopSneakPeek();
+      }
+    }
+
+    function updateHint() {
+      if (mobilePositionFrame || opening) {
+        dismissHint();
+        updateSneakPeekState();
+        return;
+      }
+
+      if (
+        revealed <= 0.01 &&
+        !dragging &&
+        !mobileCentered &&
+        (startsClosed || mobileHasInteracted)
+      ) {
+        centerClosedMobile();
+        updateSneakPeekState();
+        return;
+      }
+      if (revealed > 0 || dragging) {
+        dismissHint();
+        updateSneakPeekState();
+        return;
+      }
+
+      // Avoid restarting the delay on every animation frame.
+      if (hintTimer || hint.classList.contains('is-visible')) return;
+
+      hintTimer = window.setTimeout(function () {
+        hintTimer = 0;
+
+        if (!disposed && revealed === 0 && !dragging) {
+          hint.classList.add('is-visible');
+        }
+      }, 1000);
+
+      // This cue has its own phase/cycle and does not depend on hint visibility.
+      updateSneakPeekState();
+    }
+
+    function releaseInitialHeader() {
+      if (!initialHeaderHidden) return;
+      initialHeaderHidden = false;
+      setAttribute(html, 'data-step17-header-hidden', null);
+    }
+
+    function syncStageHeight() {
+      const visibleStageHeight =
+        paperTop + revealed + bottomHeight + stagePaddingBottom;
+
+      const closingByDrag =
+        lastDragDirection < 0 && (dragging || velocity <= 0.012);
+      if (closingByDrag && newsletterCloseDelay > 0) {
+        if (!newsletterHeightTimer) {
+          newsletterHeightTimer = window.setTimeout(function () {
+            newsletterHeightTimer = 0;
+            if (disposed) return;
+            const latestHeight =
+              paperTop + revealed + bottomHeight + stagePaddingBottom;
+            if (!dragging && velocity >= -0.012) lastDragDirection = 0;
+            setStyle(stage, '--step17-stage-height', latestHeight.toFixed(3) + 'px');
+          }, newsletterCloseDelay);
+        }
+        return;
+      }
+
+      window.clearTimeout(newsletterHeightTimer);
+      newsletterHeightTimer = 0;
+      setStyle(stage, '--step17-stage-height', visibleStageHeight.toFixed(3) + 'px');
+    }
+
+    function render() {
+      revealed = clamp(revealed, 0, height);
+
+      const hidden = Math.max(0, height - revealed);
+      fullyOpen = hidden < 0.01;
+
+      setAttribute(stage, 'data-step17-open', fullyOpen ? 'true' : 'false');
+
+      if (fullyOpen) {
+        revealed = height;
+        setStyle(paper, 'clip-path', 'none');
+        setStyle(paper, '-webkit-clip-path', 'none');
+      } else {
+        const clip = 'inset(0 -90px ' + hidden.toFixed(3) + 'px -90px)';
+        setStyle(paper, 'clip-path', clip);
+        setStyle(paper, '-webkit-clip-path', clip);
+      }
+
+      setStyle(
+        roller,
+        'transform',
+        'translateY(' + (-hidden).toFixed(3) + 'px)'
+      );
+
+      // The paper retains its natural, unlimited height. The stage clips
+      // only the intentionally furled portion and does not leave a long,
+      // invisible document region below the raised roller.
+      //
+      // At 100% open, CSS restores automatic stage height and visible
+      // overflow, removing any outer clipping from the readable page.
+      syncStageHeight();
+
+      const controlTop =
+        (paperTop + revealed + bottomHeight + 15).toFixed(3) + 'px';
+      hint.style.top = controlTop;
+      openAllButton.style.top = controlTop;
+
+      setAttribute(
+        roller,
+        'aria-label',
+        fullyOpen
+          ? 'Scroll roller. Drag up to furl the page.'
+          : 'Scroll roller. Drag down to unfurl or up to furl.'
+      );
+      setAttribute(topRoller, 'aria-label', revealed <= 0.01 ? 'Open the scroll' : 'Close the scroll');
+      setAttribute(topRoller, 'aria-expanded', String(revealed > 0.01));
+      updateOpenAllButton();
+      updateHint();
+    }
+
+    function measure(first) {
+      if (disposed) return;
+
+      const previouslyOpen = fullyOpen;
+      const previousHeight = height;
+
+      height = paper.getBoundingClientRect().height;
+
+      if (opening && !opening.automatic && !opening.followHeight && Math.abs(previousHeight - height) > 0.5) {
+        opening = null;
+        velocity = 0;
+        stopFrame();
+      }
+
+      paperTop = paper.offsetTop;
+      bottomHeight = roller.offsetHeight;
+      stagePaddingBottom =
+        parseFloat(window.getComputedStyle(stage).paddingBottom) || 112;
+
+      if (first) {
+        // Exactly closed: the entire paper is initially clipped away.
+        revealed = 0;
+      } else if (previouslyOpen && !dragging && !opening) {
+        // Loaded replies and other dynamic content remain fully readable.
+        revealed = height;
+      } else {
+        // Preserve the exposed length while the Forum changes underneath.
+        revealed = clamp(revealed, 0, height);
+      }
+
+      if (dragging && Math.abs(previousHeight - height) > 0.5) {
+        lastDocumentY = lastClientY + window.scrollY;
+        samples = [{
+          y: lastClientY,
+          time: performance.now(),
+        }];
+      }
+
+      render();
+    }
+
+    function scheduleMeasurement() {
+      if (disposed || measurementId) return;
+
+      measurementId = window.requestAnimationFrame(function () {
+        measurementId = 0;
+        measure(false);
+      });
+    }
+
+    function stopFrame() {
+      window.cancelAnimationFrame(frameId);
+      frameId = 0;
+    }
+
+    function findTouch(list) {
+      for (let index = 0; index < list.length; index += 1) {
+        if (list[index].identifier === touchId) return list[index];
+      }
+
+      return null;
+    }
+
+    function recordVelocity(clientY, now) {
+      samples.push({ y: clientY, time: now });
+
+      while (
+        samples.length > 2 &&
+        samples[0].time < now - 90
+      ) {
+        samples.shift();
+      }
+
+      const first = samples[0];
+      const elapsed = now - first.time;
+
+      // CSS pixels per millisecond. Positive means dragging downward.
+      velocity = elapsed > 0
+        ? (clientY - first.y) / elapsed
+        : 0;
+    }
+
+    function scrollDuringDrag(elapsed) {
+      if (!dragging) return;
+
+      const view = viewport();
+      const edgeZone = Math.min(90, view.height * 0.15);
+      const upperEdge = view.top + edgeZone;
+      const lowerEdge = view.top + view.height - edgeZone;
+
+      let speed = 0;
+
+      if (lastClientY > lowerEdge && revealed < height) {
+        speed = clamp((lastClientY - lowerEdge) / edgeZone, 0, 1) * 0.65;
+      } else if (lastClientY < upperEdge && revealed > 0) {
+        speed = -clamp((upperEdge - lastClientY) / edgeZone, 0, 1) * 0.65;
+      }
+
+      if (speed === 0) return;
+
+      const previousScroll = window.scrollY;
+
+      window.scrollTo({
+        top: previousScroll + speed * elapsed,
+        behavior: 'instant',
+      });
+
+      const actualScroll = window.scrollY - previousScroll;
+
+      if (actualScroll !== 0) {
+        // Auto-scrolling moves the document under a stationary finger.
+        // Add the actual scroll distance to keep the roller under it.
+        revealed = clamp(revealed + actualScroll, 0, height);
+        lastDocumentY += actualScroll;
+        render();
+      }
+    }
+
+
+    // Read the original animation settings without changing desktop CSS.
+    function originalOpeningSettings() {
+      const paperStyle = window.getComputedStyle(paper);
+      const rootStyle = window.getComputedStyle(html);
+
+      const durationText = (
+        paperStyle.getPropertyValue('--unfurl-duration') ||
+        rootStyle.getPropertyValue('--unfurl-duration') ||
+        '8s'
+      ).trim();
+
+      const durationMatch = durationText.match(/^([\d.]+)\s*(ms|s)$/i);
+
+      let duration = 8000;
+
+      if (durationMatch) {
+        const amount = Number(durationMatch[1]);
+        duration = amount * (
+          durationMatch[2].toLowerCase() === 'ms' ? 1 : 1000
+        );
+      }
+
+      if (!Number.isFinite(duration) || duration <= 0) duration = 8000;
+
+      const easingText = (
+        paperStyle.getPropertyValue('--unfurl-easing') ||
+        rootStyle.getPropertyValue('--unfurl-easing') ||
+        'cubic-bezier(0.33, 1, 0.62, 1)'
+      ).trim();
+
+      const easingMatch = easingText.match(
+        /^cubic-bezier\(\s*([-+\d.e]+)\s*,\s*([-+\d.e]+)\s*,\s*([-+\d.e]+)\s*,\s*([-+\d.e]+)\s*\)$/i
+      );
+
+      let points = [0.33, 1, 0.62, 1];
+
+      if (easingMatch) {
+        const parsed = easingMatch.slice(1).map(Number);
+
+        if (
+          parsed.every(Number.isFinite) &&
+          parsed[0] > 0 &&
+          parsed[0] <= 1 &&
+          parsed[1] > 0 &&
+          parsed[1] <= 1 &&
+          parsed[2] >= 0 &&
+          parsed[2] <= 1 &&
+          parsed[3] >= parsed[1] &&
+          parsed[3] <= 1
+        ) {
+          points = parsed;
+        }
+      }
+
+      return {
+        duration: duration,
+        points: points,
+        initialSlope: points[1] / points[0],
+      };
+    }
+
+    function bezierCoordinate(parameter, first, second) {
+      const inverse = 1 - parameter;
+
+      return (
+        3 * inverse * inverse * parameter * first +
+        3 * inverse * parameter * parameter * second +
+        parameter * parameter * parameter
+      );
+    }
+
+    function originalOpeningProgress(timeProgress, points) {
+      if (timeProgress <= 0) return 0;
+      if (timeProgress >= 1) return 1;
+
+      // Invert the curve's x coordinate before evaluating its y coordinate.
+      // Evaluating y directly at timeProgress would change the CSS easing.
+      let low = 0;
+      let high = 1;
+
+      for (let index = 0; index < 30; index += 1) {
+        const middle = (low + high) / 2;
+        const x = bezierCoordinate(middle, points[0], points[2]);
+
+        if (x < timeProgress) low = middle;
+        else high = middle;
+      }
+
+      return bezierCoordinate(
+        (low + high) / 2,
+        points[1],
+        points[3]
+      );
+    }
+
+
+
+    // MOBILE_SMOOTH_UNFURL_V1
+
+    function mobileOpeningSettings() {
+
+      const styles = window.getComputedStyle(paper);
+
+
+
+      function number(name, fallback) {
+
+        const value = Number.parseFloat(styles.getPropertyValue(name));
+
+        return Number.isFinite(value) && value > 0 ? value : fallback;
+
+      }
+
+
+
+      return {
+
+        speed: number('--mobile-unfurl-speed', 900) / 1000,
+
+        threshold: number('--mobile-release-threshold', 350) / 1000,
+
+        releaseCap: number('--mobile-release-speed-cap', 900) / 1000,
+
+        minimum: number('--mobile-unfurl-min-duration', 1200),
+
+      };
+
+    }
+
+
+
+    function mobileOpeningDuration(distance, settings) {
+
+      return Math.max(settings.minimum, distance / settings.speed);
+
+    }
+
+
+
+    function beginOriginalOpening(releaseSpeed) {
+
+      const remaining = Math.max(0, height - revealed);
+
+      const settings = mobileOpeningSettings();
+
+
+
+      if (
+
+        !openingPhysicsEnabled ||
+
+        reducedMotion.matches ||
+
+        remaining <= 0 ||
+
+        releaseSpeed < settings.threshold
+
+      ) return false;
+
+
+
+      const duration = mobileOpeningDuration(remaining, settings);
+
+      const initialSpeed = Math.min(releaseSpeed, settings.releaseCap);
+
+
+
+      // Set the curve's initial slope from the release speed.
+
+      // Restrict its control point to keep progress monotonic.
+
+      const firstY = clamp(
+
+        initialSpeed * duration / remaining * 0.33,
+
+        0,
+
+        1
+
+      );
+
+
+
+      opening = {
+
+        followHeight: true,
+
+        startedAt: performance.now(),
+
+        start: revealed,
+
+        remaining,
+
+        duration,
+
+        points: [0.33, firstY, 0.67, 1],
+
+      };
+
+
+
+      velocity = 0;
+      lastDragDirection = 0;
+
+      beginFrame();
+
+      return true;
+
+    }
+
+
+
+    function tick(now) {
+      if (disposed) return;
+
+      frameId = 0;
+
+      const elapsed = clamp(now - previousFrameTime, 0, 32);
+      previousFrameTime = now;
+
+      if (opening) {
+        const progress = clamp(
+          (now - opening.startedAt) / opening.duration,
+          0,
+          1
+        );
+
+        revealed = clamp(opening.start + (opening.followHeight ? Math.max(0, height - opening.start) : opening.remaining) *
+          originalOpeningProgress(progress, opening.points), 0, height);
+
+        if (progress >= 1) {
+          revealed = height;
+          opening = null;
+          velocity = 0;
+          render();
+          return;
+        }
+
+        render();
+        frameId = window.requestAnimationFrame(tick);
+        return;
+      }
+
+      if (dragging) {
+        scrollDuringDrag(elapsed);
+        frameId = window.requestAnimationFrame(tick);
+        return;
+      }
+
+      if (Math.abs(velocity) < 0.012) {
+        velocity = 0;
+        lastDragDirection = 0;
+        render();
+        updateOpenAllButton();
+        return;
+      }
+
+      // Pure inertial motion with exponential friction:
+      //
+      // v(t + dt) = v(t) * exp(-friction * dt)
+      // dx = v(t) * (1 - exp(-friction * dt)) / friction
+      //
+      // There is no spring and no endpoint chosen from swipe direction.
+      // Small movements stop nearby; stronger flicks coast farther.
+      const friction = 0.0045;
+      const decay = Math.exp(-friction * elapsed);
+      const displacement = velocity * (1 - decay) / friction;
+      const proposed = revealed + displacement;
+
+      revealed = clamp(proposed, 0, height);
+      velocity *= decay;
+
+      if (proposed <= 0 || proposed >= height) {
+        velocity = 0;
+      }
+
+      render();
+
+      if (Math.abs(velocity) >= 0.012) {
+        frameId = window.requestAnimationFrame(tick);
+      }
+    }
+
+    function beginFrame() {
+      stopFrame();
+      hideOpenAllButton();
+      stopSneakPeek();
+      previousFrameTime = performance.now();
+      frameId = window.requestAnimationFrame(tick);
+    }
+
+    function onTouchStart(event) {
+      if (event.touches.length !== 1) return;
+
+      stopFrame();
+      opening = null;
+
+      const touch = event.touches[0];
+      const now = performance.now();
+
+      dragging = true;
+      lastDragDirection = 0;
+      hideOpenAllButton();
+      stopSneakPeek();
+      returnMobileToTop();
+      dismissHint();
+      touchId = touch.identifier;
+      lastClientY = touch.clientY;
+      lastDocumentY = touch.clientY + window.scrollY;
+      lastInputTime = now;
+      gestureMoved = false;
+      velocity = 0;
+      samples = [{ y: touch.clientY, time: now }];
+
+      beginFrame();
+    }
+
+    function onTouchMove(event) {
+      if (!dragging) return;
+
+      if (event.touches.length !== 1) {
+        onTouchCancel();
+        return;
+      }
+
+      const touch = findTouch(event.touches);
+      if (!touch) return;
+
+      if (!event.cancelable) {
+        onTouchCancel();
+        return;
+      }
+
+      event.preventDefault();
+
+      const now = performance.now();
+      const documentY = touch.clientY + window.scrollY;
+      const displacement = documentY - lastDocumentY;
+
+      if (Math.abs(displacement) > 0) {
+        gestureMoved = true;
+        lastDragDirection = displacement < 0 ? -1 : 1;
+        dismissHint();
+      }
+
+      // The failsafe is offered only after a deliberate drag has exposed
+      // a meaningful amount of paper (not after a tap or automatic opening).
+      // A one-pixel finger movement exposes or hides one pixel of paper.
+      // The same formula works at 0%, 100%, and every point in between.
+      revealed = clamp(revealed + displacement, 0, height);
+      if (displacement > 0 && revealed >= openAllThreshold) {
+        hasDraggedEnough = true;
+      }
+
+      lastDocumentY = documentY;
+      lastClientY = touch.clientY;
+      lastInputTime = now;
+
+      recordVelocity(touch.clientY, now);
+      render();
+    }
+
+    function onTouchEnd(event) {
+      if (!dragging) return;
+
+      const touch = findTouch(event.changedTouches);
+      if (!touch) return;
+
+      const now = performance.now();
+
+      dragging = false;
+      // Keep the last drag direction through release so the newsletter area
+      // can trail a closing drag briefly; the idle timer flushes the final height.
+      touchId = null;
+      stopFrame();
+      render();
+
+      if (!gestureMoved || now - lastInputTime > 100) {
+        velocity = 0;
+      }
+
+      // Reduced motion preserves direct manipulation but omits coasting.
+      if (reducedMotion.matches) velocity = 0;
+
+      if (velocity > 0 && beginOriginalOpening(velocity)) return;
+
+      if (Math.abs(velocity) >= 0.012) beginFrame();
+      else updateOpenAllButton();
+    }
+
+    function onTouchCancel() {
+      opening = null;
+      dragging = false;
+      lastDragDirection = 0;
+      window.clearTimeout(newsletterHeightTimer);
+      newsletterHeightTimer = 0;
+      touchId = null;
+      velocity = 0;
+      stopFrame();
+      render();
+    }
+
+    function onKeyDown(event) {
+      const increment = Math.max(40, viewport().height * 0.15);
+      let next = revealed;
+
+      if (event.key === 'ArrowDown') next += increment;
+      else if (event.key === 'ArrowUp') next -= increment;
+      else if (event.key === 'PageDown') next += viewport().height * 0.8;
+      else if (event.key === 'PageUp') next -= viewport().height * 0.8;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = height;
+      else if (event.key === 'Enter' || event.key === ' ') {
+        next = fullyOpen ? 0 : height;
+      } else {
+        return;
+      }
+
+      event.preventDefault();
+      onTouchCancel();
+      dismissHint();
+
+      revealed = clamp(next, 0, height);
+      render();
+    }
+
+    function onFocusIn(event) {
+      if (!paper.contains(event.target) || fullyOpen) return;
+
+      // Keyboard navigation must not focus invisible clipped controls.
+      onTouchCancel();
+      dismissHint();
+      revealed = height;
+      render();
+    }
+
+    function onVisibilityChange() {
+      if (document.hidden) onTouchCancel();
+    }
+
+    function onNativeScroll() {
+      const currentY = window.scrollY;
+
+      // Roller manipulation, its edge auto-scroll, and the completion
+      // animation must not expose the header.
+      if (dragging) {
+        headerScrollAnchor = currentY;
+        return;
+      }
+
+      if (currentY >= headerScrollAnchor) {
+        headerScrollAnchor = currentY;
+        return;
+      }
+
+      // Accumulate a small upward movement instead of depending on an
+      // individual scroll event being larger than a pixel.
+      if (headerScrollAnchor - currentY >= 3) {
+        releaseInitialHeader();
+
+        // Hand subsequent behavior back to the existing header logic.
+        const header = document.querySelector('header.site-header');
+        if (header) header.classList.remove('is-hidden');
+
+        headerScrollAnchor = currentY;
+      }
+    }
+
+    setAttribute(stage, 'data-step17-physics', 'true');
+    if (startsClosed) setAttribute(html, 'data-step17-header-hidden', 'true');
+    setAttribute(roller, 'role', 'button');
+    setAttribute(roller, 'tabindex', '0');
+
+    roller.addEventListener('touchstart', onTouchStart, {
+      passive: true,
+      signal,
+    });
+
+    roller.addEventListener('touchmove', onTouchMove, {
+      passive: false,
+      signal,
+    });
+
+    roller.addEventListener('touchend', onTouchEnd, {
+      passive: true,
+      signal,
+    });
+
+    roller.addEventListener('touchcancel', onTouchCancel, {
+      passive: true,
+      signal,
+    });
+
+
+    // SCROLL_CLOSE_NEWSLETTER_V1
+
+
+    // REPEAT_SCROLL_ENTRANCE_V1
+
+    let mobilePositionFrame = 0;
+
+    let mobileOffset = 0;
+
+    let mobileCentered = false;
+
+    let mobileHasInteracted = false;
+
+
+
+    function moveMobilePosition(target, finished) {
+
+      window.cancelAnimationFrame(mobilePositionFrame);
+      stopSneakPeek();
+
+      dismissHint();
+
+
+
+      const from = mobileOffset;
+
+      const startedAt = performance.now();
+
+      const duration = reducedMotion.matches ? 0 : 1000;
+
+
+
+      function step(now) {
+
+        if (disposed) return;
+
+
+
+        const progress = duration
+
+          ? Math.min(1, (now - startedAt) / duration)
+
+          : 1;
+
+        const eased = 1 - Math.pow(1 - progress, 3);
+
+        const previousOffset = mobileOffset;
+
+
+
+        mobileOffset = from + (target - from) * eased;
+
+        setStyle(stage, 'translate', '0px ' + mobileOffset + 'px');
+
+
+
+        // Keep the roller under the finger while the stage moves upward.
+
+        if (dragging) {
+
+          revealed = clamp(
+
+            revealed + previousOffset - mobileOffset,
+
+            0,
+
+            height
+
+          );
+
+          render();
+
+        }
+
+
+
+        if (progress < 1) {
+
+          mobilePositionFrame = window.requestAnimationFrame(step);
+
+        } else {
+
+          mobilePositionFrame = 0;
+
+          if (finished) finished();
+
+        }
+
+      }
+
+
+
+      mobilePositionFrame = window.requestAnimationFrame(step);
+
+    }
+
+
+
+    function centerClosedMobile() {
+
+      if (mobileCentered || dragging || opening || revealed > 0.01) return;
+
+
+
+      mobileCentered = true;
+
+      window.scrollTo({ top: 0, behavior: 'instant' });
+
+
+
+      const rollerCenter =
+
+        (
+
+          topRoller.getBoundingClientRect().top +
+
+          roller.getBoundingClientRect().bottom
+
+        ) / 2 + window.scrollY - mobileOffset;
+
+
+
+      const view = viewport();
+
+      const target = Math.max(
+
+        0,
+
+        view.top + view.height / 2 - rollerCenter
+
+      );
+
+
+
+      moveMobilePosition(target, updateHint);
+
+    }
+
+
+
+    function returnMobileToTop(finished) {
+
+      mobileHasInteracted = true;
+
+      if (!mobileCentered && mobileOffset === 0 && !mobilePositionFrame) {
+        if (finished) finished();
+        return;
+      }
+
+      mobileCentered = false;
+
+      moveMobilePosition(0, finished || updateHint);
+
+    }
+
+
+    let topCloseFrame = 0;
+
+    function cancelTopClose() {
+      window.cancelAnimationFrame(topCloseFrame);
+      topCloseFrame = 0;
+    }
+
+    function closeFromTop(event) {
+      if (
+        event.type === 'keydown' &&
+        event.key !== 'Enter' &&
+        event.key !== ' '
+      ) return;
+
+      event.preventDefault();
+      dismissHint();
+      hideOpenAllButton();
+      stopSneakPeek();
+      onTouchCancel();
+      cancelTopClose();
+
+      const start = revealed;
+      const startedAt = performance.now();
+      const duration = reducedMotion.matches ? 0 : 900;
+
+      function closeStep(now) {
+        if (disposed) return;
+        const progress = duration
+          ? Math.min(1, (now - startedAt) / duration)
+          : 1;
+
+        const eased = progress * progress * (3 - 2 * progress);
+        const previous = revealed;
+        revealed = start * (1 - eased);
+
+        const paperDocumentTop =
+          stage.getBoundingClientRect().top + window.scrollY + paperTop;
+        const removed = Math.max(0, previous - revealed);
+        const targetY = Math.max(
+          0,
+          window.scrollY -
+            Math.min(removed, Math.max(0, window.scrollY - paperDocumentTop))
+        );
+
+        render();
+        window.scrollTo({ top: targetY, behavior: 'instant' });
+
+        if (progress < 1) {
+          topCloseFrame = window.requestAnimationFrame(closeStep);
+        } else {
+          topCloseFrame = 0;
+        }
+      }
+
+      topCloseFrame = window.requestAnimationFrame(closeStep);
+    }
+
+    function beginFullOpening() {
+      window.cancelAnimationFrame(topCloseFrame);
+      topCloseFrame = 0;
+      stopFrame();
+      dragging = false;
+      touchId = null;
+      velocity = 0;
+      lastDragDirection = 0;
+      opening = null;
+      hideOpenAllButton();
+      dismissHint();
+      stopSneakPeek();
+
+      const remaining = Math.max(0, height - revealed);
+      if (remaining <= 0) return;
+
+      if (!openingPhysicsEnabled || reducedMotion.matches) {
+        revealed = height;
+        render();
+        return;
+      }
+
+      const settings = mobileOpeningSettings();
+      opening = {
+        followHeight: true,
+        startedAt: performance.now(),
+        start: revealed,
+        remaining,
+        duration: mobileOpeningDuration(remaining, settings),
+        // Gentle ease-in and ease-out, matching the current mobile entrance.
+        points: [0.42, 0, 0.58, 1],
+      };
+      velocity = 0;
+      beginFrame();
+    }
+
+    function toggleFromTop(event) {
+      if (
+        event.type === 'keydown' &&
+        event.key !== 'Enter' &&
+        event.key !== ' '
+      ) return;
+
+      event.preventDefault();
+      if (revealed <= 0.01) {
+        returnMobileToTop(beginFullOpening);
+      } else {
+        closeFromTop(event);
+      }
+    }
+
+    function openAllFromButton(event) {
+      event.preventDefault();
+      if (isScrollMoving()) return;
+      hideOpenAllButton();
+      returnMobileToTop(beginFullOpening);
+    }
+
+    setAttribute(topRoller, 'role', 'button');
+    setAttribute(topRoller, 'tabindex', '0');
+    setAttribute(topRoller, 'aria-label', 'Close the scroll');
+
+    topRoller.addEventListener('click', toggleFromTop, { signal });
+    topRoller.addEventListener('keydown', toggleFromTop, { signal });
+    openAllButton.addEventListener('click', openAllFromButton, { signal });
+
+    // Dragging or using the bottom roller takes over from closing.
+    roller.addEventListener('touchstart', cancelTopClose, {
+      passive: true,
+      signal
+    });
+    roller.addEventListener('keydown', cancelTopClose, { signal });
+
+    roller.addEventListener('keydown', onKeyDown, { signal });
+    paper.addEventListener('focusin', onFocusIn, { signal });
+
+    window.addEventListener('resize', scheduleMeasurement, {
+      passive: true,
+      signal,
+    });
+
+    window.addEventListener('scroll', onNativeScroll, {
+      passive: true,
+      signal,
+    });
+
+    document.addEventListener('visibilitychange', onVisibilityChange, {
+      signal,
+    });
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', scheduleMeasurement, {
+        passive: true,
+        signal,
+      });
+    }
+
+    // SCROLL_ENTRANCE_FIX_V1: synchronize clipping and roller position before paint.
+    const observer = typeof ResizeObserver === 'function'
+      ? new ResizeObserver(function () {
+          if (disposed) return;
+          window.cancelAnimationFrame(measurementId);
+          measurementId = 0;
+          measure(false);
+        })
+      : null;
+
+    if (observer) observer.observe(paper);
+
+    paper.addEventListener('load', scheduleMeasurement, {
+      capture: true,
+      signal,
+    });
+
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () {
+        if (!disposed) scheduleMeasurement();
+      });
+    }
+
+
+
+    // ALL_PAGES_MOBILE_DRAG_V1
+
+
+
+    function beginAutomaticOpening() {
+
+      if (startsClosed) return;
+
+      dismissHint();
+
+      if (!openingPhysicsEnabled) {
+        revealed = height;
+        render();
+        return;
+      }
+
+
+
+      if (reducedMotion.matches) {
+
+        revealed = height;
+
+        render();
+
+        return;
+
+      }
+
+
+
+      // Preserve the existing delay, including CSS calc() values.
+
+      const styles = window.getComputedStyle(paper);
+
+      const probe = document.createElement('div');
+
+
+
+      probe.style.cssText =
+
+        'position:fixed;visibility:hidden;pointer-events:none;' +
+
+        'width:0;height:0;padding:0;border:0;margin:0;';
+
+
+
+      probe.style.transitionDelay =
+
+        styles.getPropertyValue('--unfurl-delay').trim() || '0.9s';
+
+
+
+      paper.appendChild(probe);
+
+
+
+      const delayText = window.getComputedStyle(probe).transitionDelay;
+
+      const delay = parseFloat(delayText) *
+
+        (delayText.endsWith('ms') ? 1 : 1000);
+
+
+
+      probe.remove();
+
+
+
+      const settings = mobileOpeningSettings();
+
+
+
+      opening = {
+
+        automatic: true,
+
+        followHeight: true,
+
+        startedAt: performance.now() +
+
+          (Number.isFinite(delay) ? Math.max(0, delay) : 900),
+
+        start: 0,
+
+        remaining: height,
+
+        duration: mobileOpeningDuration(height, settings),
+
+        // Gradual acceleration and deceleration; zero initial speed.
+
+        points: [0.42, 0, 0.58, 1],
+
+      };
+
+
+
+      velocity = 0;
+
+      beginFrame();
+
+    }
+
+
+
+    measure(true);
+    stage.removeAttribute('data-mobile-physics-pending');
+    window.scrollContentReady(paper).then(() => {
+      if (disposed || !paper.isConnected) return;
+      measure(false);
+      stage.removeAttribute('data-scroll-initial-wait');
+      beginAutomaticOpening();
+    });
+
+    cleanupCurrent = function () {
+      disposed = true;
+      window.cancelAnimationFrame(mobilePositionFrame);
+      cancelTopClose();
+      controller.abort();
+      stopFrame();
+      window.cancelAnimationFrame(measurementId);
+      window.clearTimeout(hintTimer);
+      window.clearTimeout(openAllTimer);
+      window.clearTimeout(newsletterHeightTimer);
+      stopSneakPeek();
+
+      if (observer) observer.disconnect();
+
+      hint.remove();
+      openAllButton.remove();
+
+      attributeSnapshots.forEach(function (attributes, element) {
+        attributes.forEach(function (value, name) {
+          if (value === null) element.removeAttribute(name);
+          else element.setAttribute(name, value);
+        });
+      });
+
+      styleSnapshots.forEach(function (properties, element) {
+        properties.forEach(function (saved, property) {
+          if (saved.value) {
+            element.style.setProperty(property, saved.value, saved.priority);
+          } else {
+            element.style.removeProperty(property);
+          }
+        });
+      });
+    };
+  }
+
+  function destroy() {
+    lifetime.abort();
+    if (cleanupCurrent) cleanupCurrent();
+    cleanupCurrent = null;
+  }
+
+  window[key] = destroy;
+
+  mobile.addEventListener('change', initialize, {
+    signal: lifetime.signal,
+  });
+
+  document.addEventListener('astro:before-swap', function () {
+    if (cleanupCurrent) cleanupCurrent();
+    cleanupCurrent = null;
+  }, { signal: lifetime.signal });
+
+  document.addEventListener('astro:page-load', initialize, {
+    signal: lifetime.signal,
+  });
+
+  // The inline script follows the stage markup: close it before first paint.
+  initialize();
+})();
+
+
+(function desktopScrollSneakPeek() {
+  'use strict';
+
+  const key = '__scrollDesktopSneakPeek';
+  if (typeof window[key] === 'function') window[key]();
+
+  const lifetime = new AbortController();
+  const desktop = window.matchMedia('(min-width: 681px)');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let cleanupCurrent = null;
+
+  function initialize() {
+    if (cleanupCurrent) cleanupCurrent();
+    cleanupCurrent = null;
+    if (!desktop.matches || reducedMotion.matches) return;
+
+    const stage = document.querySelector('body > .scroll-stage');
+    if (!stage || stage.dataset.sneakPeekEnabled === 'false') return;
+
+    const cycle = Math.max(800, Number(stage.dataset.sneakPeekCycle) || 2000);
+    const phase = Math.max(0, Number(stage.dataset.sneakPeekPhase) || 0);
+    const duration = Math.min(cycle, Math.max(250, Number(stage.dataset.sneakPeekDuration) || 760));
+    const distance = Math.max(1, Number(stage.dataset.sneakPeekDistance) || 8);
+    const controls = new AbortController();
+    const signal = controls.signal;
+    let disposed = false;
+    let timer = 0;
+    let animation = null;
+
+    function isClosed() {
+      if (stage.dataset.homeUnfurl === 'waiting') return true;
+      if (stage.dataset.wholeScrollControl !== 'true') return false;
+      const height = Number.parseFloat(stage.style.getPropertyValue('--whole-scroll-height'));
+      return Number.isFinite(height) && height <= 0.5;
+    }
+
+    function stop() {
+      window.clearTimeout(timer);
+      timer = 0;
+      if (animation) {
+        animation.onfinish = null;
+        animation.cancel();
+        animation = null;
+      }
+    }
+
+    function schedule(first) {
+      if (disposed || !isClosed() || timer || animation) return;
+      timer = window.setTimeout(function () {
+        timer = 0;
+        if (disposed || !isClosed()) return;
+        const computed = window.getComputedStyle(stage).translate;
+        const base = computed && computed !== 'none' ? computed : '0px 0px';
+        const parts = base.trim().split(/\s+/);
+        const y = Number.parseFloat(parts[1]) || 0;
+        animation = stage.animate(
+          [
+            { translate: base },
+            { translate: '0px ' + (y - distance) + 'px' },
+            { translate: base }
+          ],
+          {
+            duration,
+            easing: 'cubic-bezier(0.4, 0, 0.6, 1)',
+            iterations: 1,
+            fill: 'none'
+          }
+        );
+        animation.onfinish = function () {
+          if (animation) {
+            animation.cancel();
+            animation = null;
+          }
+          schedule(false);
+        };
+      }, first ? phase : Math.max(0, cycle - duration));
+    }
+
+    const attributes = new MutationObserver(function () {
+      if (isClosed()) schedule(true);
+      else stop();
+    });
+    attributes.observe(stage, {
+      attributes: true,
+      attributeFilter: ['data-home-unfurl', 'data-whole-scroll-control']
+    });
+
+    stage.addEventListener('scroll:closed', function () {
+      schedule(true);
+    }, { signal });
+
+    const rollers = stage.querySelectorAll(':scope > .scroll-roller-top, :scope > .scroll-roller-bottom');
+    rollers.forEach(function (roller) {
+      roller.addEventListener('pointerdown', stop, { signal, capture: true });
+      roller.addEventListener('click', stop, { signal, capture: true });
+      roller.addEventListener('keydown', stop, { signal, capture: true });
+    });
+
+    if (isClosed()) schedule(true);
+
+    cleanupCurrent = function () {
+      disposed = true;
+      stop();
+      controls.abort();
+      attributes.disconnect();
+    };
+  }
+
+  function destroy() {
+    lifetime.abort();
+    if (cleanupCurrent) cleanupCurrent();
+    cleanupCurrent = null;
+  }
+
+  window[key] = destroy;
+  desktop.addEventListener('change', initialize, { signal: lifetime.signal });
+  document.addEventListener('astro:before-swap', function () {
+    if (cleanupCurrent) cleanupCurrent();
+    cleanupCurrent = null;
+  }, { signal: lifetime.signal });
+  document.addEventListener('astro:page-load', initialize, { signal: lifetime.signal });
+  initialize();
+})();
