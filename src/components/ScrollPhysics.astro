@@ -20,9 +20,10 @@
     if (!mobile.matches || window.innerWidth > 680) return;
 
     const stage = document.querySelector(
-     'body > .scroll-stage[data-mobile-physics="true"]'
+      'body > .scroll-stage[data-mobile-physics="true"]'
     );
     if (!stage) return;
+
     const startsClosed = stage.dataset.mobileStartClosed === 'true';
 
     const paper = stage.querySelector(':scope > main.washi-scroll');
@@ -85,6 +86,7 @@
     stage.appendChild(hint);
 
     const FAILSAFE_MIN_DRAG_PX = 60;
+
     const openAllBtn = document.createElement('button');
     openAllBtn.type = 'button';
     openAllBtn.className = 'step17-open-all-btn';
@@ -118,6 +120,7 @@
     let initialHeaderHidden = startsClosed;
     let opening = null;
     let headerScrollAnchor = window.scrollY;
+
     // STEP17_FAST_RELEASE_AND_STABLE_BACKDROP_V1
 
     function clamp(value, minimum, maximum) {
@@ -133,11 +136,17 @@
       };
     }
 
+    // ========================================================================
+    // MOBILE SNEAK PEEK / BOUNCE ANIMATION
+    // ========================================================================
+
     function stopSneakPeek() {
       window.clearTimeout(peekTimer);
       window.cancelAnimationFrame(peekFrame);
+
       peekTimer = 0;
       peekFrame = 0;
+
       if (peekOffset !== 0) {
         peekOffset = 0;
         render();
@@ -146,27 +155,58 @@
 
     function scheduleSneakPeek(isFirstCycle) {
       const cfg = window.SCROLL_SNEAK_PEEK_CONFIG;
+
       if (!cfg || !cfg.enabled || reducedMotion.matches) return;
       if (peekTimer || peekFrame || disposed) return;
-      if (revealed > 0.01 || dragging || opening || mobilePositionFrame || topCloseFrame) return;
 
-      const delay = isFirstCycle ? cfg.initialDelayMs : Math.max(200, cfg.cyclePeriodMs - cfg.bounceDurationMs);
+      if (
+        revealed > 0.01 ||
+        dragging ||
+        opening ||
+        mobilePositionFrame ||
+        topCloseFrame
+      ) return;
+
+      const delay = isFirstCycle
+        ? cfg.initialDelayMs
+        : Math.max(200, cfg.cyclePeriodMs - cfg.bounceDurationMs);
+
       peekTimer = window.setTimeout(function () {
         peekTimer = 0;
-        if (disposed || revealed > 0.01 || dragging || opening || mobilePositionFrame || topCloseFrame) return;
+
+        if (
+          disposed ||
+          revealed > 0.01 ||
+          dragging ||
+          opening ||
+          mobilePositionFrame ||
+          topCloseFrame
+        ) return;
+
         const start = performance.now();
         const dur = cfg.bounceDurationMs;
         const amp = cfg.mobileDistancePx;
 
         function stepPeek(now) {
-          if (disposed || revealed > 0.01 || dragging || opening || mobilePositionFrame || topCloseFrame) {
+          if (
+            disposed ||
+            revealed > 0.01 ||
+            dragging ||
+            opening ||
+            mobilePositionFrame ||
+            topCloseFrame
+          ) {
             stopSneakPeek();
             return;
           }
+
           const t = Math.min(1, (now - start) / dur);
-          // Smooth yo-yo down and back up once: sin(pi * t)
+
+          // Smooth yo-yo down and back up once: sin(pi * t).
           peekOffset = amp * Math.sin(Math.PI * t);
+
           render();
+
           if (t < 1) {
             peekFrame = window.requestAnimationFrame(stepPeek);
           } else {
@@ -176,15 +216,22 @@
             scheduleSneakPeek(false);
           }
         }
+
         peekFrame = window.requestAnimationFrame(stepPeek);
       }, delay);
     }
 
+    // ========================================================================
+    // HINTS AND OPEN-ALL CONTROL
+    // ========================================================================
+
     function dismissHint() {
       window.clearTimeout(hintTimer);
       window.clearTimeout(openAllTimer);
+
       hintTimer = 0;
       openAllTimer = 0;
+
       hint.classList.remove('is-visible');
       openAllBtn.classList.remove('is-visible');
     }
@@ -212,24 +259,39 @@
         return;
       }
 
-      // Failsafe "Open all" button when dragged down >= FAILSAFE_MIN_DRAG_PX and stopped
+      // Failsafe "Open all" button when dragged down >= 60px and stopped.
       if (revealed >= FAILSAFE_MIN_DRAG_PX && !fullyOpen) {
         window.clearTimeout(hintTimer);
         hintTimer = 0;
+
         hint.classList.remove('is-visible');
         stopSneakPeek();
-        if (!openAllTimer && !openAllBtn.classList.contains('is-visible')) {
+
+        if (
+          !openAllTimer &&
+          !openAllBtn.classList.contains('is-visible')
+        ) {
           openAllTimer = window.setTimeout(function () {
             openAllTimer = 0;
-            if (!disposed && !dragging && !opening && Math.abs(velocity) < 0.012 && revealed >= FAILSAFE_MIN_DRAG_PX && !fullyOpen) {
+
+            if (
+              !disposed &&
+              !dragging &&
+              !opening &&
+              Math.abs(velocity) < 0.012 &&
+              revealed >= FAILSAFE_MIN_DRAG_PX &&
+              !fullyOpen
+            ) {
               openAllBtn.classList.add('is-visible');
             }
           }, 250);
         }
+
         return;
       }
 
       openAllBtn.classList.remove('is-visible');
+
       window.clearTimeout(openAllTimer);
       openAllTimer = 0;
 
@@ -242,34 +304,57 @@
       scheduleSneakPeek(true);
 
       if (hintTimer || hint.classList.contains('is-visible')) return;
+
       hintTimer = window.setTimeout(function () {
         hintTimer = 0;
+
         if (!disposed && revealed === 0 && !dragging) {
           hint.classList.add('is-visible');
         }
       }, 1000);
     }
 
+    // ========================================================================
+    // HEADER
+    // ========================================================================
+
     function releaseInitialHeader() {
       if (!initialHeaderHidden) return;
+
       initialHeaderHidden = false;
       setAttribute(html, 'data-step17-header-hidden', null);
     }
 
+    // ========================================================================
+    // RENDERING
+    // ========================================================================
+
     function render() {
       revealed = clamp(revealed, 0, height);
+
+      // The sneak peek is a visual-only offset.
+      // It does not modify the actual revealed paper height.
       const visualRevealed = clamp(revealed + peekOffset, 0, height);
+
       const hidden = Math.max(0, height - visualRevealed);
+
       fullyOpen = (height - revealed) < 0.01;
 
-      setAttribute(stage, 'data-step17-open', fullyOpen ? 'true' : 'false');
+      setAttribute(
+        stage,
+        'data-step17-open',
+        fullyOpen ? 'true' : 'false'
+      );
 
       if (fullyOpen) {
         revealed = height;
+
         setStyle(paper, 'clip-path', 'none');
         setStyle(paper, '-webkit-clip-path', 'none');
       } else {
-        const clip = 'inset(0 -90px ' + hidden.toFixed(3) + 'px -90px)';
+        const clip =
+          'inset(0 -90px ' + hidden.toFixed(3) + 'px -90px)';
+
         setStyle(paper, 'clip-path', clip);
         setStyle(paper, '-webkit-clip-path', clip);
       }
@@ -289,7 +374,14 @@
         visibleStageHeight.toFixed(3) + 'px'
       );
 
-      const controlTop = (paperTop + visualRevealed + bottomHeight + 15).toFixed(3) + 'px';
+      const controlTop =
+        (
+          paperTop +
+          visualRevealed +
+          bottomHeight +
+          15
+        ).toFixed(3) + 'px';
+
       hint.style.top = controlTop;
       openAllBtn.style.top = controlTop;
 
@@ -300,18 +392,27 @@
           ? 'Scroll roller. Drag up to furl the page.'
           : 'Scroll roller. Drag down to unfurl or up to furl.'
       );
+
       setAttribute(
         topRoller,
         'aria-label',
-        revealed <= 0.01 ? 'Open the scroll' : 'Close the scroll'
+        revealed <= 0.01
+          ? 'Open the scroll'
+          : 'Close the scroll'
       );
+
       setAttribute(
         topRoller,
         'aria-expanded',
         revealed <= 0.01 ? 'false' : 'true'
       );
+
       updateHint();
     }
+
+    // ========================================================================
+    // MEASUREMENT
+    // ========================================================================
 
     function measure(first) {
       if (disposed) return;
@@ -321,7 +422,16 @@
 
       height = paper.getBoundingClientRect().height;
 
-      if (opening && !opening.automatic && Math.abs(previousHeight - height) > 0.5) {
+      // A height change must not cancel an opening animation that is designed
+      // to follow the paper's changing height.
+      //
+      // Only cancel a non-automatic animation that does not follow height.
+      if (
+        opening &&
+        !opening.automatic &&
+        !opening.followHeight &&
+        Math.abs(previousHeight - height) > 0.5
+      ) {
         opening = null;
         velocity = 0;
         stopFrame();
@@ -329,6 +439,7 @@
 
       paperTop = paper.offsetTop;
       bottomHeight = roller.offsetHeight;
+
       stagePaddingBottom =
         parseFloat(window.getComputedStyle(stage).paddingBottom) || 112;
 
@@ -345,6 +456,7 @@
 
       if (dragging && Math.abs(previousHeight - height) > 0.5) {
         lastDocumentY = lastClientY + window.scrollY;
+
         samples = [{
           y: lastClientY,
           time: performance.now(),
@@ -363,6 +475,10 @@
       });
     }
 
+    // ========================================================================
+    // ANIMATION FRAME CONTROL
+    // ========================================================================
+
     function stopFrame() {
       window.cancelAnimationFrame(frameId);
       frameId = 0;
@@ -376,8 +492,15 @@
       return null;
     }
 
+    // ========================================================================
+    // VELOCITY
+    // ========================================================================
+
     function recordVelocity(clientY, now) {
-      samples.push({ y: clientY, time: now });
+      samples.push({
+        y: clientY,
+        time: now,
+      });
 
       while (
         samples.length > 2 &&
@@ -395,20 +518,27 @@
         : 0;
     }
 
+    // ========================================================================
+    // EDGE AUTO-SCROLL DURING DRAG
+    // ========================================================================
+
     function scrollDuringDrag(elapsed) {
       if (!dragging) return;
 
       const view = viewport();
       const edgeZone = Math.min(90, view.height * 0.15);
+
       const upperEdge = view.top + edgeZone;
       const lowerEdge = view.top + view.height - edgeZone;
 
       let speed = 0;
 
       if (lastClientY > lowerEdge && revealed < height) {
-        speed = clamp((lastClientY - lowerEdge) / edgeZone, 0, 1) * 0.65;
+        speed =
+          clamp((lastClientY - lowerEdge) / edgeZone, 0, 1) * 0.65;
       } else if (lastClientY < upperEdge && revealed > 0) {
-        speed = -clamp((upperEdge - lastClientY) / edgeZone, 0, 1) * 0.65;
+        speed =
+          -clamp((upperEdge - lastClientY) / edgeZone, 0, 1) * 0.65;
       }
 
       if (speed === 0) return;
@@ -427,71 +557,53 @@
         // Add the actual scroll distance to keep the roller under it.
         revealed = clamp(revealed + actualScroll, 0, height);
         lastDocumentY += actualScroll;
+
         render();
       }
     }
 
+    // ========================================================================
+    // RESTORED MOBILE-SPECIFIC OPENING SETTINGS
+    // ========================================================================
 
-    // Read the original animation settings without changing desktop CSS.
-    function originalOpeningSettings() {
-      const paperStyle = window.getComputedStyle(paper);
-      const rootStyle = window.getComputedStyle(html);
+    function mobileOpeningSettings() {
+      const styles = window.getComputedStyle(paper);
 
-      const durationText = (
-        paperStyle.getPropertyValue('--unfurl-duration') ||
-        rootStyle.getPropertyValue('--unfurl-duration') ||
-        '8s'
-      ).trim();
-
-      const durationMatch = durationText.match(/^([\d.]+)\s*(ms|s)$/i);
-
-      let duration = 8000;
-
-      if (durationMatch) {
-        const amount = Number(durationMatch[1]);
-        duration = amount * (
-          durationMatch[2].toLowerCase() === 'ms' ? 1 : 1000
+      function number(name, fallback) {
+        const value = Number.parseFloat(
+          styles.getPropertyValue(name)
         );
-      }
 
-      if (!Number.isFinite(duration) || duration <= 0) duration = 8000;
-
-      const easingText = (
-        paperStyle.getPropertyValue('--unfurl-easing') ||
-        rootStyle.getPropertyValue('--unfurl-easing') ||
-        'cubic-bezier(0.33, 1, 0.62, 1)'
-      ).trim();
-
-      const easingMatch = easingText.match(
-        /^cubic-bezier\(\s*([-+\d.e]+)\s*,\s*([-+\d.e]+)\s*,\s*([-+\d.e]+)\s*,\s*([-+\d.e]+)\s*\)$/i
-      );
-
-      let points = [0.33, 1, 0.62, 1];
-
-      if (easingMatch) {
-        const parsed = easingMatch.slice(1).map(Number);
-
-        if (
-          parsed.every(Number.isFinite) &&
-          parsed[0] > 0 &&
-          parsed[0] <= 1 &&
-          parsed[1] > 0 &&
-          parsed[1] <= 1 &&
-          parsed[2] >= 0 &&
-          parsed[2] <= 1 &&
-          parsed[3] >= parsed[1] &&
-          parsed[3] <= 1
-        ) {
-          points = parsed;
-        }
+        return Number.isFinite(value) && value > 0
+          ? value
+          : fallback;
       }
 
       return {
-        duration: duration,
-        points: points,
-        initialSlope: points[1] / points[0],
+        // Paper opening speed in pixels per millisecond.
+        speed: number('--mobile-unfurl-speed', 900) / 1000,
+
+        // Minimum finger-release speed in pixels per millisecond.
+        threshold: number('--mobile-release-threshold', 350) / 1000,
+
+        // Maximum initial release speed in pixels per millisecond.
+        releaseCap: number('--mobile-release-speed-cap', 900) / 1000,
+
+        // Minimum automatic opening duration in milliseconds.
+        minimum: number('--mobile-unfurl-min-duration', 1200),
       };
     }
+
+    function mobileOpeningDuration(distance, settings) {
+      return Math.max(
+        settings.minimum,
+        distance / settings.speed
+      );
+    }
+
+    // ========================================================================
+    // BEZIER CURVES
+    // ========================================================================
 
     function bezierCoordinate(parameter, first, second) {
       const inverse = 1 - parameter;
@@ -514,7 +626,12 @@
 
       for (let index = 0; index < 30; index += 1) {
         const middle = (low + high) / 2;
-        const x = bezierCoordinate(middle, points[0], points[2]);
+
+        const x = bezierCoordinate(
+          middle,
+          points[0],
+          points[2]
+        );
 
         if (x < timeProgress) low = middle;
         else high = middle;
@@ -527,51 +644,71 @@
       );
     }
 
+    // ========================================================================
+    // RESTORED VELOCITY-SENSITIVE FLICK OPENING
+    // ========================================================================
+
     function beginOriginalOpening(releaseSpeed) {
-      const remaining = height - revealed;
-      if (remaining <= 0 || releaseSpeed <= 0) return false;
+      const remaining = Math.max(0, height - revealed);
+      const settings = mobileOpeningSettings();
 
-      const settings = originalOpeningSettings();
+      if (
+        reducedMotion.matches ||
+        remaining <= 0 ||
+        releaseSpeed < settings.threshold
+      ) {
+        return false;
+      }
 
-      // Initial CSS opening speed:
-      //
-      // pixels/ms = full paper height / original duration * y1/x1
-      //
-      // For cubic-bezier(0.33, 1, 0.62, 1), y1/x1 is approximately 3.03.
-      const threshold =
-        height * settings.initialSlope / settings.duration * 0.7;
+      const duration = mobileOpeningDuration(
+        remaining,
+        settings
+      );
 
-      if (releaseSpeed < threshold) return false;
+      const initialSpeed = Math.min(
+        releaseSpeed,
+        settings.releaseCap
+      );
 
-      // Use the original curve over the remaining distance.
-      // Choose its duration so its initial velocity equals the actual
-      // release velocity, avoiding a sudden acceleration or slowdown:
-      //
-      // releaseSpeed = remaining * initialSlope / duration
-      const duration =
-        remaining * settings.initialSlope / releaseSpeed;
-
-      if (!Number.isFinite(duration) || duration <= 0) return false;
+      // Set the curve's initial slope from the release speed.
+      // Restrict its control point to keep progress monotonic.
+      const firstY = clamp(
+        initialSpeed * duration / remaining * 0.33,
+        0,
+        1
+      );
 
       opening = {
+        followHeight: true,
         startedAt: performance.now(),
         start: revealed,
-        remaining: remaining,
-        duration: duration,
-        points: settings.points,
+        remaining,
+        duration,
+        points: [0.33, firstY, 0.67, 1],
       };
 
       velocity = 0;
+
       beginFrame();
+
       return true;
     }
+
+    // ========================================================================
+    // MAIN ANIMATION LOOP
+    // ========================================================================
 
     function tick(now) {
       if (disposed) return;
 
       frameId = 0;
 
-      const elapsed = clamp(now - previousFrameTime, 0, 32);
+      const elapsed = clamp(
+        now - previousFrameTime,
+        0,
+        32
+      );
+
       previousFrameTime = now;
 
       if (opening) {
@@ -581,25 +718,42 @@
           1
         );
 
-        revealed = clamp(opening.start + opening.remaining *
-          originalOpeningProgress(progress, opening.points), 0, height);
+        // Automatic and flick-release openings follow changes in the
+        // paper's natural height while their animation is in progress.
+        const openingDistance = opening.followHeight
+          ? Math.max(0, height - opening.start)
+          : opening.remaining;
+
+        revealed = clamp(
+          opening.start +
+            openingDistance *
+            originalOpeningProgress(progress, opening.points),
+          0,
+          height
+        );
 
         if (progress >= 1) {
           revealed = height;
           opening = null;
           velocity = 0;
+
           render();
+
           return;
         }
 
         render();
+
         frameId = window.requestAnimationFrame(tick);
+
         return;
       }
 
       if (dragging) {
         scrollDuringDrag(elapsed);
+
         frameId = window.requestAnimationFrame(tick);
+
         return;
       }
 
@@ -617,8 +771,12 @@
       // There is no spring and no endpoint chosen from swipe direction.
       // Small movements stop nearby; stronger flicks coast farther.
       const friction = 0.0045;
+
       const decay = Math.exp(-friction * elapsed);
-      const displacement = velocity * (1 - decay) / friction;
+
+      const displacement =
+        velocity * (1 - decay) / friction;
+
       const proposed = revealed + displacement;
 
       revealed = clamp(proposed, 0, height);
@@ -640,30 +798,43 @@
 
     function beginFrame() {
       stopFrame();
+
       previousFrameTime = performance.now();
+
       frameId = window.requestAnimationFrame(tick);
     }
+
+    // ========================================================================
+    // TOUCH INTERACTION
+    // ========================================================================
 
     function onTouchStart(event) {
       if (event.touches.length !== 1) return;
 
       stopFrame();
       stopSneakPeek();
+
       opening = null;
 
       const touch = event.touches[0];
       const now = performance.now();
 
       dragging = true;
+
       returnMobileToTop();
       dismissHint();
+
       touchId = touch.identifier;
       lastClientY = touch.clientY;
       lastDocumentY = touch.clientY + window.scrollY;
       lastInputTime = now;
       gestureMoved = false;
       velocity = 0;
-      samples = [{ y: touch.clientY, time: now }];
+
+      samples = [{
+        y: touch.clientY,
+        time: now,
+      }];
 
       beginFrame();
     }
@@ -677,6 +848,7 @@
       }
 
       const touch = findTouch(event.touches);
+
       if (!touch) return;
 
       if (!event.cancelable) {
@@ -687,6 +859,7 @@
       event.preventDefault();
 
       const now = performance.now();
+
       const documentY = touch.clientY + window.scrollY;
       const displacement = documentY - lastDocumentY;
 
@@ -697,13 +870,18 @@
 
       // A one-pixel finger movement exposes or hides one pixel of paper.
       // The same formula works at 0%, 100%, and every point in between.
-      revealed = clamp(revealed + displacement, 0, height);
+      revealed = clamp(
+        revealed + displacement,
+        0,
+        height
+      );
 
       lastDocumentY = documentY;
       lastClientY = touch.clientY;
       lastInputTime = now;
 
       recordVelocity(touch.clientY, now);
+
       render();
     }
 
@@ -711,13 +889,17 @@
       if (!dragging) return;
 
       const touch = findTouch(event.changedTouches);
+
       if (!touch) return;
 
       const now = performance.now();
 
       dragging = false;
+
       updateHint();
+
       touchId = null;
+
       stopFrame();
 
       if (!gestureMoved || now - lastInputTime > 100) {
@@ -729,7 +911,9 @@
 
       if (velocity > 0 && beginOriginalOpening(velocity)) return;
 
-      if (Math.abs(velocity) >= 0.012) beginFrame();
+      if (Math.abs(velocity) >= 0.012) {
+        beginFrame();
+      }
     }
 
     function onTouchCancel() {
@@ -737,12 +921,22 @@
       dragging = false;
       touchId = null;
       velocity = 0;
+
       stopFrame();
+
       updateHint();
     }
 
+    // ========================================================================
+    // KEYBOARD ACCESSIBILITY
+    // ========================================================================
+
     function onKeyDown(event) {
-      const increment = Math.max(40, viewport().height * 0.15);
+      const increment = Math.max(
+        40,
+        viewport().height * 0.15
+      );
+
       let next = revealed;
 
       if (event.key === 'ArrowDown') next += increment;
@@ -758,10 +952,12 @@
       }
 
       event.preventDefault();
+
       onTouchCancel();
       dismissHint();
 
       revealed = clamp(next, 0, height);
+
       render();
     }
 
@@ -771,13 +967,19 @@
       // Keyboard navigation must not focus invisible clipped controls.
       onTouchCancel();
       dismissHint();
+
       revealed = height;
+
       render();
     }
 
     function onVisibilityChange() {
       if (document.hidden) onTouchCancel();
     }
+
+    // ========================================================================
+    // NATIVE SCROLL / HEADER MANAGEMENT
+    // ========================================================================
 
     function onNativeScroll() {
       const currentY = window.scrollY;
@@ -801,14 +1003,25 @@
 
         // Hand subsequent behavior back to the existing header logic.
         const header = document.querySelector('header.site-header');
-        if (header) header.classList.remove('is-hidden');
+
+        if (header) {
+          header.classList.remove('is-hidden');
+        }
 
         headerScrollAnchor = currentY;
       }
     }
 
+    // ========================================================================
+    // INITIALIZE CONTROLS
+    // ========================================================================
+
     setAttribute(stage, 'data-step17-physics', 'true');
-    if (startsClosed) setAttribute(html, 'data-step17-header-hidden', 'true');
+
+    if (startsClosed) {
+      setAttribute(html, 'data-step17-header-hidden', 'true');
+    }
+
     setAttribute(roller, 'role', 'button');
     setAttribute(roller, 'tabindex', '0');
 
@@ -832,160 +1045,112 @@
       signal,
     });
 
-
     // SCROLL_CLOSE_NEWSLETTER_V1
-
 
     // REPEAT_SCROLL_ENTRANCE_V1
 
     let mobilePositionFrame = 0;
-
     let mobileOffset = 0;
-
     let mobileCentered = false;
-
     let mobileHasInteracted = false;
 
-
-
     function moveMobilePosition(target, finished) {
-
       window.cancelAnimationFrame(mobilePositionFrame);
 
       dismissHint();
 
-
-
       const from = mobileOffset;
-
       const startedAt = performance.now();
-
       const duration = reducedMotion.matches ? 0 : 1000;
 
-
-
       function step(now) {
-
         if (disposed) return;
 
-
-
         const progress = duration
-
           ? Math.min(1, (now - startedAt) / duration)
-
           : 1;
 
         const eased = 1 - Math.pow(1 - progress, 3);
 
         const previousOffset = mobileOffset;
 
-
-
         mobileOffset = from + (target - from) * eased;
 
-        setStyle(stage, 'translate', '0px ' + mobileOffset + 'px');
-
-
+        setStyle(
+          stage,
+          'translate',
+          '0px ' + mobileOffset + 'px'
+        );
 
         // Keep the roller under the finger while the stage moves upward.
-
         if (dragging) {
-
           revealed = clamp(
-
             revealed + previousOffset - mobileOffset,
-
             0,
-
             height
-
           );
 
           render();
-
         }
 
-
-
         if (progress < 1) {
-
-          mobilePositionFrame = window.requestAnimationFrame(step);
-
+          mobilePositionFrame =
+            window.requestAnimationFrame(step);
         } else {
-
           mobilePositionFrame = 0;
 
           if (finished) finished();
-
         }
-
       }
 
-
-
-      mobilePositionFrame = window.requestAnimationFrame(step);
-
+      mobilePositionFrame =
+        window.requestAnimationFrame(step);
     }
 
-
-
     function centerClosedMobile() {
-
-      if (mobileCentered || dragging || opening || revealed > 0.01) return;
-
-
+      if (
+        mobileCentered ||
+        dragging ||
+        opening ||
+        revealed > 0.01
+      ) return;
 
       mobileCentered = true;
 
-      window.scrollTo({ top: 0, behavior: 'instant' });
-
-
+      window.scrollTo({
+        top: 0,
+        behavior: 'instant',
+      });
 
       const rollerCenter =
-
         (
-
           topRoller.getBoundingClientRect().top +
-
           roller.getBoundingClientRect().bottom
-
         ) / 2 + window.scrollY - mobileOffset;
-
-
 
       const view = viewport();
 
       const target = Math.max(
-
         0,
-
         view.top + view.height / 2 - rollerCenter
-
       );
 
-
-
       moveMobilePosition(target, updateHint);
-
     }
 
-
-
     function returnMobileToTop() {
-
       mobileHasInteracted = true;
-
-
 
       if (!mobileCentered && mobileOffset === 0) return;
 
       mobileCentered = false;
 
       moveMobilePosition(0, updateHint);
-
     }
 
+    // ========================================================================
+    // TOP ROLLER CLOSE ANIMATION
+    // ========================================================================
 
     let topCloseFrame = 0;
 
@@ -994,12 +1159,19 @@
       topCloseFrame = 0;
     }
 
+    // ========================================================================
+    // RESTORED SMOOTH OPENING FOR TOP ROLLER AND OPEN-ALL BUTTON
+    // ========================================================================
+
     function openSmoothlyFromCurrent() {
       if (disposed || fullyOpen) return;
+
       stopSneakPeek();
       dismissHint();
+
       onTouchCancel();
       cancelTopClose();
+
       returnMobileToTop();
 
       if (reducedMotion.matches) {
@@ -1009,23 +1181,25 @@
       }
 
       const remaining = Math.max(0, height - revealed);
+
       if (remaining <= 0.01) return;
 
-      const settings = originalOpeningSettings();
-      const duration = Math.max(
-        450,
-        settings.duration * (remaining / Math.max(1, height))
-      );
+      const settings = mobileOpeningSettings();
 
       opening = {
         automatic: true,
+        followHeight: true,
         startedAt: performance.now(),
         start: revealed,
-        remaining: remaining,
-        duration: duration,
-        points: settings.points,
+        remaining,
+        duration: mobileOpeningDuration(remaining, settings),
+
+        // Restore the original gradual mobile ease-in-out.
+        points: [0.42, 0, 0.58, 1],
       };
+
       velocity = 0;
+
       beginFrame();
     }
 
@@ -1048,8 +1222,10 @@
       }
 
       event.preventDefault();
+
       stopSneakPeek();
       dismissHint();
+
       onTouchCancel();
       cancelTopClose();
 
@@ -1061,38 +1237,64 @@
 
       function closeStep(now) {
         if (disposed) return;
+
         const progress = duration
           ? Math.min(1, (now - startedAt) / duration)
           : 1;
 
         const eased = progress * progress * (3 - 2 * progress);
+
         const previous = revealed;
+
         revealed = start * (1 - eased);
 
         const paperDocumentTop =
-          stage.getBoundingClientRect().top + window.scrollY + paperTop;
-        const removed = Math.max(0, previous - revealed);
+          stage.getBoundingClientRect().top +
+          window.scrollY +
+          paperTop;
+
+        const removed = Math.max(
+          0,
+          previous - revealed
+        );
+
         const targetY = Math.max(
           0,
           window.scrollY -
-            Math.min(removed, Math.max(0, window.scrollY - paperDocumentTop))
+            Math.min(
+              removed,
+              Math.max(0, window.scrollY - paperDocumentTop)
+            )
         );
 
         const previousScrollY = window.scrollY;
+
         render();
-        window.scrollTo({ top: targetY, behavior: 'instant' });
-        window.stepNewsletterCloseHold?.(removed, previousScrollY - window.scrollY);
+
+        window.scrollTo({
+          top: targetY,
+          behavior: 'instant',
+        });
+
+        window.stepNewsletterCloseHold?.(
+          removed,
+          previousScrollY - window.scrollY
+        );
 
         if (progress < 1) {
-          topCloseFrame = window.requestAnimationFrame(closeStep);
+          topCloseFrame =
+            window.requestAnimationFrame(closeStep);
         } else {
           topCloseFrame = 0;
+
           window.endNewsletterCloseHold?.();
+
           updateHint();
         }
       }
 
-      topCloseFrame = window.requestAnimationFrame(closeStep);
+      topCloseFrame =
+        window.requestAnimationFrame(closeStep);
     }
 
     setAttribute(topRoller, 'role', 'button');
@@ -1105,12 +1307,18 @@
     // Dragging or using the bottom roller takes over from closing.
     roller.addEventListener('touchstart', cancelTopClose, {
       passive: true,
-      signal
+      signal,
     });
+
     roller.addEventListener('keydown', cancelTopClose, { signal });
 
     roller.addEventListener('keydown', onKeyDown, { signal });
+
     paper.addEventListener('focusin', onFocusIn, { signal });
+
+    // ========================================================================
+    // EVENT LISTENERS
+    // ========================================================================
 
     window.addEventListener('resize', scheduleMeasurement, {
       passive: true,
@@ -1127,18 +1335,29 @@
     });
 
     if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', scheduleMeasurement, {
-        passive: true,
-        signal,
-      });
+      window.visualViewport.addEventListener(
+        'resize',
+        scheduleMeasurement,
+        {
+          passive: true,
+          signal,
+        }
+      );
     }
 
-    // SCROLL_ENTRANCE_FIX_V1: synchronize clipping and roller position before paint.
+    // ========================================================================
+    // RESIZE OBSERVER
+    // ========================================================================
+
+    // SCROLL_ENTRANCE_FIX_V1:
+    // Synchronize clipping and roller position before paint.
     const observer = typeof ResizeObserver === 'function'
       ? new ResizeObserver(function () {
           if (disposed) return;
+
           window.cancelAnimationFrame(measurementId);
           measurementId = 0;
+
           measure(false);
         })
       : null;
@@ -1156,137 +1375,117 @@
       });
     }
 
-
-
+    // ========================================================================
     // ALL_PAGES_MOBILE_DRAG_V1
+    // RESTORED AUTOMATIC MOBILE UNFURL
+    // ========================================================================
 
     function beginAutomaticOpening() {
-
       if (startsClosed) return;
 
       dismissHint();
 
-
-
       if (reducedMotion.matches) {
-
         revealed = height;
-
         render();
-
         return;
-
       }
 
-
-
-      const settings = originalOpeningSettings();
+      const settings = mobileOpeningSettings();
 
       const styles = window.getComputedStyle(paper);
-
       const rootStyles = window.getComputedStyle(html);
 
-
-
       const delayText =
-
         styles.getPropertyValue('--unfurl-delay') ||
-
         rootStyles.getPropertyValue('--unfurl-delay') ||
-
         '0.9s';
 
-
-
       // Resolve CSS calculations, variables, time and viewport units.
-
       const probe = document.createElement('div');
 
       probe.style.cssText =
-
         'position:fixed;visibility:hidden;pointer-events:none;' +
-
         'width:0;padding:0;border:0;margin:0;box-sizing:border-box;';
 
-
-
       probe.style.transitionDelay = delayText.trim();
-
       probe.style.height = '0px';
-
-
 
       paper.appendChild(probe);
 
-
-
       const delayValue =
-
         window.getComputedStyle(probe).transitionDelay;
 
       const delay =
-
         parseFloat(delayValue) *
-
         (delayValue.endsWith('ms') ? 1 : 1000);
-
-      
-
-
 
       probe.remove();
 
-
-
-      // Apply the original easing over the measured paper height.
-
+      // Restore the original mobile entrance:
+      // gradual acceleration, followed by gradual deceleration.
       opening = {
-
         automatic: true,
+        followHeight: true,
 
         startedAt: performance.now() + (
-
-          Number.isFinite(delay) ? Math.max(0, delay) : 900
-
+          Number.isFinite(delay)
+            ? Math.max(0, delay)
+            : 900
         ),
 
         start: 0,
-
         remaining: height,
 
-        duration: settings.duration,
+        duration: mobileOpeningDuration(height, settings),
 
-        points: settings.points,
-
+        points: [0.42, 0, 0.58, 1],
       };
-
-
 
       velocity = 0;
 
       beginFrame();
-
     }
 
+    // ========================================================================
+    // INITIAL MEASUREMENT AND CONTENT READINESS
+    // ========================================================================
 
     measure(true);
+
     window.scrollContentReady(paper).then(() => {
       if (disposed || !paper.isConnected) return;
+
       measure(false);
+
       stage.removeAttribute('data-scroll-initial-wait');
+
       beginAutomaticOpening();
     });
 
+    // ========================================================================
+    // CLEANUP
+    // ========================================================================
+
     cleanupCurrent = function () {
       disposed = true;
+
       stopSneakPeek();
+
       openAllBtn.remove();
+
       window.cancelAnimationFrame(mobilePositionFrame);
+
       cancelTopClose();
+
       controller.abort();
+
       stopFrame();
+
       window.cancelAnimationFrame(measurementId);
+
       window.clearTimeout(hintTimer);
+      window.clearTimeout(openAllTimer);
 
       if (observer) observer.disconnect();
 
@@ -1294,15 +1493,22 @@
 
       attributeSnapshots.forEach(function (attributes, element) {
         attributes.forEach(function (value, name) {
-          if (value === null) element.removeAttribute(name);
-          else element.setAttribute(name, value);
+          if (value === null) {
+            element.removeAttribute(name);
+          } else {
+            element.setAttribute(name, value);
+          }
         });
       });
 
       styleSnapshots.forEach(function (properties, element) {
         properties.forEach(function (saved, property) {
           if (saved.value) {
-            element.style.setProperty(property, saved.value, saved.priority);
+            element.style.setProperty(
+              property,
+              saved.value,
+              saved.priority
+            );
           } else {
             element.style.removeProperty(property);
           }
@@ -1313,7 +1519,9 @@
 
   function destroy() {
     lifetime.abort();
+
     if (cleanupCurrent) cleanupCurrent();
+
     cleanupCurrent = null;
   }
 
@@ -1325,6 +1533,7 @@
 
   document.addEventListener('astro:before-swap', function () {
     if (cleanupCurrent) cleanupCurrent();
+
     cleanupCurrent = null;
   }, { signal: lifetime.signal });
 
