@@ -5,15 +5,15 @@
       "items": [
         {
           "question": "Where are you from?",
-          "answer": "I began this walk from the western coast of the Iberian Peninsula, carrying the cultural memory of the European Camino in my steps. Though I grew up along the Atlantic edge of Europe, on the road my home is simply wherever I unroll my sleeping mat at dusk."
+          "answer": "\n<answer>"
         },
         {
           "question": "How many kilometers/days to Japan?",
-          "answer": "The overland corridor from Cape Finisterra in Spain to the eighty-eight temples of Shikoku spans roughly 14,500 to 16,000 kilometers depending on seasonal mountain passes. Walking at a steady pace with rest days for writing and winter shelter, the journey will unfold over two to three years."
+          "answer": "<answer>"
         },
         {
           "question": "What route will you take to Japan? How will you cross the ocean?",
-          "answer": "The route traces the historic Camino ways through Spain and France, crosses Italy and the Balkans into Turkey and the Caucasus, and follows the ancient Silk Road corridors across Central Asia and East Asia. Where land meets the sea between the Asian mainland and Japan, I will cross by surface ferry rather than aircraft to keep the thread of the journey unbroken."
+          "answer": "<answer>"
         }
       ]
     },
@@ -22,15 +22,15 @@
       "items": [
         {
           "question": "Why are you doing this trip?",
-          "answer": "I am walking to investigate a foundational question: what does it truly require for a human being to feel materially secure in this world? By stepping outside modern systems of accumulation and walking across Eurasia with only a light pack, I want to experience firsthand how human society and provision function as an extension of Nature."
+          "answer": "<answer>"
         },
         {
           "question": "Why Japan / What's in Japan?",
-          "answer": "Shikoku, Japan is home to the 1,200-year-old Henro pilgrimage, one of the few living sibling traditions to the Camino de Santiago. Walking from the traditional end of the Camino at Finisterra to the circular pilgrimage of Shikoku unites the two great walking traditions of West and East into a single philosophical inquiry."
+          "answer": "<answer>"
         },
         {
           "question": "What about money? How do you fund your trip?",
-          "answer": "I started with a modest initial reserve and live as simply as possible on the trail—sleeping in bivy sacks, pilgrim hostels, or temple courtyards and eating simple staples. Along the way, the journey is sustained by the hospitality of strangers and voluntary Osettai (pilgrimage alms), all of which are transparently documented in the Open Financial Ledger."
+          "answer": "<answer>"
         }
       ]
     },
@@ -39,15 +39,15 @@
       "items": [
         {
           "question": "How many languages do you speak?",
-          "answer": "I speak Portuguese, Spanish, and English fluently, along with conversational French and basic Japanese phrases that I study as I walk eastward. Beyond grammar, however, a respectful bow, an open palm, and shared silence translate effortlessly across every border."
+          "answer": "<answer>"
         },
         {
           "question": "What do your parents/partner think about this?",
-          "answer": "Like anyone who loves a traveler, their initial reaction mingled natural worry for my safety with deep respect for the calling. As each week passes and dispatches arrive from the road, their apprehension has gradually transformed into quiet companionship from afar."
+          "answer": "<answer>"
         },
         {
           "question": "You walk with these sandals?! 🩴",
-          "answer": "Yes—lightweight minimalist trail sandals paired with wool tabi socks when the weather turns cold or wet. Unlike heavy leather boots that trap moisture and cause blisters over thousands of kilometers, open sandals dry in minutes, strengthen the foot naturally, and can be repaired with a simple length of cordage."
+          "answer": "<answer>"
         }
       ]
     }
