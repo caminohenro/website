@@ -1,59 +1,30 @@
 ---
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import ScrollPhysics from '../components/ScrollPhysics.astro';
 import siteConfig from '../data/siteConfig.json';
 import '../styles/global.css';
-
-// Per-page scroll behavior. Add a normalized pathname here to override the
-// defaults without changing the physics implementation.
-const defaultScrollPageSettings = {
-  mobilePhysics: true,
-  initiallyClosed: false,
-  openingPhysics: true,
-  desktopClickUnfurl: false,
-  openAllThreshold: 84,
-  openAllDelay: 2000,
-  newsletterCloseDelay: 140,
-  sneakPeek: {
-    enabled: true,
-    cycleMs: 2000,
-    phaseMs: 650,
-    durationMs: 760,
-    distancePx: 28,
-  },
-};
-
-type ScrollPageOverrides = Partial<Omit<typeof defaultScrollPageSettings, 'sneakPeek'>> & {
-  sneakPeek?: Partial<typeof defaultScrollPageSettings.sneakPeek>;
-};
-
-const scrollPageSettingsByPath: Record<string, ScrollPageOverrides> = {
-  '/': {
-    initiallyClosed: true,
-    desktopClickUnfurl: true,
-  },
-};
-
-const normalizedScrollPath = Astro.url.pathname === '/'
-  ? '/'
-  : Astro.url.pathname.replace(/\/+$/, '') + '/';
-const pageScrollSettings = {
-  ...defaultScrollPageSettings,
-  ...(scrollPageSettingsByPath[normalizedScrollPath] || {}),
-  sneakPeek: {
-    ...defaultScrollPageSettings.sneakPeek,
-    ...(scrollPageSettingsByPath[normalizedScrollPath]?.sneakPeek || {}),
-  },
-};
 
 interface Props {
   title?: string;
   description?: string;
+  startClosed?: boolean;
+  enableScrollPhysics?: boolean;
 }
+
+// ============================================================================
+// PER-PAGE SCROLL PHYSICS & INITIAL STATE CONFIGURATION
+// Add page paths to INITIAL_CLOSED_SCROLL_PAGES to start closed on load,
+// or override per page via <BaseLayout startClosed={true} enableScrollPhysics={true}>
+// ============================================================================
+const INITIAL_CLOSED_SCROLL_PAGES = ['/'];
+const normalizedPathname = Astro.url.pathname.replace(/\/+$/, '') || '/';
 
 const {
   title = siteConfig.siteTitleJp + ' | ' + siteConfig.siteTitleEn,
   description = siteConfig.tagline,
+  startClosed = INITIAL_CLOSED_SCROLL_PAGES.includes(normalizedPathname),
+  enableScrollPhysics = true,
 } = Astro.props;
 ---
 
@@ -85,21 +56,12 @@ const {
     <Header />
 
     <!-- LAYER 2: THE INDIVIDUAL PAGE SCROLL WITH WOODEN ROLLERS -->
-   <div
+    <div
       class="scroll-stage"
-      data-desktop-click-unfurl={pageScrollSettings.desktopClickUnfurl ? 'true' : undefined}
-      data-scroll-initial-wait={!pageScrollSettings.desktopClickUnfurl ? 'true' : undefined}
-      data-mobile-physics={pageScrollSettings.mobilePhysics ? 'true' : undefined}
-      data-mobile-start-closed={pageScrollSettings.initiallyClosed ? 'true' : 'false'}
-      data-mobile-opening-physics={pageScrollSettings.openingPhysics ? 'true' : 'false'}
-      data-open-all-threshold={pageScrollSettings.openAllThreshold}
-      data-open-all-delay={pageScrollSettings.openAllDelay}
-      data-newsletter-close-delay={pageScrollSettings.newsletterCloseDelay}
-      data-sneak-peek-enabled={pageScrollSettings.sneakPeek.enabled ? 'true' : 'false'}
-      data-sneak-peek-cycle={pageScrollSettings.sneakPeek.cycleMs}
-      data-sneak-peek-phase={pageScrollSettings.sneakPeek.phaseMs}
-      data-sneak-peek-duration={pageScrollSettings.sneakPeek.durationMs}
-      data-sneak-peek-distance={pageScrollSettings.sneakPeek.distancePx}
+      data-desktop-click-unfurl={startClosed ? 'true' : undefined}
+      data-scroll-initial-wait={!startClosed ? 'true' : undefined}
+      data-mobile-physics={enableScrollPhysics ? 'true' : undefined}
+      data-mobile-start-closed={startClosed ? 'true' : 'false'}
     >
       <div class="scroll-roller-top"></div>
       <main class="washi-scroll">
@@ -178,147 +140,141 @@ const {
     </script>
     <!-- INITIAL_SCROLL_READY_V1 -->
     <script is:inline>
-(function readinessCode() {
-
-  // INITIAL_SCROLL_READY_V1
-
-  window.scrollContentReady = async function (paper) {
-
-    if (document.readyState === 'loading') {
-
-      await new Promise(resolve =>
-
-        document.addEventListener('DOMContentLoaded', resolve, {
-
-          once: true
-
-        })
-
-      );
-
-    }
-
-
-
-    if (!paper.isConnected) return;
-
-
-
-    // Page scripts remove these markers after their first render,
-
-    // including when they render fallback content.
-
-    await new Promise(resolve => {
-
-      const pending = () =>
-
-        paper.querySelector('[data-scroll-loading="true"]');
-
-
-
-      if (!pending()) {
-
-        resolve();
-
-        return;
-
-      }
-
-
-
-      const observer = new MutationObserver(() => {
-
-        if (!pending() || !paper.isConnected) {
-
-          observer.disconnect();
-
-          document.removeEventListener('astro:before-swap', cancel);
-
-          resolve();
-
-        }
-
-      });
-
-
-
-      function cancel() {
-
-        observer.disconnect();
-
-        document.removeEventListener('astro:before-swap', cancel);
-
-        resolve();
-
-      }
-
-
-
-      observer.observe(paper, {
-
-        subtree: true,
-
-        attributes: true,
-
-        childList: true
-
-      });
-
-
-
-      document.addEventListener('astro:before-swap', cancel, {
-
-        once: true
-
-      });
-
-    });
-
-
-
-    if (!paper.isConnected) return;
-
-
-
-    // Make newly rendered text participate in font loading.
-
-    void paper.offsetHeight;
-
-    if (document.fonts) await document.fonts.ready;
-
-  };
-
+(function readinessCode() {
+  // INITIAL_SCROLL_READY_V1
+  window.scrollContentReady = async function (paper) {
+    if (document.readyState === 'loading') {
+      await new Promise(resolve =>
+        document.addEventListener('DOMContentLoaded', resolve, {
+          once: true
+        })
+      );
+    }
+
+    if (!paper.isConnected) return;
+
+    // Page scripts remove these markers after their first render,
+    // including when they render fallback content.
+    await new Promise(resolve => {
+      const pending = () =>
+        paper.querySelector('[data-scroll-loading="true"]');
+
+      if (!pending()) {
+        resolve();
+        return;
+      }
+
+      const observer = new MutationObserver(() => {
+        if (!pending() || !paper.isConnected) {
+          observer.disconnect();
+          document.removeEventListener('astro:before-swap', cancel);
+          resolve();
+        }
+      });
+
+      function cancel() {
+        observer.disconnect();
+        document.removeEventListener('astro:before-swap', cancel);
+        resolve();
+      }
+
+      observer.observe(paper, {
+        subtree: true,
+        attributes: true,
+        childList: true
+      });
+
+      document.addEventListener('astro:before-swap', cancel, {
+        once: true
+      });
+    });
+
+    if (!paper.isConnected) return;
+
+    // Make newly rendered text participate in font loading.
+    void paper.offsetHeight;
+    if (document.fonts) await document.fonts.ready;
+  };
 })();
     </script>
-  <!-- STEP17_MOBILE_SCROLL_PHYSICS_START -->
-    <script is:inline>
-      // Keep the initial mobile clip from flashing open while the extracted
-      // physics module is being loaded and initialized.
-      if (window.matchMedia('(max-width: 680px)').matches) {
-        const pendingStage = document.querySelector('body > .scroll-stage');
-        if (pendingStage?.dataset.mobilePhysics === 'true') {
-          pendingStage.setAttribute('data-mobile-physics-pending', 'true');
-        } else {
-          pendingStage?.removeAttribute('data-scroll-initial-wait');
-        }
-      }
-    </script>
-    <style is:inline>
-      @media (max-width: 680px) {
-        body > .scroll-stage[data-mobile-physics-pending="true"] {
-          visibility: hidden !important;
-        }
-      }
-    </style>
-    <script>
-      import './ScrollPhysics.js';
-    </script>
-    <!-- STEP17_MOBILE_SCROLL_PHYSICS_END -->
+    {enableScrollPhysics && <ScrollPhysics />}
     <!-- SHARED_SCROLL_MOTION_V1 -->
     <script is:inline>
 (function sharedScrollHelpers() {
 
   const pendingUnfurls = new WeakMap();
+
+  // ==========================================================================
+  // TWEAKABLE SNEAK PEEK ("YO-YO" BOUNCE) & NEWSLETTER DELAY CONFIGURATION
+  // ==========================================================================
+  window.SCROLL_SNEAK_PEEK_CONFIG = {
+    enabled: true,
+    initialDelayMs: 2400,   // Phase: delay before first bounce once closed
+    cyclePeriodMs: 4500,    // Cycle: total period between bounce starts
+    bounceDurationMs: 1100, // Duration of one down-and-up yo-yo motion
+    desktopDistancePx: 38,  // Peek distance on desktop (px)
+    mobileDistancePx: 34,   // Peek distance on mobile (px)
+    newsletterCloseDelayMs: 420 // Delay before page height recalculates after scroll closes
+  };
+
+  window.clearDesktopSneakPeek = function (stage) {
+    if (!stage) return;
+    if (stage.__sneakPeekCleanup) stage.__sneakPeekCleanup();
+    stage.style.removeProperty('--sneak-peek-offset');
+    stage.style.removeProperty('--sneak-peek-opacity');
+  };
+
+  window.startDesktopSneakPeek = function (stage, isClosedCheck) {
+    window.clearDesktopSneakPeek(stage);
+    const cfg = window.SCROLL_SNEAK_PEEK_CONFIG;
+    if (!cfg || !cfg.enabled) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let timer = 0;
+    let frame = 0;
+    let stopped = false;
+
+    function stop() {
+      stopped = true;
+      window.clearTimeout(timer);
+      window.cancelAnimationFrame(frame);
+      stage.style.removeProperty('--sneak-peek-offset');
+      stage.style.removeProperty('--sneak-peek-opacity');
+    }
+
+    function schedule(first) {
+      if (stopped || !isClosedCheck()) return;
+      const wait = first ? cfg.initialDelayMs : Math.max(200, cfg.cyclePeriodMs - cfg.bounceDurationMs);
+      timer = window.setTimeout(() => {
+        if (stopped || !isClosedCheck()) return;
+        const start = performance.now();
+        const dur = cfg.bounceDurationMs;
+        const amp = cfg.desktopDistancePx;
+        stage.style.setProperty('--sneak-peek-opacity', '1');
+
+        function tick(now) {
+          if (stopped || !isClosedCheck()) {
+            stop();
+            return;
+          }
+          const t = Math.min(1, (now - start) / dur);
+          const offset = amp * Math.sin(Math.PI * t);
+          stage.style.setProperty('--sneak-peek-offset', offset.toFixed(2) + 'px');
+          if (t < 1) {
+            frame = window.requestAnimationFrame(tick);
+          } else {
+            stage.style.removeProperty('--sneak-peek-offset');
+            stage.style.removeProperty('--sneak-peek-opacity');
+            schedule(false);
+          }
+        }
+        frame = window.requestAnimationFrame(tick);
+      }, wait);
+    }
+
+    stage.__sneakPeekCleanup = stop;
+    schedule(true);
+  };
 
 
 
@@ -379,6 +335,7 @@ const {
 
 
   window.prepareScrollUnfurl = function (paper) {
+    if (paper.parentElement) window.clearDesktopSneakPeek(paper.parentElement);
 
     // Remove an unfinished entrance's previous completion listener.
 
@@ -641,6 +598,7 @@ const {
       stage.appendChild(hint);
 
       stage.dataset.homeUnfurl = 'waiting';
+      window.startDesktopSneakPeek(stage, () => !activated && !disposed && stage.dataset.homeUnfurl === 'waiting');
 
       paper.inert = true;
 
@@ -665,6 +623,7 @@ const {
 
 
       async function open() {
+        window.clearDesktopSneakPeek(stage);
 
         if (activated || disposed) return;
 
@@ -770,6 +729,7 @@ const {
 
 
       cleanup = () => {
+        window.clearDesktopSneakPeek(stage);
 
         disposed = true;
 
@@ -907,7 +867,7 @@ const {
     let closing = false;
 
     function placeNewsletter() {
-      if (disposed) return;
+      if (disposed || stage.dataset.newsletterHold === 'true') return;
 
       const visual = window.visualViewport;
       const viewportHeight = Math.max(
@@ -922,6 +882,35 @@ const {
       const gap = Math.max(24, viewportHeight + 24 - spacerTop);
       spacer.style.setProperty('--newsletter-gap', gap + 'px');
     }
+
+    let heldGap = 0;
+    let holdTimer = 0;
+
+    window.beginNewsletterCloseHold = function () {
+      window.clearTimeout(holdTimer);
+      holdTimer = 0;
+      heldGap = spacer.getBoundingClientRect().height;
+      stage.dataset.newsletterHold = 'true';
+      spacer.style.setProperty('--newsletter-gap', heldGap + 'px');
+    };
+
+    window.stepNewsletterCloseHold = function (removedPx, scrolledUpPx) {
+      // Only let the page height shrink by the distance the viewport actually moved up.
+      // Any un-scrolled shrinkage is absorbed into --newsletter-gap during closing.
+      const stationaryShrink = Math.max(0, removedPx - Math.max(0, scrolledUpPx));
+      heldGap += stationaryShrink;
+      spacer.style.setProperty('--newsletter-gap', heldGap + 'px');
+    };
+
+    window.endNewsletterCloseHold = function () {
+      window.clearTimeout(holdTimer);
+      const delay = window.SCROLL_SNEAK_PEEK_CONFIG?.newsletterCloseDelayMs ?? 420;
+      holdTimer = window.setTimeout(() => {
+        holdTimer = 0;
+        delete stage.dataset.newsletterHold;
+        placeNewsletter();
+      }, delay);
+    };
 
     function homeIsWaiting() {
       return (
@@ -941,15 +930,13 @@ const {
       );
       top.setAttribute('aria-expanded', String(!closed && !closing));
 
-      if (owned) {
-        bottom.setAttribute('role', 'button');
-        bottom.setAttribute('tabindex', '0');
-        bottom.setAttribute(
-          'aria-label',
-          closed || closing ? 'Open the scroll' : 'Scroll is open'
-        );
-        bottom.setAttribute('aria-expanded', String(!closed && !closing));
-      }
+      bottom.setAttribute('role', 'button');
+      bottom.setAttribute('tabindex', '0');
+      bottom.setAttribute(
+        'aria-label',
+        closed || closing ? 'Open the scroll' : 'Close the scroll'
+      );
+      bottom.setAttribute('aria-expanded', String(!closed && !closing));
     }
 
 
@@ -1101,7 +1088,8 @@ const {
 
 
 
-    async function animateScroll(shouldClose, sourceRoller = top) {
+    async function animateScroll(shouldClose) {
+      window.clearDesktopSneakPeek(stage);
 
       const epoch = ++repeatEpoch;
 
@@ -1130,6 +1118,8 @@ const {
 
 
       if (!shouldClose) {
+        window.clearTimeout(holdTimer);
+        delete stage.dataset.newsletterHold;
 
         closed = false;
 
@@ -1208,6 +1198,8 @@ const {
 
 
 
+      window.beginNewsletterCloseHold();
+
       const startedAt = performance.now();
 
       const duration = reduced.matches ? 0 : 900;
@@ -1252,13 +1244,15 @@ const {
 
 
 
+        const prevScrollY = window.scrollY;
+
         stage.style.setProperty('--whole-scroll-height', nextHeight + 'px');
 
         previousHeight = nextHeight;
 
-        placeNewsletter();
-
         window.scrollTo({ top: targetY, behavior: 'instant' });
+
+        window.stepNewsletterCloseHold(removed, prevScrollY - window.scrollY);
 
 
 
@@ -1321,9 +1315,9 @@ const {
         moveDesktopPosition(Math.max(0, screenCenter - center)).then(ok => {
 
           if (ok && !disposed && epoch === repeatEpoch && closed) {
-
+            window.endNewsletterCloseHold();
+            window.startDesktopSneakPeek(stage, () => !disposed && closed && !closing);
             showRepeatHintLater();
-            stage.dispatchEvent(new Event('scroll:closed'));
 
           }
 
@@ -1353,8 +1347,7 @@ const {
 
       event.preventDefault();
       event.stopImmediatePropagation();
-      // Both rollers toggle the same scroll state on desktop.
-      animateScroll(closed || closing ? false : true, event.currentTarget);
+      animateScroll(closed || closing ? false : true);
     }
 
     for (const roller of [top, bottom]) {
