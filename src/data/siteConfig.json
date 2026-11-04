@@ -76,7 +76,7 @@
   ],
   "i18n": {
     "defaultLocale": "en",
-    "triggerCloudTranslation": false,
+    "triggerCloudTranslation": true,
     "locales": [
       {
         "code": "en",
