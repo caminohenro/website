@@ -1,0 +1,62 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "blog": "Crónicas",
+    "faq": "Preguntas",
+    "credits": "Gratitud",
+    "comingSoon": "Próximamente",
+    "map": "Mapa",
+    "inventory": "Inventario",
+    "finances": "Finanzas",
+    "gallery": "Galería",
+    "forum": "Foro",
+    "donate": "Donar 印",
+    "languageSelectorLabel": "Seleccionar Idioma"
+  },
+  "banners": {
+    "untranslatedNotice": "Esta crónica aún no ha sido traducida al español. Mostrando el manuscrito original en inglés a continuación.",
+    "backToEnglish": "Ver Original en Inglés"
+  },
+  "home": {
+    "eyebrow": "同行二人 • CAMINANDO JUNTOS",
+    "heroSubtitle": "Desde el Fin de la Tierra hasta la Tierra del Sol Naciente",
+    "latestDispatchesHeading": "Últimas Crónicas del Camino",
+    "readDispatchBtn": "Leer Crónica →",
+    "viewAllEssaysBtn": "Abrir Archivo Completo",
+    "currentLocationLabel": "Ubicación Actual"
+  },
+  "essays": {
+    "pageTitle": "Crónicas y Ensayos del Camino",
+    "pageSubtitle": "Notas de campo, reflexiones filosóficas y kilometraje diario desde la ruta.",
+    "backToArchive": "← Volver al Archivo",
+    "distanceLabel": "Distancia Recorrida",
+    "readingTimeLabel": "Tiempo de Lectura"
+  },
+  "faq": {
+    "pageTitle": "Preguntas Frecuentes",
+    "pageSubtitle": "Logística práctica, raíces filosóficas y notas de equipo para la peregrinación."
+  },
+  "credits": {
+    "pageTitle": "Créditos y Gratitud (Osettai)",
+    "pageSubtitle": "Cada paso es posible gracias a la hospitalidad y amabilidad de desconocidos en el camino."
+  },
+  "inventory": {
+    "pageTitle": "Inventario de Equipo del Peregrino",
+    "pageSubtitle": "Cada artículo llevado a la espalda, pesado al gramo y probado por la lluvia y la piedra."
+  },
+  "map": {
+    "pageTitle": "Ruta de Peregrinación y Puntos de Control",
+    "pageSubtitle": "Registro interactivo desde Finisterra a través de Europa hacia Shikoku."
+  },
+  "finances": {
+    "pageTitle": "Finanzas de la Peregrinación y Libro Osettai",
+    "pageSubtitle": "Contabilidad transparente de gastos en ruta y ofrendas de la comunidad."
+  },
+  "newsletter": {
+    "eyebrow": "書簡 • DESPACHOS",
+    "heading": "Boletín de la Peregrinación",
+    "copy": "Sin ruido, sin algoritmos: solo una nota tranquila en tu bandeja de entrada cuando se escriba una nueva crónica.",
+    "placeholder": "Introduce tu correo electrónico...",
+    "submitBtn": "Suscribirse a las Crónicas 印"
+  }
+}

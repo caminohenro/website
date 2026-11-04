@@ -1,0 +1,44 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getEnabledLocales, getUiStrings, getLocalizedDataFile } from '../../utils/i18n';
+
+export async function getStaticPaths() {
+  const locales = getEnabledLocales().filter((l) => l.code !== 'en');
+  return locales.map((loc) => ({
+    params: { lang: loc.code },
+    props: { lang: loc.code },
+  }));
+}
+
+const { lang } = Astro.props;
+const ui = getUiStrings(lang);
+const faqData = getLocalizedDataFile<{ categories?: Array<{ categoryName: string; items: Array<{ question: string; answer: string }> }> }>('faq.json', lang);
+const categories = Array.isArray(faqData?.categories) ? faqData.categories : [];
+---
+
+<BaseLayout title={ui.faq.pageTitle} description={ui.faq.pageSubtitle}>
+  <section class="max-w-3xl mx-auto px-4 py-8">
+    <header class="mb-10 border-b border-[#3B2A22]/20 pb-6 text-center">
+      <h1 class="text-3xl md:text-4xl font-bold text-[#231812] mb-2">{ui.faq.pageTitle}</h1>
+      <p class="text-base italic text-[#4A372C]">{ui.faq.pageSubtitle}</p>
+    </header>
+
+    <div class="space-y-8">
+      {categories.map((cat) => (
+        <div>
+          <h2 class="text-xl font-bold text-[#6E2B25] mb-4 border-b border-[#6E2B25]/20 pb-2">
+            {cat.categoryName}
+          </h2>
+          <div class="space-y-4">
+            {(cat.items || []).map((item) => (
+              <div class="border-b border-[#3B2A22]/10 pb-4">
+                <h3 class="text-lg font-semibold text-[#231812] mb-1">{item.question}</h3>
+                <p class="text-[#3B2A22]/90 whitespace-pre-line">{item.answer}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

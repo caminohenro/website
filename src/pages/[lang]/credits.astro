@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getEnabledLocales, getUiStrings, getLocalizedDataFile } from '../../utils/i18n';
+
+export async function getStaticPaths() {
+  const locales = getEnabledLocales().filter((l) => l.code !== 'en');
+  return locales.map((loc) => ({
+    params: { lang: loc.code },
+    props: { lang: loc.code },
+  }));
+}
+
+const { lang } = Astro.props;
+const ui = getUiStrings(lang);
+const creditsData = getLocalizedDataFile<{ sections?: Array<{ title: string; entries: Array<{ name: string; locationOrRole: string; note: string }> }> }>('credits.json', lang);
+const sections = Array.isArray(creditsData?.sections) ? creditsData.sections : [];
+---
+
+<BaseLayout title={ui.credits.pageTitle} description={ui.credits.pageSubtitle}>
+  <section class="max-w-3xl mx-auto px-4 py-8">
+    <header class="mb-10 border-b border-[#3B2A22]/20 pb-6 text-center">
+      <h1 class="text-3xl md:text-4xl font-bold text-[#231812] mb-2">{ui.credits.pageTitle}</h1>
+      <p class="text-base italic text-[#4A372C]">{ui.credits.pageSubtitle}</p>
+    </header>
+
+    <div class="space-y-8">
+      {sections.map((sec) => (
+        <div>
+          <h2 class="text-xl font-bold text-[#6E2B25] mb-4 border-b border-[#6E2B25]/20 pb-2">
+            {sec.title}
+          </h2>
+          <div class="grid gap-4">
+            {(sec.entries || []).map((entry) => (
+              <div class="p-4 border border-[#3B2A22]/15 rounded bg-[#F5EFE2]/40">
+                <div class="flex flex-wrap justify-between items-baseline gap-2 mb-1">
+                  <strong class="text-lg text-[#231812]">{entry.name}</strong>
+                  <span class="text-xs font-mono text-[#6E2B25]">{entry.locationOrRole}</span>
+                </div>
+                <p class="text-sm text-[#3B2A22]/90">{entry.note}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

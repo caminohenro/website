@@ -7,6 +7,7 @@ readingTime: <reading_time>
 excerpt: "The lesson taught by a slice of pizza: How to change your mindset to
   overcome attachment."
 draft: false
+translationControl: auto
 ---
 There is a saying in English: 
 

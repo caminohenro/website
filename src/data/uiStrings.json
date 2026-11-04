@@ -1,0 +1,62 @@
+{
+  "nav": {
+    "home": "Home",
+    "blog": "Blog",
+    "faq": "FAQ",
+    "credits": "Credits",
+    "comingSoon": "Coming Soon",
+    "map": "Map",
+    "inventory": "Inventory",
+    "finances": "Finances",
+    "gallery": "Gallery",
+    "forum": "Forum",
+    "donate": "Donate 印",
+    "languageSelectorLabel": "Select Language"
+  },
+  "banners": {
+    "untranslatedNotice": "This dispatch has not yet been translated into your selected language. Showing the original English manuscript below.",
+    "backToEnglish": "View Original English"
+  },
+  "home": {
+    "eyebrow": "同行二人 • WALKING TOGETHER",
+    "heroSubtitle": "From the End of the Earth to the Land of the Rising Sun",
+    "latestDispatchesHeading": "Latest Trail Dispatches",
+    "readDispatchBtn": "Read Dispatch →",
+    "viewAllEssaysBtn": "Open Full Dispatch Archive",
+    "currentLocationLabel": "Current Trailhead"
+  },
+  "essays": {
+    "pageTitle": "Trail Dispatches & Essays",
+    "pageSubtitle": "Field notes, philosophical reflections, and daily mileage from the road.",
+    "backToArchive": "← Back to Dispatch Archive",
+    "distanceLabel": "Distance Walked",
+    "readingTimeLabel": "Reading Time"
+  },
+  "faq": {
+    "pageTitle": "Frequently Asked Questions",
+    "pageSubtitle": "Practical logistics, philosophical roots, and equipment notes for the pilgrimage."
+  },
+  "credits": {
+    "pageTitle": "Credits & Gratitude (Osettai)",
+    "pageSubtitle": "Every step is made possible by the hospitality and kindness of strangers along the way."
+  },
+  "inventory": {
+    "pageTitle": "Pilgrim Gear Inventory",
+    "pageSubtitle": "Every item carried on the back, weighed to the gram and tested by rain and stone."
+  },
+  "map": {
+    "pageTitle": "Pilgrimage Route & Checkpoints",
+    "pageSubtitle": "Interactive trail log from Finisterra across Europe and onward to Shikoku."
+  },
+  "finances": {
+    "pageTitle": "Pilgrimage Finances & Osettai Ledger",
+    "pageSubtitle": "Transparent accounting of trail expenses and community offerings."
+  },
+  "newsletter": {
+    "eyebrow": "書簡 • DISPATCHES",
+    "heading": "Pilgrimage Newsletter",
+    "copy": "No noise, no algorithms—only a quiet note in your inbox whenever a new dispatch is written from the trail. Sent via MailerLite.",
+    "placeholder": "Enter your email address...",
+    "submitBtn": "Subscribe to Dispatches 印"
+  }
+}

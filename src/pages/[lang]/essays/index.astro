@@ -1,0 +1,67 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getEnabledLocales, getUiStrings, localizeHref } from '../../../utils/i18n';
+
+export async function getStaticPaths() {
+  const locales = getEnabledLocales().filter((l) => l.code !== 'en');
+  return locales.map((loc) => ({
+    params: { lang: loc.code },
+    props: { lang: loc.code },
+  }));
+}
+
+const { lang } = Astro.props;
+const ui = getUiStrings(lang);
+
+const allEssays = await getCollection('essays', ({ data }) => !data.draft);
+const englishEssays = allEssays
+  .filter((e) => !e.id.includes('/'))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const displayEssays = englishEssays.map((enEntry) => {
+  const locEntry = allEssays.find(
+    (e) => e.id === `${lang}/${enEntry.id}` || e.slug === `${lang}/${enEntry.slug}`
+  );
+  return {
+    baseSlug: enEntry.slug,
+    entry: locEntry || enEntry,
+    isFallback: !locEntry,
+  };
+});
+---
+
+<BaseLayout title={ui.essays.pageTitle} description={ui.essays.pageSubtitle}>
+  <section class="max-w-3xl mx-auto px-4 py-8">
+    <header class="mb-10 border-b border-[#3B2A22]/20 pb-6 text-center">
+      <h1 class="text-3xl md:text-4xl font-bold text-[#231812] mb-2">{ui.essays.pageTitle}</h1>
+      <p class="text-base italic text-[#4A372C]">{ui.essays.pageSubtitle}</p>
+    </header>
+
+    <div class="space-y-8">
+      {displayEssays.map(({ baseSlug, entry, isFallback }) => (
+        <article class="border-b border-[#3B2A22]/15 pb-6">
+          <div class="text-xs font-mono uppercase tracking-wider text-[#6E2B25] mb-1">
+            {entry.data.date.toLocaleDateString(lang, { year: 'numeric', month: 'short', day: 'numeric' })}
+            {' • '}
+            {entry.data.location}
+            {entry.data.kilometersWalked !== undefined && ` • ${entry.data.kilometersWalked} km`}
+            {isFallback && ' • [EN]'}
+          </div>
+          <h2 class="text-2xl font-semibold text-[#231812] mb-2">
+            <a href={localizeHref(`/essays/${baseSlug}`, lang)} class="hover:text-[#6E2B25]">
+              {entry.data.title}
+            </a>
+          </h2>
+          <p class="text-[#3B2A22]/90 mb-3">{entry.data.excerpt}</p>
+          <a
+            href={localizeHref(`/essays/${baseSlug}`, lang)}
+            class="text-xs font-mono uppercase tracking-wider text-[#6E2B25] hover:underline"
+          >
+            {ui.home.readDispatchBtn}
+          </a>
+        </article>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

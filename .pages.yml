@@ -11,16 +11,26 @@ media:
 
 content:
   - name: essays
-    label: Essays & Dispatches
+    label: Essays & Dispatches (English Master)
     type: collection
     path: src/content/essays
+    exclude: ["pt/**", "es/**", "ja/**"]
     filename: "{year}-{month}-{day}-{primary}.md"
     view:
       primary: title
-      fields: [title, location, date, draft]
+      fields: [title, translationControl, location, date, draft]
       sort: [date]
       order: desc
     fields:
+      - name: translationControl
+        label: Translation Status / Queue
+        type: select
+        default: auto
+        options:
+          values:
+            - { value: "auto", label: "Auto (Translate if brand new)" }
+            - { value: "queue", label: "📥 Queue for Translation (Translate on next run)" }
+            - { value: "ignore", label: "🚫 Ignore Changes (Do not translate)" }
       - name: title
         label: Essay Title
         type: string
@@ -39,6 +49,9 @@ content:
       - name: kilometersWalked
         label: Total Kilometers Walked
         type: number
+      - name: readingTime
+        label: Reading Time (e.g. 5 min read)
+        type: string
       - name: excerpt
         label: Short Summary / Excerpt
         type: text
@@ -49,6 +62,179 @@ content:
         default: false
       - name: body
         label: Essay Text (Markdown)
+        type: rich-text
+
+  - name: translationsAndLanguages
+    label: "🌐 Translations & Languages"
+    type: file
+    path: src/data/siteConfig.json
+    format: json
+    fields:
+      - name: i18n
+        label: AI Translation Engine & Active Languages
+        type: object
+        fields:
+          - name: triggerCloudTranslation
+            label: "🚀 Translate Queued Pages Now (Flip ON & Save)"
+            description: "Turn this switch ON and click Save to trigger GitHub Actions to translate all brand-new or queued content. It automatically resets to OFF when complete."
+            type: boolean
+            default: false
+          - name: defaultLocale
+            label: Default Language Code
+            type: string
+            default: "en"
+          - name: locales
+            label: Configured Languages
+            type: object
+            list: true
+            fields:
+              - name: code
+                label: Locale Code (en, pt, es, ja)
+                type: string
+              - name: label
+                label: Short Header Badge (EN, PT, ES, JP)
+                type: string
+              - name: name
+                label: Language Display Name
+                type: string
+              - name: flag
+                label: Flag Emoji
+                type: string
+              - name: enabled
+                label: Enable Language in Header & Translator
+                type: boolean
+                default: true
+
+  - name: essaysPt
+    label: "🇵🇹 Translated Essays (Português)"
+    type: collection
+    path: src/content/essays/pt
+    filename: "{year}-{month}-{day}-{primary}.md"
+    view:
+      primary: title
+      fields: [title, location, date, draft]
+      sort: [date]
+      order: desc
+    fields:
+      - name: title
+        label: Essay Title (PT)
+        type: string
+        required: true
+      - name: subtitle
+        label: Subtitle (PT)
+        type: string
+      - name: date
+        label: Date
+        type: date
+        required: true
+      - name: location
+        label: Current Trail Location (PT)
+        type: string
+        required: true
+      - name: kilometersWalked
+        label: Total Kilometers Walked
+        type: number
+      - name: readingTime
+        label: Reading Time (PT)
+        type: string
+      - name: excerpt
+        label: Short Summary / Excerpt (PT)
+        type: text
+        required: true
+      - name: draft
+        label: Draft
+        type: boolean
+        default: false
+      - name: body
+        label: Essay Text (Markdown - PT)
+        type: rich-text
+
+  - name: essaysEs
+    label: "🇪🇸 Translated Essays (Español)"
+    type: collection
+    path: src/content/essays/es
+    filename: "{year}-{month}-{day}-{primary}.md"
+    view:
+      primary: title
+      fields: [title, location, date, draft]
+      sort: [date]
+      order: desc
+    fields:
+      - name: title
+        label: Essay Title (ES)
+        type: string
+        required: true
+      - name: subtitle
+        label: Subtitle (ES)
+        type: string
+      - name: date
+        label: Date
+        type: date
+        required: true
+      - name: location
+        label: Current Trail Location (ES)
+        type: string
+        required: true
+      - name: kilometersWalked
+        label: Total Kilometers Walked
+        type: number
+      - name: readingTime
+        label: Reading Time (ES)
+        type: string
+      - name: excerpt
+        label: Short Summary / Excerpt (ES)
+        type: text
+        required: true
+      - name: draft
+        label: Draft
+        type: boolean
+        default: false
+      - name: body
+        label: Essay Text (Markdown - ES)
+        type: rich-text
+
+  - name: essaysJa
+    label: "🇯🇵 Translated Essays (日本語)"
+    type: collection
+    path: src/content/essays/ja
+    filename: "{year}-{month}-{day}-{primary}.md"
+    view:
+      primary: title
+      fields: [title, location, date, draft]
+      sort: [date]
+      order: desc
+    fields:
+      - name: title
+        label: Essay Title (JA)
+        type: string
+        required: true
+      - name: subtitle
+        label: Subtitle (JA)
+        type: string
+      - name: date
+        label: Date
+        type: date
+        required: true
+      - name: location
+        label: Current Trail Location (JA)
+        type: string
+        required: true
+      - name: kilometersWalked
+        label: Total Kilometers Walked
+        type: number
+      - name: readingTime
+        label: Reading Time (JA)
+        type: string
+      - name: excerpt
+        label: Short Summary / Excerpt (JA)
+        type: text
+        required: true
+      - name: draft
+        label: Draft
+        type: boolean
+        default: false
+      - name: body
+        label: Essay Text (Markdown - JA)
         type: rich-text
 
   - name: finances

@@ -4,7 +4,7 @@ import siteConfig from '../../data/siteConfig.json';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
-  const allEssays = await getCollection('essays', ({ data }) => !data.draft);
+  const allEssays = await getCollection('essays', ({ id, data }) => !id.includes('/') && !data.draft);
   // Sort oldest-first so prev/next follow chronological trail order
   const chronological = allEssays.sort(
     (a, b) => a.data.date.valueOf() - b.data.date.valueOf()

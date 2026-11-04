@@ -2,7 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 
-const allEssays = await getCollection('essays', ({ data }) => !data.draft);
+const allEssays = await getCollection('essays', ({ id, data }) => !id.includes('/') && !data.draft);
 const sortedEssays = allEssays.sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
 );

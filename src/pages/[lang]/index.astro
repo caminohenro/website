@@ -1,0 +1,85 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import siteConfig from '../../data/siteConfig.json';
+import { getEnabledLocales, getUiStrings, localizeHref } from '../../utils/i18n';
+
+export async function getStaticPaths() {
+  const locales = getEnabledLocales().filter((l) => l.code !== 'en');
+  return locales.map((loc) => ({
+    params: { lang: loc.code },
+    props: { lang: loc.code },
+  }));
+}
+
+const { lang } = Astro.props;
+const ui = getUiStrings(lang);
+
+const allEssays = await getCollection('essays', ({ data }) => !data.draft);
+const englishEssays = allEssays
+  .filter((e) => !e.id.includes('/'))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
+
+const recentDispatches = englishEssays.map((enEntry) => {
+  const locEntry = allEssays.find(
+    (e) => e.id === `${lang}/${enEntry.id}` || e.slug === `${lang}/${enEntry.slug}`
+  );
+  return {
+    baseSlug: enEntry.slug,
+    entry: locEntry || enEntry,
+  };
+});
+---
+
+<BaseLayout startClosed={true}>
+  <section class="max-w-3xl mx-auto px-4 py-8 text-center">
+    <div class="text-xs font-mono uppercase tracking-widest text-[#6E2B25] mb-2">
+      {ui.home.eyebrow}
+    </div>
+    <h1 class="text-4xl md:text-5xl font-bold text-[#231812] mb-3">
+      {siteConfig.siteTitleJp} • {siteConfig.siteTitleEn}
+    </h1>
+    <p class="text-lg italic text-[#4A372C] mb-6">{ui.home.heroSubtitle}</p>
+
+    <div class="inline-block border border-[#3B2A22]/25 px-4 py-2 rounded text-xs font-mono text-[#3B2A22] mb-10">
+      {ui.home.currentLocationLabel}: <strong>{siteConfig.currentLocation}</strong>
+    </div>
+
+    <div class="text-left border-t border-[#3B2A22]/20 pt-8">
+      <h2 class="text-2xl font-bold text-[#231812] mb-6">{ui.home.latestDispatchesHeading}</h2>
+      <div class="space-y-6">
+        {recentDispatches.map(({ baseSlug, entry }) => (
+          <article class="border-b border-[#3B2A22]/15 pb-5">
+            <div class="text-xs font-mono text-[#6E2B25] mb-1">
+              {entry.data.date.toLocaleDateString(lang, { year: 'numeric', month: 'short', day: 'numeric' })}
+              {' • '}
+              {entry.data.location}
+            </div>
+            <h3 class="text-xl font-semibold text-[#231812] mb-1">
+              <a href={localizeHref(`/essays/${baseSlug}`, lang)} class="hover:text-[#6E2B25]">
+                {entry.data.title}
+              </a>
+            </h3>
+            <p class="text-sm text-[#3B2A22]/90 mb-2">{entry.data.excerpt}</p>
+            <a
+              href={localizeHref(`/essays/${baseSlug}`, lang)}
+              class="text-xs font-mono text-[#6E2B25] hover:underline"
+            >
+              {ui.home.readDispatchBtn}
+            </a>
+          </article>
+        ))}
+      </div>
+
+      <div class="mt-8 text-center">
+        <a
+          href={localizeHref('/essays', lang)}
+          class="inline-block px-5 py-2.5 border border-[#6E2B25] text-[#6E2B25] font-mono text-xs uppercase tracking-wider hover:bg-[#6E2B25] hover:text-[#E6DFCF] transition"
+        >
+          {ui.home.viewAllEssaysBtn}
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

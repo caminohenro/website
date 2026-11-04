@@ -1744,3 +1744,87 @@ body > .scroll-stage > .scroll-roller-bottom[role="button"]:focus-visible {
     --mobile-unfurl-min-duration: 1200;
   }
 }
+
+/* STEP20_I18N_LANG_SWITCHER_START */
+.lang-switcher {
+  position: relative;
+  margin-left: 0.25rem;
+}
+
+.lang-switcher-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.38rem 0.68rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  border: 1px solid rgba(230, 223, 207, 0.24);
+  border-radius: 4px;
+  background: rgba(24, 18, 14, 0.55);
+}
+
+.lang-switcher-toggle:hover,
+.lang-switcher.open .lang-switcher-toggle {
+  border-color: rgba(201, 162, 89, 0.65);
+  background: rgba(42, 30, 22, 0.85);
+}
+
+.lang-flag {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.lang-dropdown-menu {
+  right: 0;
+  left: auto;
+  min-width: 165px;
+}
+
+.lang-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+}
+
+.lang-item-flag {
+  font-size: 1rem;
+}
+
+.lang-item-name {
+  flex: 1;
+  text-align: left;
+}
+
+.lang-item-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  opacity: 0.7;
+}
+
+.i18n-fallback-banner {
+  margin: 0 auto 1.75rem auto;
+  padding: 0.85rem 1.15rem;
+  border-left: 3px solid #6E2B25;
+  background: rgba(110, 43, 37, 0.08);
+  color: #3B2A22;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: 0 4px 4px 0;
+}
+
+.i18n-fallback-banner a {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  color: #6E2B25;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+/* STEP20_I18N_LANG_SWITCHER_END */

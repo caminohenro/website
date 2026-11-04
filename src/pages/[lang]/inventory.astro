@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getEnabledLocales, getUiStrings, getLocalizedDataFile } from '../../utils/i18n';
+
+export async function getStaticPaths() {
+  const locales = getEnabledLocales().filter((l) => l.code !== 'en');
+  return locales.map((loc) => ({
+    params: { lang: loc.code },
+    props: { lang: loc.code },
+  }));
+}
+
+const { lang } = Astro.props;
+const ui = getUiStrings(lang);
+const invData = getLocalizedDataFile<{ items?: Array<any> }>('inventory.json', lang);
+const items = Array.isArray(invData?.items) ? invData.items : [];
+---
+
+<BaseLayout title={ui.inventory.pageTitle} description={ui.inventory.pageSubtitle}>
+  <section class="max-w-3xl mx-auto px-4 py-8">
+    <header class="mb-10 border-b border-[#3B2A22]/20 pb-6 text-center">
+      <h1 class="text-3xl md:text-4xl font-bold text-[#231812] mb-2">{ui.inventory.pageTitle}</h1>
+      <p class="text-base italic text-[#4A372C]">{ui.inventory.pageSubtitle}</p>
+    </header>
+
+    <div class="grid gap-4">
+      {items.map((item) => (
+        <div class="p-4 border border-[#3B2A22]/20 rounded bg-[#F5EFE2]/50">
+          <div class="flex flex-wrap justify-between items-baseline gap-2 mb-1">
+            <h2 class="text-lg font-bold text-[#231812]">
+              {item.name} {item.japaneseName && <span class="text-sm font-normal text-[#6E2B25]">({item.japaneseName})</span>}
+            </h2>
+            <span class="text-xs font-mono text-[#4A372C]">
+              {item.slot} • {item.weightGrams}g • {item.condition}
+            </span>
+          </div>
+          <p class="text-sm font-semibold text-[#3B2A22] mb-1">{item.shortSummary}</p>
+          {item.lore && <p class="text-sm italic text-[#4A372C]">{item.lore}</p>}
+        </div>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,62 @@
+{
+  "nav": {
+    "home": "ホーム",
+    "blog": "遍路日記",
+    "faq": "よくある質問",
+    "credits": "謝辞・お接待",
+    "comingSoon": "準備中",
+    "map": "巡礼地図",
+    "inventory": "装備一覧",
+    "finances": "巡礼収支",
+    "gallery": "写真館",
+    "forum": "掲示板",
+    "donate": "お接待・支援 印",
+    "languageSelectorLabel": "言語を選択"
+  },
+  "banners": {
+    "untranslatedNotice": "この記事はまだ日本語に翻訳されていません。以下に英語の原文を表示しています。",
+    "backToEnglish": "英語の原文を表示"
+  },
+  "home": {
+    "eyebrow": "同行二人 • ふたりで歩む道",
+    "heroSubtitle": "地の果てフィニステレから日出づる国・四国へ",
+    "latestDispatchesHeading": "最新の遍路日記・紀行文",
+    "readDispatchBtn": "記事を読む →",
+    "viewAllEssaysBtn": "すべての記録を見る",
+    "currentLocationLabel": "現在地"
+  },
+  "essays": {
+    "pageTitle": "遍路日記・エッセイ",
+    "pageSubtitle": "道中の記録、哲学的な思索、そして日々の歩行距離。",
+    "backToArchive": "← 記録一覧へ戻る",
+    "distanceLabel": "歩行距離",
+    "readingTimeLabel": "読了目安"
+  },
+  "faq": {
+    "pageTitle": "よくある質問 (FAQ)",
+    "pageSubtitle": "巡礼の計画、精神的な背景、装備に関する質問と回答。"
+  },
+  "credits": {
+    "pageTitle": "謝辞とお接待の記録",
+    "pageSubtitle": "この旅の一歩一歩は、道中で出会った皆様の温かいご厚意によって支えられています。"
+  },
+  "inventory": {
+    "pageTitle": "巡礼装備インベントリ",
+    "pageSubtitle": "背中に背負うすべての道具。グラム単位の重量と道中の物語。"
+  },
+  "map": {
+    "pageTitle": "巡礼ルート＆チェックポイント",
+    "pageSubtitle": "スペイン・フィニステレからヨーロッパを横断し、日本・四国へと続く軌跡。"
+  },
+  "finances": {
+    "pageTitle": "巡礼収支・お接待帳",
+    "pageSubtitle": "道中の経費と皆様からいただいたお接待の透明な記録。"
+  },
+  "newsletter": {
+    "eyebrow": "書簡 • DISPATCHES",
+    "heading": "巡礼ニュースレター",
+    "copy": "アルゴリズムや喧騒から離れ、新しい記録が綴られたときだけ静かな便りをお届けします。",
+    "placeholder": "メールアドレスを入力...",
+    "submitBtn": "便りを購読する 印"
+  }
+}

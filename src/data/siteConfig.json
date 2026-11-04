@@ -73,5 +73,39 @@
         }
       ]
     }
-  ]
+  ],
+  "i18n": {
+    "defaultLocale": "en",
+    "triggerCloudTranslation": false,
+    "locales": [
+      {
+        "code": "en",
+        "label": "EN",
+        "name": "English",
+        "flag": "🇬🇧",
+        "enabled": true
+      },
+      {
+        "code": "pt",
+        "label": "PT",
+        "name": "Português",
+        "flag": "🇵🇹",
+        "enabled": true
+      },
+      {
+        "code": "es",
+        "label": "ES",
+        "name": "Español",
+        "flag": "🇪🇸",
+        "enabled": true
+      },
+      {
+        "code": "ja",
+        "label": "JP",
+        "name": "日本語",
+        "flag": "🇯🇵",
+        "enabled": true
+      }
+    ]
+  }
 }

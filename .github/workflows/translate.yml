@@ -1,0 +1,59 @@
+name: AI Incremental Site Translator
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'src/data/siteConfig.json'
+
+permissions:
+  contents: write
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check Translation Trigger State
+        id: check_trigger
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "Triggered manually via workflow_dispatch."
+          else
+            TRIGGER=$(node -e "const c = require('./src/data/siteConfig.json'); console.log(Boolean(c.i18n && c.i18n.triggerCloudTranslation));")
+            echo "should_run=$TRIGGER" >> $GITHUB_OUTPUT
+            echo "triggerCloudTranslation in siteConfig.json is: $TRIGGER"
+          fi
+
+      - name: Setup Node.js
+        if: steps.check_trigger.outputs.should_run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run Incremental AI Translator
+        if: steps.check_trigger.outputs.should_run == 'true'
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: node scripts/translate-site.mjs
+
+      - name: Commit & Push Translations and Reset Toggle
+        if: steps.check_trigger.outputs.should_run == 'true'
+        run: |
+          git config user.name "camino-henro-translator[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/content/essays src/data .pages.yml
+          if git diff --cached --quiet; then
+            echo "No translation changes to commit."
+          else
+            git commit -m "chore(i18n): incremental AI translation sync [skip ci]"
+            git push
+          fi

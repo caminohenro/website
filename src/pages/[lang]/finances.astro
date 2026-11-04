@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getEnabledLocales, getUiStrings, getLocalizedDataFile } from '../../utils/i18n';
+
+export async function getStaticPaths() {
+  const locales = getEnabledLocales().filter((l) => l.code !== 'en');
+  return locales.map((loc) => ({
+    params: { lang: loc.code },
+    props: { lang: loc.code },
+  }));
+}
+
+const { lang } = Astro.props;
+const ui = getUiStrings(lang);
+const finData = getLocalizedDataFile<any>('finances.json', lang);
+const entries = Array.isArray(finData?.entries) ? finData.entries : [];
+const currency = finData?.currencySymbol || '€';
+---
+
+<BaseLayout title={ui.finances.pageTitle} description={ui.finances.pageSubtitle}>
+  <section class="max-w-3xl mx-auto px-4 py-8">
+    <header class="mb-8 border-b border-[#3B2A22]/20 pb-6 text-center">
+      <h1 class="text-3xl md:text-4xl font-bold text-[#231812] mb-2">{ui.finances.pageTitle}</h1>
+      <p class="text-base italic text-[#4A372C]">{finData?.note || ui.finances.pageSubtitle}</p>
+    </header>
+
+    <div class="space-y-3">
+      {entries.map((entry: any) => (
+        <div class="flex justify-between items-center p-3 border-b border-[#3B2A22]/15 text-sm">
+          <div>
+            <div class="font-semibold text-[#231812]">{entry.description}</div>
+            <div class="text-xs font-mono text-[#6E2B25]">
+              {entry.date} • {entry.category} {entry.location ? `• ${entry.location}` : ''}
+            </div>
+          </div>
+          <div class="font-mono font-bold text-[#231812]">
+            {entry.type === 'osettai' ? '+' : '-'}{currency}{entry.amount}
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,62 @@
+{
+  "nav": {
+    "home": "Início",
+    "blog": "Diário",
+    "faq": "Perguntas",
+    "credits": "Gratidão",
+    "comingSoon": "Em Breve",
+    "map": "Mapa",
+    "inventory": "Inventário",
+    "finances": "Finanças",
+    "gallery": "Galeria",
+    "forum": "Fórum",
+    "donate": "Apoiar 印",
+    "languageSelectorLabel": "Selecionar Idioma"
+  },
+  "banners": {
+    "untranslatedNotice": "Este relato ainda não foi traduzido para o português. Exibindo o manuscrito original em inglês abaixo.",
+    "backToEnglish": "Ver Original em Inglês"
+  },
+  "home": {
+    "eyebrow": "同行二人 • CAMINHANDO JUNTOS",
+    "heroSubtitle": "Do Fim do Mundo à Terra do Sol Nascente",
+    "latestDispatchesHeading": "Últimos Relatos da Trilha",
+    "readDispatchBtn": "Ler Relato →",
+    "viewAllEssaysBtn": "Ver Arquivo Completo",
+    "currentLocationLabel": "Localização Atual"
+  },
+  "essays": {
+    "pageTitle": "Relatos & Ensaios da Trilha",
+    "pageSubtitle": "Notas de campo, reflexões filosóficas e quilometragem diária da estrada.",
+    "backToArchive": "← Voltar ao Arquivo",
+    "distanceLabel": "Distância Percorrida",
+    "readingTimeLabel": "Tempo de Leitura"
+  },
+  "faq": {
+    "pageTitle": "Perguntas Frequentes",
+    "pageSubtitle": "Logística prática, raízes filosóficas e notas sobre o equipamento de peregrinação."
+  },
+  "credits": {
+    "pageTitle": "Créditos & Gratidão (Osettai)",
+    "pageSubtitle": "Cada passo é tornado possível pela hospitalidade e bondade de estranhos pelo caminho."
+  },
+  "inventory": {
+    "pageTitle": "Inventário de Equipamento",
+    "pageSubtitle": "Cada item carregado nas costas, pesado ao grama e testado pela chuva e pela pedra."
+  },
+  "map": {
+    "pageTitle": "Rota de Peregrinação & Pontos de Controle",
+    "pageSubtitle": "Registro interativo de Finisterra através da Europa até Shikoku."
+  },
+  "finances": {
+    "pageTitle": "Finanças da Peregrinação & Livro Osettai",
+    "pageSubtitle": "Contabilidade transparente de despesas de trilha e ofertas da comunidade."
+  },
+  "newsletter": {
+    "eyebrow": "書簡 • CARTAS DA TRILHA",
+    "heading": "Boletim da Peregrinação",
+    "copy": "Sem ruído, sem algoritmos—apenas uma nota tranquila na sua caixa de entrada sempre que um novo relato for escrito.",
+    "placeholder": "Digite seu endereço de e-mail...",
+    "submitBtn": "Assinar Relatos 印"
+  }
+}
