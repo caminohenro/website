@@ -1,0 +1,16 @@
+{
+  "trigger_translation_now": false,
+  "translate_static_pages_and_data": true,
+  "target_languages": [
+    "pt",
+    "es",
+    "fr",
+    "ja"
+  ],
+  "last_run_timestamp": "Never run yet",
+  "last_run_summary": "Waiting for first translation trigger.",
+  "inbox_staging_summary": [
+    "📥 placeholder-essay-1.md — Status: inbox (Ready for triage in Essays tab)",
+    "📥 placeholder-essay-2.md — Status: inbox (Ready for triage in Essays tab)"
+  ]
+}

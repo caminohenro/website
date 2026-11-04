@@ -11,6 +11,7 @@ const essays = defineCollection({
     readingTime: z.string().optional(),
     excerpt: z.string(),
     draft: z.boolean().default(false),
+    translation_status: z.enum(['inbox', 'translate', 'ignore', 'translated']).default('inbox'),
   }),
 });
 

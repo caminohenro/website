@@ -1570,5 +1570,197 @@ const {
       })();
     </script>
     <!-- STEP13_MAILERLITE_SCRIPT_END -->
+  
+    <!-- STEP18_STATIC_I18N_RUNTIME_START -->
+    <script is:inline>
+      (function () {
+        const STORAGE_KEY = 'camino_henro_lang';
+        const SUPPORTED = ['en', 'pt', 'es', 'fr', 'ja'];
+        const originalTextNodes = new Map();
+        const originalAttributes = [];
+        let OriginalEssaySnapshot = null;
+
+        function getInitialLang() {
+          const urlParams = new URLSearchParams(window.location.search);
+          const fromQuery = urlParams.get('lang');
+          if (fromQuery && SUPPORTED.includes(fromQuery)) {
+            localStorage.setItem(STORAGE_KEY, fromQuery);
+            return fromQuery;
+          }
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved && SUPPORTED.includes(saved)) return saved;
+          return 'en';
+        }
+
+        function snapshotOriginalDom() {
+          if (originalTextNodes.size > 0) return;
+
+          const walker = document.createTreeWalker(
+            document.body,
+            NodeFilter.SHOW_TEXT,
+            {
+              acceptNode(node) {
+                const parent = node.parentElement;
+                if (!parent) return NodeFilter.FILTER_REJECT;
+                const tag = parent.tagName;
+                if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT') {
+                  return NodeFilter.FILTER_REJECT;
+                }
+                if (parent.closest('#henro-lang-switcher')) {
+                  return NodeFilter.FILTER_REJECT;
+                }
+                const trimmed = node.nodeValue.replace(/\s+/g, ' ').trim();
+                if (trimmed.length < 2) return NodeFilter.FILTER_REJECT;
+                return NodeFilter.FILTER_ACCEPT;
+              }
+            }
+          );
+
+          let current;
+          while ((current = walker.nextNode())) {
+            originalTextNodes.set(current, current.nodeValue);
+          }
+
+          document.querySelectorAll('[placeholder], [aria-label], [title]').forEach(el => {
+            if (el.closest('#henro-lang-switcher')) return;
+            ['placeholder', 'aria-label', 'title'].forEach(attr => {
+              const val = el.getAttribute(attr);
+              if (val) originalAttributes.push({ el, attr, val });
+            });
+          });
+
+          const articleBody = document.querySelector('[data-essay-body], article .prose, .essay-body, .essay-content');
+          if (articleBody) {
+            OriginalEssaySnapshot = articleBody.innerHTML;
+          }
+        }
+
+        function restoreEnglishDom() {
+          originalTextNodes.forEach((origVal, node) => {
+            node.nodeValue = origVal;
+          });
+          originalAttributes.forEach(({ el, attr, val }) => {
+            el.setAttribute(attr, val);
+          });
+          const articleBody = document.querySelector('[data-essay-body], article .prose, .essay-body, .essay-content');
+          if (articleBody && OriginalEssaySnapshot !== null) {
+            articleBody.innerHTML = OriginalEssaySnapshot;
+          }
+          document.documentElement.lang = 'en';
+        }
+
+        function updateActiveButtons(lang) {
+          document.querySelectorAll('#henro-lang-switcher .henro-lang-btn').forEach(btn => {
+            const isMatch = btn.getAttribute('data-lang') === lang;
+            btn.classList.toggle('is-active', isMatch);
+            btn.setAttribute('aria-pressed', isMatch ? 'true' : 'false');
+          });
+        }
+
+        function buildReverseLookup(siteDict) {
+          const map = new Map();
+          if (siteDict && siteDict.ui) {
+            Object.entries(siteDict.ui).forEach(([en, tr]) => {
+              if (en && tr) map.set(en.replace(/\s+/g, ' ').trim(), tr);
+            });
+          }
+          return map;
+        }
+
+        async function applyLanguage(lang) {
+          snapshotOriginalDom();
+          updateActiveButtons(lang);
+          localStorage.setItem(STORAGE_KEY, lang);
+
+          if (lang === 'en') {
+            restoreEnglishDom();
+            return;
+          }
+
+          restoreEnglishDom();
+          document.documentElement.lang = lang === 'pt' ? 'pt-PT' : lang;
+
+          try {
+            const res = await fetch('/i18n/' + lang + '/site.json');
+            if (res.ok) {
+              const siteDict = await res.json();
+              const lookup = buildReverseLookup(siteDict);
+
+              originalTextNodes.forEach((origVal, node) => {
+                const normalized = origVal.replace(/\s+/g, ' ').trim();
+                if (lookup.has(normalized)) {
+                  const leading = (origVal.match(/^\s*/) || [''])[0];
+                  const trailing = (origVal.match(/\s*$/) || [''])[0];
+                  node.nodeValue = leading + lookup.get(normalized) + trailing;
+                }
+              });
+
+              originalAttributes.forEach(({ el, attr, val }) => {
+                const normalized = val.replace(/\s+/g, ' ').trim();
+                if (lookup.has(normalized)) {
+                  el.setAttribute(attr, lookup.get(normalized));
+                }
+              });
+            }
+
+            // Check if current page is an individual essay page (/essays/<slug>)
+            const pathMatch = window.location.pathname.match(/^\/essays\/([^\/]+)\/?$/);
+            if (pathMatch && pathMatch[1]) {
+              const slug = pathMatch[1];
+              const essayRes = await fetch('/i18n/' + lang + '/essays/' + slug + '.json');
+              if (essayRes.ok) {
+                const essayData = await essayRes.json();
+                const titleEl = document.querySelector('h1');
+                if (titleEl && essayData.title) titleEl.textContent = essayData.title;
+                const articleBody = document.querySelector('[data-essay-body], article .prose, .essay-body, .essay-content');
+                if (articleBody && essayData.body) {
+                  // Render translated paragraphs cleanly
+                  articleBody.innerHTML = essayData.body
+                    .split(/\n\n+/)
+                    .map(p => {
+                      const trimmed = p.trim();
+                      if (trimmed.startsWith('>')) {
+                        return '<blockquote>' + trimmed.replace(/^>\s*/, '') + '</blockquote>';
+                      }
+                      return '<p>' + trimmed + '</p>';
+                    })
+                    .join('\n');
+                }
+              }
+            }
+          } catch (err) {
+            console.warn('Pre-generated translation not yet available for', lang, err);
+          }
+        }
+
+        function bindSwitcher() {
+          document.querySelectorAll('#henro-lang-switcher .henro-lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const targetLang = btn.getAttribute('data-lang') || 'en';
+              applyLanguage(targetLang);
+            });
+          });
+          const initial = getInitialLang();
+          if (initial !== 'en') {
+            applyLanguage(initial);
+          } else {
+            updateActiveButtons('en');
+          }
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', bindSwitcher, { once: true });
+        } else {
+          bindSwitcher();
+        }
+        document.addEventListener('astro:page-load', () => {
+          originalTextNodes.clear();
+          originalAttributes.length = 0;
+          OriginalEssaySnapshot = null;
+          bindSwitcher();
+        });
+      })();
+    </script>
+    <!-- STEP18_STATIC_I18N_RUNTIME_END -->
   </body>
 </html>

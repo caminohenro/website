@@ -7,6 +7,7 @@ kilometersWalked: 0
 readingTime: "<reading_time>"
 excerpt: "<excerpt>"
 draft: false
+translation_status: "inbox"
 ---
 
 &lt;body&gt;
