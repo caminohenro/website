@@ -1,0 +1,40 @@
+{
+  "metaTitle": "Offer Osettai (Donate) | CAMINO HENRO",
+  "metaDescription": "Support the Camino Henro pilgrimage from Spain to Japan in the traditional spirit of Shikoku Osettai and Camino donativo.",
+  "eyebrow": "お接待 • Pilgrimage Alms",
+  "heading": "Offer Osettai",
+  "subtitle": "Sustaining the digital scroll, off-trail archiving, and the future printed book of essays",
+  "kanji": "志",
+  "introBody": "<body>",
+  "tiersHeading": "Suggested Osettai Offerings",
+  "tiersJp": "喜捨の目安",
+  "selectOfferingCta": "Select Offering via Stripe →",
+  "primaryStripeCta": "Offer Osettai via Stripe →",
+  "ledgerLinkText": "Every euro received is logged openly in the Financial Ledger →",
+  "tiers": [
+    {
+      "title": "A Hot Meal on a Rainy Day — €10",
+      "amount": "€10",
+      "jp": "一椀の糧",
+      "description": "<body>"
+    },
+    {
+      "title": "A Night's Pilgrim Bunk — €20",
+      "amount": "€20",
+      "jp": "一夜の宿",
+      "description": "<body>"
+    },
+    {
+      "title": "A Pair of Trail Socks / Gear Repair — €35",
+      "amount": "€35",
+      "jp": "草鞋と修繕",
+      "description": "<body>"
+    },
+    {
+      "title": "Custom Osettai Offering — Any Amount",
+      "amount": "Open",
+      "jp": "随意のお接待",
+      "description": "<body>"
+    }
+  ]
+}

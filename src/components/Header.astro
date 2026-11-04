@@ -1,12 +1,24 @@
 ---
 import siteConfig from '../data/siteConfig.json';
+import {
+  getLocaleFromPathname,
+  stripLocalePrefix,
+  localizePath,
+  getUiStrings,
+  LOCALE_OPTIONS,
+} from '../utils/i18n';
 
 const pathname = Astro.url.pathname;
+const currentLocale = getLocaleFromPathname(pathname);
+const normalizedPath = stripLocalePrefix(pathname);
+const ui = getUiStrings(currentLocale);
+const currentLangMeta =
+  LOCALE_OPTIONS.find((item) => item.code === currentLocale) || LOCALE_OPTIONS[0];
 
 const isActive = (href?: string) => {
   if (!href) return false;
-  const normPath = pathname.toLowerCase();
-  const normHref = href.toLowerCase();
+  const normPath = normalizedPath.toLowerCase();
+  const normHref = stripLocalePrefix(href).toLowerCase();
   if (normHref === '/') return normPath === '/';
   return normPath === normHref || normPath.startsWith(normHref + '/');
 };
@@ -15,6 +27,21 @@ const isGroupActive = (children?: Array<{ href?: string }>) => {
   if (!Array.isArray(children)) return false;
   return children.some((child) => isActive(child.href));
 };
+
+const labelMap: Record<string, string> = {
+  'Home': ui.header.home,
+  'Blog': ui.header.blog,
+  'FAQ': ui.header.faq,
+  'Credits': ui.header.credits,
+  'Coming Soon': ui.header.comingSoon,
+  'Map': ui.header.map,
+  'Inventory': ui.header.inventory,
+  'Finances': ui.header.finances,
+  'Gallery': ui.header.gallery,
+  'Forum': ui.header.forum,
+};
+
+const translateNavLabel = (rawLabel: string) => labelMap[rawLabel] || rawLabel;
 
 const defaultNavigation = [
   { label: 'Home', href: '/' },
@@ -50,16 +77,27 @@ const navItems = rawNavigation
     if (Array.isArray(item.children)) {
       return {
         ...item,
-        children: item.children.filter((child: any) => isFeatureEnabled(child.featureFlag)),
+        label: translateNavLabel(item.label),
+        children: item.children
+          .filter((child: any) => isFeatureEnabled(child.featureFlag))
+          .map((child: any) => ({
+            ...child,
+            label: translateNavLabel(child.label),
+            localizedHref: localizePath(child.href, currentLocale),
+          })),
       };
     }
-    return item;
+    return {
+      ...item,
+      label: translateNavLabel(item.label),
+      localizedHref: localizePath(item.href, currentLocale),
+    };
   })
   .filter((item: any) => !Array.isArray(item.children) || item.children.length > 0);
 ---
 
 <header class="site-header">
-  <a href="/" class="header-brand">
+  <a href={localizePath('/', currentLocale)} class="header-brand">
     <div class="header-logo-badge">
       <img
         src="/assets/logo.png"
@@ -87,7 +125,7 @@ const navItems = rawNavigation
           <div class="nav-dropdown-menu">
             {item.children.map((child: any) => (
               <a
-                href={child.href}
+                href={child.localizedHref}
                 class={'nav-dropdown-item' + (isActive(child.href) ? ' active' : '')}
               >
                 {child.label}
@@ -97,7 +135,7 @@ const navItems = rawNavigation
         </div>
       ) : (
         <a
-          href={item.href}
+          href={item.localizedHref}
           class={'nav-btn' + (isActive(item.href) ? ' active' : '')}
         >
           {item.label}
@@ -106,11 +144,37 @@ const navItems = rawNavigation
       )
     )}
     <a
-      href="/donate"
+      href={localizePath('/donate', currentLocale)}
       class={'nav-btn donate-btn' + (isActive('/donate') ? ' active' : '')}
     >
-      Donate 印
+      {ui.header.donateBtn}
     </a>
+
+    <!-- Language Selector Dropdown positioned immediately to the right of Donate -->
+    <div class="nav-dropdown lang-dropdown">
+      <button
+        type="button"
+        class="nav-btn nav-dropdown-toggle lang-dropdown-toggle"
+        aria-expanded="false"
+        aria-label={ui.header.languageMenuAria}
+      >
+        <span class="lang-flag" aria-hidden="true">{currentLangMeta.flag}</span>
+        <span>{currentLangMeta.shortLabel}</span>
+        <span class="nav-caret">▾</span>
+      </button>
+      <div class="nav-dropdown-menu lang-dropdown-menu">
+        {LOCALE_OPTIONS.map((lang) => (
+          <a
+            href={localizePath(normalizedPath, lang.code)}
+            class={'nav-dropdown-item lang-dropdown-item' + (lang.code === currentLocale ? ' active' : '')}
+            hreflang={lang.code}
+          >
+            <span class="lang-flag" aria-hidden="true">{lang.flag}</span>
+            <span>{lang.label}</span>
+          </a>
+        ))}
+      </div>
+    </div>
   </nav>
 </header>
 

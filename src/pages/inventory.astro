@@ -1,10 +1,13 @@
 ---
 import UnderConstructionLayout from '../layouts/UnderConstructionLayout.astro';
+import { getLocaleFromPathname, getPageData } from '../utils/i18n';
+
+const currentLocale = getLocaleFromPathname(Astro.url.pathname);
+const cs = getPageData('coming-soon', currentLocale);
+const pageData = cs.pages?.inventory || {};
 ---
 <UnderConstructionLayout
-  title="Inventory — Coming Soon"
-  plans="Plans for this page: A full <b>RPG-style inventory menu</b>, with clickable item thumbnails that open a 'details' window about the item"
-  previewHref="../preview/inventory"
->
-  </div>
-</UnderConstructionLayout>
+  title={pageData.title}
+  plans={pageData.plansHtml}
+  previewHref="/preview/inventory"
+/>

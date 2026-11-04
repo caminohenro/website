@@ -1,8 +1,13 @@
 ---
 import UnderConstructionLayout from '../layouts/UnderConstructionLayout.astro';
+import { getLocaleFromPathname, getPageData } from '../utils/i18n';
+
+const currentLocale = getLocaleFromPathname(Astro.url.pathname);
+const cs = getPageData('coming-soon', currentLocale);
+const pageData = cs.pages?.finances || {};
 ---
 <UnderConstructionLayout
-  title="Finances — Coming Soon"
-  plans="Plans for this page: Here you'll be able to see how your  money is being put to good use."
-  previewHref="../preview/finances"
+  title={pageData.title}
+  plans={pageData.plansHtml}
+  previewHref="/preview/finances"
 />

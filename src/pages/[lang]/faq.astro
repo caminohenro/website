@@ -1,0 +1,91 @@
+---
+
+export function getStaticPaths() {
+  return [
+    { params: { lang: 'pt' } },
+    { params: { lang: 'es' } },
+    { params: { lang: 'fr' } },
+    { params: { lang: 'ja' } },
+  ];
+}
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getLocaleFromPathname, localizePath, getPageData } from '../../utils/i18n';
+
+const currentLocale = getLocaleFromPathname(Astro.url.pathname);
+const ui = getPageData('faq-ui', currentLocale);
+const faqData = getPageData('faq', currentLocale);
+const categories = Array.isArray(faqData.categories) ? faqData.categories : [];
+---
+
+<BaseLayout
+  title={ui.metaTitle}
+  description={ui.metaDescription}
+>
+  <!-- STANDARDIZED_SCROLL_HEADER_START -->
+  <div class="scroll-title-block">
+    <div class="scroll-eyebrow">{ui.eyebrow}</div>
+    <h1 class="page-heading">{ui.heading}</h1>
+    <div class="page-subtitle">{ui.subtitle}</div>
+  </div>
+
+  <div class="page-break">
+    <div class="line"></div>
+    <div class="kanji">{ui.kanji}</div>
+    <div class="line"></div>
+  </div>
+  <!-- STANDARDIZED_SCROLL_HEADER_END -->
+
+  <div class="py-6 space-y-12">
+    {categories.map((category: any, catIndex: number) => (
+      <section>
+        <div class="flex items-baseline justify-between pb-3 mb-2 border-b border-[#6E2B25]">
+          <h2 class="font-heading text-2xl sm:text-3xl font-semibold tracking-wider uppercase text-[#1C1A17]">
+            {category.categoryName}
+          </h2>
+          <span class="font-mono text-xs text-[#6E2B25]">
+            0{catIndex + 1}
+          </span>
+        </div>
+
+        <div class="divide-y divide-[#1C1A17]/15">
+          {Array.isArray(category.items) &&
+            category.items.map((item: any) => (
+              <details class="group border-b border-[#1C1A17]/15 py-4">
+                <summary class="flex items-center justify-between gap-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                  <span class="font-heading text-xl sm:text-2xl font-semibold text-[#1C1A17] group-hover:text-[#6E2B25] transition-colors">
+                    {item.question}
+                  </span>
+                  <span class="shrink-0 font-mono text-lg text-[#6E2B25] select-none">
+                    <span class="group-open:hidden">+</span>
+                    <span class="hidden group-open:inline">−</span>
+                  </span>
+                </summary>
+                <div class="mt-3 pr-6 font-body text-base sm:text-lg text-[#1C1A17]/90 leading-relaxed">
+                  <p>{item.answer}</p>
+                </div>
+              </details>
+            ))}
+        </div>
+      </section>
+    ))}
+  </div>
+
+  <section class="mt-6 pt-8 border-t border-[#6E2B25]">
+    <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h3 class="font-heading text-xl font-semibold text-[#1C1A17] mb-1">
+          {ui.bottomHeading}
+        </h3>
+        <p class="font-body text-sm sm:text-base text-[#524D46]">
+          {ui.bottomBody}
+        </p>
+      </div>
+      <a
+        href={localizePath('/essays', currentLocale)}
+        class="inline-block text-center bg-[#6E2B25] hover:bg-[#8C3B33] text-[#E6DFCF] font-mono text-xs uppercase tracking-widest px-5 py-3 transition-colors shrink-0"
+      >
+        {ui.bottomBtn}
+      </a>
+    </div>
+  </section>
+</BaseLayout>

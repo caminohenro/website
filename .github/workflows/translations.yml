@@ -1,0 +1,57 @@
+name: AI Translation Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/content/essays/**'
+      - 'src/data/pages/**'
+      - 'src/data/faq.json'
+      - 'src/data/credits.json'
+      - 'src/data/translation-inbox.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  translate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run Translation Pipeline
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: node scripts/translation-pipeline.mjs
+
+      - name: Commit and Push Changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [ -z "$(git status --porcelain src/data/translation-inbox.json src/data/.translation-state.json src/data/i18n/)" ]; then
+            echo "No translation or inbox changes detected."
+            exit 0
+          fi
+
+          I18N_CHANGES=$(git status --porcelain src/data/i18n/)
+          git add src/data/translation-inbox.json src/data/.translation-state.json src/data/i18n/
+
+          if [ -n "$I18N_CHANGES" ]; then
+            git commit -m "feat(i18n): generate AI translations from staging inbox"
+          else
+            git commit -m "chore(i18n): update translations staging inbox [skip ci]"
+          fi
+
+          git push origin main

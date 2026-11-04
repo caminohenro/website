@@ -1,8 +1,13 @@
 ---
 import UnderConstructionLayout from '../layouts/UnderConstructionLayout.astro';
+import { getLocaleFromPathname, getPageData } from '../utils/i18n';
+
+const currentLocale = getLocaleFromPathname(Astro.url.pathname);
+const cs = getPageData('coming-soon', currentLocale);
+const pageData = cs.pages?.map || {};
 ---
 <UnderConstructionLayout
-  title="Map — Coming Soon"
-  plans="Plans for this page: A world map showing Henro's current location and walked path."
-  previewHref="../preview/map"
+  title={pageData.title}
+  plans={pageData.plansHtml}
+  previewHref="/preview/map"
 />

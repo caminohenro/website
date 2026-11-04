@@ -302,3 +302,327 @@ content:
           - name: enableGallery
             label: Show Gallery Page
             type: boolean
+
+  - name: translationInbox
+    label: "Translations Staging Inbox"
+    type: file
+    path: src/data/translation-inbox.json
+    format: json
+    fields:
+      - name: notice
+        label: How This Inbox Works
+        type: text
+      - name: items
+        label: Updated Pages & Essays Awaiting Decision
+        type: object
+        list: true
+        fields:
+          - name: id
+            label: Item ID
+            type: string
+          - name: title
+            label: Page or Essay Name
+            type: string
+          - name: itemType
+            label: Content Type
+            type: select
+            options:
+              values:
+                - { label: "Essay", value: "essay" }
+                - { label: "Website Page", value: "page" }
+          - name: sourcePath
+            label: Source File Path
+            type: string
+          - name: lastModified
+            label: Change Detected On
+            type: string
+          - name: action
+            label: Translation Decision
+            type: select
+            options:
+              values:
+                - { label: "Pending (Keep in Inbox)", value: "pending" }
+                - { label: "Translate Now (PT-PT, ES, FR, JA)", value: "translate" }
+                - { label: "Ignore Change (Dismiss from Inbox)", value: "ignore" }
+
+  - name: pageHome
+    label: "Page Text: Home Page"
+    type: file
+    path: src/data/pages/home.json
+    format: json
+    fields:
+      - name: eyebrow
+        label: Top Route Eyebrow
+        type: string
+      - name: heading
+        label: Main Heading
+        type: string
+      - name: subtitle
+        label: Tagline Subtitle
+        type: string
+      - name: manifestoDivider
+        label: Manifesto Divider Title
+        type: string
+      - name: manifestoQuoteLine1
+        label: Manifesto Quote (Line 1)
+        type: text
+      - name: manifestoQuoteLine2
+        label: Manifesto Quote (Line 2)
+        type: text
+      - name: manifestoQuoteLine3
+        label: Manifesto Quote (Line 3)
+        type: string
+      - name: manifestoQuoteLine4
+        label: Manifesto Quote (Line 4)
+        type: string
+      - name: manifestoBodyHtml
+        label: Manifesto Body Paragraph (HTML allowed)
+        type: text
+      - name: essaysDivider
+        label: Latest Essays Divider Title
+        type: string
+      - name: essayNumberPrefix
+        label: Essay Number Prefix
+        type: string
+      - name: unrollEssayLink
+        label: Unroll Essay Link Text
+        type: string
+      - name: viewArchiveBtn
+        label: View Archive Button Text
+        type: string
+      - name: courtyardDivider
+        label: Forum Spotlight Divider Title
+        type: string
+      - name: spotlightLabel
+        label: Spotlight Header Label
+        type: string
+      - name: mostPopularTab
+        label: Most Popular Button Label
+        type: string
+      - name: latestInquiryTab
+        label: Latest Inquiry Button Label
+        type: string
+      - name: enterCourtyardLink
+        label: Enter Courtyard Link Text
+        type: string
+
+  - name: pageDonate
+    label: "Page Text: Donate (Osettai)"
+    type: file
+    path: src/data/pages/donate.json
+    format: json
+    fields:
+      - name: metaTitle
+        label: Browser Tab Title
+        type: string
+      - name: metaDescription
+        label: Meta Description
+        type: text
+      - name: eyebrow
+        label: Top Eyebrow
+        type: string
+      - name: heading
+        label: Page Heading
+        type: string
+      - name: subtitle
+        label: Page Subtitle
+        type: string
+      - name: introBody
+        label: Philosophical Explanation Paragraph
+        type: text
+      - name: tiersHeading
+        label: Tiers Section Heading
+        type: string
+      - name: selectOfferingCta
+        label: Tier Card Link Text
+        type: string
+      - name: primaryStripeCta
+        label: Main Stripe Button Text
+        type: string
+      - name: ledgerLinkText
+        label: Financial Ledger Link Text
+        type: string
+      - name: tiers
+        label: Contribution Tiers
+        type: object
+        list: true
+        fields:
+          - name: title
+            label: Tier Title
+            type: string
+          - name: amount
+            label: Amount Badge
+            type: string
+          - name: jp
+            label: Japanese Subtitle
+            type: string
+          - name: description
+            label: Tier Description
+            type: text
+
+  - name: pageCreditsUi
+    label: "Page Text: Credits Page Headers"
+    type: file
+    path: src/data/pages/credits-ui.json
+    format: json
+    fields:
+      - name: eyebrow
+        label: Top Eyebrow
+        type: string
+      - name: heading
+        label: Page Heading
+        type: string
+      - name: subtitle
+        label: Page Subtitle
+        type: string
+      - name: emptySectionText
+        label: Empty Section Fallback Text
+        type: string
+      - name: calloutHeading
+        label: Bottom Callout Heading
+        type: string
+      - name: calloutBody
+        label: Bottom Callout Body
+        type: text
+      - name: offerOsettaiBtn
+        label: Offer Osettai Button Label
+        type: string
+      - name: viewLedgerBtn
+        label: View Ledger Button Label
+        type: string
+
+  - name: pageFaqUi
+    label: "Page Text: FAQ Page Headers"
+    type: file
+    path: src/data/pages/faq-ui.json
+    format: json
+    fields:
+      - name: eyebrow
+        label: Top Eyebrow
+        type: string
+      - name: heading
+        label: Page Heading
+        type: string
+      - name: subtitle
+        label: Page Subtitle
+        type: string
+      - name: bottomHeading
+        label: Bottom Callout Heading
+        type: string
+      - name: bottomBody
+        label: Bottom Callout Body
+        type: text
+      - name: bottomBtn
+        label: Bottom Callout Button Label
+        type: string
+
+  - name: pageEssaysUi
+    label: "Page Text: Essays Archive & Reader UI"
+    type: file
+    path: src/data/pages/essays-ui.json
+    format: json
+    fields:
+      - name: eyebrow
+        label: Archive Top Eyebrow
+        type: string
+      - name: heading
+        label: Archive Heading
+        type: string
+      - name: subtitle
+        label: Archive Subtitle
+        type: string
+      - name: readFullDispatchBtn
+        label: Read Full Dispatch Link
+        type: string
+      - name: backToDispatches
+        label: Back to All Dispatches Link
+        type: string
+      - name: shareEyebrow
+        label: Share Box Eyebrow
+        type: string
+      - name: shareHeading
+        label: Share Box Heading
+        type: string
+      - name: osettaiPrompt
+        label: Essay Footer Osettai Prompt
+        type: text
+      - name: offerOsettaiBtn
+        label: Essay Footer Osettai Button
+        type: string
+
+  - name: pageComingSoon
+    label: "Page Text: Coming Soon Pages"
+    type: file
+    path: src/data/pages/coming-soon.json
+    format: json
+    fields:
+      - name: sharedHeading
+        label: Main Cursive Heading
+        type: string
+      - name: sharedMessageHtml
+        label: Shared Patience Message (HTML allowed)
+        type: text
+      - name: sneakPreviewBeforeLink
+        label: Sneak Preview Text (Before Link)
+        type: string
+      - name: sneakPreviewLinkText
+        label: Sneak Preview Link Text
+        type: string
+      - name: sneakPreviewAfterLink
+        label: Sneak Preview Text (After Link)
+        type: string
+
+  - name: pageGlobalUi
+    label: "Page Text: Header, Footer & Newsletter"
+    type: file
+    path: src/data/pages/global-ui.json
+    format: json
+    fields:
+      - name: header
+        label: Header Navigation Labels
+        type: object
+        fields:
+          - name: home
+            label: Home
+            type: string
+          - name: blog
+            label: Blog
+            type: string
+          - name: faq
+            label: FAQ
+            type: string
+          - name: credits
+            label: Credits
+            type: string
+          - name: comingSoon
+            label: Coming Soon Dropdown
+            type: string
+          - name: donateBtn
+            label: Donate Button
+            type: string
+      - name: footer
+        label: Scroll Footer Hint
+        type: object
+        fields:
+          - name: scrollFootHint
+            label: Bottom Roller Hint Text
+            type: string
+      - name: newsletter
+        label: Global Newsletter Footer Box
+        type: object
+        fields:
+          - name: eyebrow
+            label: Newsletter Eyebrow
+            type: string
+          - name: heading
+            label: Newsletter Heading
+            type: string
+          - name: copy
+            label: Newsletter Description
+            type: text
+          - name: placeholder
+            label: Email Input Placeholder
+            type: string
+          - name: submitBtn
+            label: Subscribe Button Text
+            type: string

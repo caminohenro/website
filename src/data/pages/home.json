@@ -1,0 +1,39 @@
+{
+  "eyebrow": "Finisterra, Spain → Shikoku, Japan",
+  "heading": "CAMINO HENRO",
+  "subtitle": "From the End of the Earth to the Land of the Rising Sun",
+  "manifestoDivider": "哲学の道 • THE PILGRIM'S MANIFESTO",
+  "manifestoQuoteLine1": "A boy and a hat set out on a journey to cross a continent and discover a world(view) where money, jobs and human society are simply another part of Nature.",
+  "manifestoQuoteLine2": "We have never left Nature — we've merely forgotten that everything is, inevitably, Nature. ☯️",
+  "manifestoQuoteLine3": "For the hat, a homecoming — its very own Odyssey.",
+  "manifestoQuoteLine4": "For the boy, a rite of initiation, and the beginning of a journey into manhood.",
+  "manifestoBodyHtml": "Modern life surrounds us with financial instruments, insurance policies, and digital vaults—yet anxiety over basic survival remains sharper than ever. <strong>Camino Henro</strong> is a cross-continental philosophical pilgrimage on foot from Finisterra, Spain to Shikoku, Japan, investigating a single foundational question: <em>What is the true philosophical foundation for building a sense of material security in life?</em>",
+  "essaysDivider": "随筆 • LATEST PHILOSOPHICAL ESSAYS",
+  "essayNumberPrefix": "Essay No.",
+  "unrollEssayLink": "Unroll Essay Scroll ➔",
+  "viewArchiveBtn": "View Full Essay Archive (/essays) ➔",
+  "courtyardDivider": "広場 • FROM THE PILGRIM'S COURTYARD",
+  "spotlightLabel": "COMMUNITY DIALOGUE SPOTLIGHT",
+  "mostPopularTab": "★ Most Popular",
+  "latestInquiryTab": "✦ Latest Inquiry",
+  "enterCourtyardLink": "Enter the Pilgrim's Courtyard (/forum) ➔",
+  "replySingular": "1 Reply",
+  "replyPluralSuffix": "Replies",
+  "recentFallbackDate": "Recent",
+  "fallbackPopular": {
+    "category": "Philosophy & Ethos",
+    "author_name": "Steppenwolf",
+    "created_at": "2026-10-18T10:00:00Z",
+    "reply_count": 14,
+    "title": "On Sufficiency vs. Surplus: Where Does Preparation End and Fear Begin?",
+    "content": "When walking across a continent with everything on your back, every extra ounce is a physical confession of a fear you have not yet made peace with. How do we distinguish wise stewardship from anxiety?"
+  },
+  "fallbackLatest": {
+    "category": "Trail Craft & Gear",
+    "author_name": "Kūkai_Walker",
+    "created_at": "2026-10-27T18:30:00Z",
+    "reply_count": 5,
+    "title": "On Sufficiency vs. Surplus: Footcare and Cold-Weather Layering Past the Pyrenees",
+    "content": "As the autumn frost settles over the stone paths, what minimalist wool and rain shell combinations have proven resilient without burdening the pack beyond six kilograms?"
+  }
+}

@@ -1,6 +1,7 @@
 ---
 import Header from '../components/Header.astro';
 import siteConfig from '../data/siteConfig.json';
+import { getLocaleFromPathname, getPageData } from '../utils/i18n';
 import '../styles/global.css';
 
 interface Props {
@@ -11,17 +12,20 @@ interface Props {
   previewHref?: string;
 }
 
+const currentLocale = getLocaleFromPathname(Astro.url.pathname);
+const cs = getPageData('coming-soon', currentLocale);
+
 const {
-  title = 'Coming Soon',
-  heading = 'Coming soon',
-  message = 'Henro is currently working on this page. <br />The road will be shorter than the path to Japan, but patience is still required.',
+  title = cs.sharedHeading || 'Coming Soon',
+  heading = cs.sharedHeading || 'Coming soon',
+  message = cs.sharedMessageHtml || 'Henro is currently working on this page.',
   plans = '',
   previewHref = '',
 } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={currentLocale}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -30,7 +34,6 @@ const {
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- display=block on Dancing Script prevents the fallback font flash (FOUT) -->
     <link
       href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&display=block"
       rel="stylesheet"
@@ -68,7 +71,6 @@ const {
         opacity: 0;
       }
 
-      /* Uses the exact stageFadeIn animation and --fade-duration from global.css */
       .construction-content.is-ready {
         animation: stageFadeIn var(--fade-duration, 0.8s) ease-out both;
       }
@@ -143,17 +145,14 @@ const {
     </style>
   </head>
   <body class="uc-body selection:bg-[#6E2B25] selection:text-[#E6DFCF]">
-    <!-- LAYER 1: Fixed Road & Apple Background (uses classes from global.css) -->
     <div
       class="fixed-backdrop"
       style="background-image: url('/assets/apple-bg.jpeg'), url('/assets/apple-diff.jpg');"
     ></div>
     <div class="backdrop-dimmer"></div>
 
-    <!-- PERSISTENT WEBSITE HEADER (Your existing Header.astro) -->
     <Header />
 
-    <!-- COMING SOON CONTENT -->
     <main class="construction-content" id="uc-content">
       <img
         src="/assets/logo.png"
@@ -170,7 +169,7 @@ const {
 
       {previewHref && (
         <p class="construction-preview-prompt">
-          Want a <a href={previewHref} class="construction-preview-link">sneak preview</a> of this page?
+          {cs.sneakPreviewBeforeLink}<a href={previewHref} class="construction-preview-link">{cs.sneakPreviewLinkText}</a>{cs.sneakPreviewAfterLink}
         </p>
       )}
     </main>
@@ -184,7 +183,6 @@ const {
           content.classList.add('is-ready');
         }
 
-        // Wait for the cursive font to be ready (or 250ms max fallback) before fading in
         if (document.fonts && document.fonts.ready) {
           const fallbackTimer = setTimeout(reveal, 250);
           document.fonts.ready.then(function () {

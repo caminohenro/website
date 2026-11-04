@@ -1,20 +1,27 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
+import {
+  getLocaleFromPathname,
+  localizePath,
+  getPageData,
+  getDateLocaleTag,
+  applyEssayTranslation,
+} from '../../utils/i18n';
+
+const currentLocale = getLocaleFromPathname(Astro.url.pathname);
+const ui = getPageData('essays-ui', currentLocale);
+const dateLocaleTag = getDateLocaleTag(currentLocale);
 
 const allEssays = await getCollection('essays', ({ data }) => !data.draft);
-const sortedEssays = allEssays.sort(
-  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
-);
+const sortedEssays = allEssays
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .map((entry) => applyEssayTranslation(entry, currentLocale));
 
 const totalDispatches = sortedEssays.length;
-const totalKilometersLogged = sortedEssays.reduce((maxKm, essay) => {
-  const km = typeof essay.data.kilometersWalked === 'number' ? essay.data.kilometersWalked : 0;
-  return km > maxKm ? km : maxKm;
-}, 0);
 
 const formatDate = (date: Date) =>
-  date.toLocaleDateString('en-US', {
+  date.toLocaleDateString(dateLocaleTag, {
     year: 'numeric',
     month: 'short',
     day: '2-digit',
@@ -22,25 +29,23 @@ const formatDate = (date: Date) =>
 ---
 
 <BaseLayout
-  title="Essays & Dispatches | CAMINO HENRO"
-  description="Chronological philosophical dispatches written on foot from Finisterra, Spain toward Shikoku, Japan."
+  title={ui.archiveMetaTitle}
+  description={ui.archiveMetaDescription}
 >
-  <!-- Archive Header -->
   <!-- STANDARDIZED_SCROLL_HEADER_START -->
-<div class="scroll-title-block">
-  <div class="scroll-eyebrow">随筆・思索の記録 • Pilgrimage Dispatches</div>
-  <h1 class="page-heading">Dispatches from the Road</h1>
-  <div class="page-subtitle">Long-form reflections on material security, reciprocity, and the quiet continuity between human society and Nature</div>
-</div>
+  <div class="scroll-title-block">
+    <div class="scroll-eyebrow">{ui.eyebrow}</div>
+    <h1 class="page-heading">{ui.heading}</h1>
+    <div class="page-subtitle">{ui.subtitle}</div>
+  </div>
 
-<div class="page-break">
-  <div class="line"></div>
-  <div class="kanji">筆</div>
-  <div class="line"></div>
-</div>
-<!-- STANDARDIZED_SCROLL_HEADER_END -->
+  <div class="page-break">
+    <div class="line"></div>
+    <div class="kanji">{ui.kanji}</div>
+    <div class="line"></div>
+  </div>
+  <!-- STANDARDIZED_SCROLL_HEADER_END -->
 
-  <!-- Chronological Stream of Essays -->
   <section class="divide-y divide-[#1C1A17]/15">
     {sortedEssays.map((essay, index) => (
       <article class="py-8">
@@ -58,7 +63,7 @@ const formatDate = (date: Date) =>
             <>
               <span aria-hidden="true">·</span>
               <span class="text-[#6E2B25] font-medium">
-                KM {essay.data.kilometersWalked}
+                {ui.kmPrefix} {essay.data.kilometersWalked}
               </span>
             </>
           )}
@@ -72,7 +77,7 @@ const formatDate = (date: Date) =>
 
         <h2 class="font-heading text-2xl sm:text-3xl font-semibold text-[#1C1A17] mb-1 leading-snug">
           <a
-            href={`/essays/${essay.slug}`}
+            href={localizePath(`/essays/${essay.slug}`, currentLocale)}
             class="hover:text-[#6E2B25] transition-colors"
           >
             {essay.data.title}
@@ -90,10 +95,10 @@ const formatDate = (date: Date) =>
         </p>
 
         <a
-          href={`/essays/${essay.slug}`}
+          href={localizePath(`/essays/${essay.slug}`, currentLocale)}
           class="inline-block font-mono text-xs uppercase tracking-widest text-[#6E2B25] hover:text-[#8C3B33] font-medium transition-colors"
         >
-          Read Full Dispatch →
+          {ui.readFullDispatchBtn}
         </a>
       </article>
     ))}

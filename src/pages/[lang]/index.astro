@@ -1,0 +1,301 @@
+---
+
+export function getStaticPaths() {
+  return [
+    { params: { lang: 'pt' } },
+    { params: { lang: 'es' } },
+    { params: { lang: 'fr' } },
+    { params: { lang: 'ja' } },
+  ];
+}
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import siteConfig from '../../data/siteConfig.json';
+import { getCollection } from 'astro:content';
+import {
+  getLocaleFromPathname,
+  localizePath,
+  getPageData,
+  getDateLocaleTag,
+  applyEssayTranslation,
+} from '../../utils/i18n';
+
+const currentLocale = getLocaleFromPathname(Astro.url.pathname);
+const page = getPageData('home', currentLocale);
+const dateLocaleTag = getDateLocaleTag(currentLocale);
+
+const allEssays = await getCollection('essays', ({ data }) => !data.draft);
+const sortedEssays = allEssays
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .map((entry) => applyEssayTranslation(entry, currentLocale));
+const recentEssays = sortedEssays.slice(0, 4);
+
+const formatDate = (date: Date) =>
+  date.toLocaleDateString(dateLocaleTag, {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+  });
+---
+
+<BaseLayout title={`${siteConfig.siteTitleJp} | ${page.heading}`} description={page.subtitle}>
+  <div class="scroll-title-block">
+    <img
+      src={siteConfig.crestImage}
+      style="width:88px; height:88px; mix-blend-mode:multiply; margin: 0 auto 10px; object-fit:contain;"
+      alt="Henro Stamp"
+    />
+    <div class="scroll-eyebrow">{page.eyebrow}</div>
+    <h1 class="page-heading">{page.heading}</h1>
+    <div class="page-subtitle">{page.subtitle}</div>
+  </div>
+
+  <div class="page-break">
+    <div class="line"></div>
+    <div class="kanji">{page.manifestoDivider}</div>
+    <div class="line"></div>
+  </div>
+
+  <div class="essay-prose">
+    <blockquote>
+      "{page.manifestoQuoteLine1}<br/>
+      {page.manifestoQuoteLine2}<br/>
+      {page.manifestoQuoteLine3}<br/>
+      {page.manifestoQuoteLine4}"
+    </blockquote>
+
+    <p set:html={page.manifestoBodyHtml} />
+  </div>
+
+  <div class="page-break">
+    <div class="line"></div>
+    <div class="kanji">{page.essaysDivider}</div>
+    <div class="line"></div>
+  </div>
+
+  <div>
+    {recentEssays.map((essay, idx) => (
+      <a href={localizePath(`/essays/${essay.slug}`, currentLocale)} class="stream-item">
+        <div class="stream-meta">
+          {page.essayNumberPrefix} {String(sortedEssays.length - idx).padStart(2, '0')}  •  {essay.data.location}  •  {essay.data.readingTime || formatDate(essay.data.date)}
+        </div>
+        <div class="stream-title">{essay.data.title}</div>
+        <div class="stream-excerpt">{essay.data.excerpt}</div>
+        <span class="stream-read-link">{page.unrollEssayLink}</span>
+      </a>
+    ))}
+  </div>
+
+  <div style="text-align:center; margin-top:36px;">
+    <a href={localizePath('/essays', currentLocale)} class="ink-action-btn">
+      {page.viewArchiveBtn}
+    </a>
+  </div>
+
+  <div class="page-break">
+    <div class="line"></div>
+    <div class="kanji">{page.courtyardDivider}</div>
+    <div class="line"></div>
+  </div>
+
+  <section
+    id="home-forum-spotlight"
+    class="forum-spotlight-section"
+    data-supabase-url={siteConfig.supabase?.url || ''}
+    data-supabase-key={siteConfig.supabase?.anonKey || ''}
+    data-forum-href={localizePath('/forum', currentLocale)}
+    data-date-locale={dateLocaleTag}
+    data-reply-singular={page.replySingular}
+    data-reply-plural-suffix={page.replyPluralSuffix}
+    data-recent-label={page.recentFallbackDate}
+    data-fallback-popular={JSON.stringify(page.fallbackPopular)}
+    data-fallback-latest={JSON.stringify(page.fallbackLatest)}
+  >
+    <div class="spotlight-header-bar">
+      <span class="spotlight-label">{page.spotlightLabel}</span>
+      <div class="spotlight-toggle-group" role="tablist" aria-label="Forum Spotlight Mode">
+        <button
+          type="button"
+          class="spotlight-toggle-pill active"
+          data-spotlight-mode="popular"
+          role="tab"
+          aria-selected="true"
+        >
+          {page.mostPopularTab}
+        </button>
+        <button
+          type="button"
+          class="spotlight-toggle-pill"
+          data-spotlight-mode="latest"
+          role="tab"
+          aria-selected="false"
+        >
+          {page.latestInquiryTab}
+        </button>
+      </div>
+    </div>
+
+    <a href={localizePath('/forum', currentLocale)} id="spotlight-thread-card" class="spotlight-thread-card">
+      <div class="spotlight-meta">
+        <span class="spotlight-category-badge" id="spotlight-category">{page.fallbackPopular.category}</span>
+        <span class="spotlight-meta-sep">•</span>
+        <span id="spotlight-author">{page.fallbackPopular.author_name}</span>
+        <span class="spotlight-meta-sep">•</span>
+        <span id="spotlight-date">Oct 2026</span>
+        <span class="spotlight-meta-sep">•</span>
+        <span id="spotlight-replies">14 {page.replyPluralSuffix}</span>
+      </div>
+      <h3 class="spotlight-title" id="spotlight-title">
+        {page.fallbackPopular.title}
+      </h3>
+      <p class="spotlight-excerpt" id="spotlight-excerpt">
+        {page.fallbackPopular.content}
+      </p>
+      <span class="stream-read-link">{page.enterCourtyardLink}</span>
+    </a>
+  </section>
+
+  <script is:inline>
+    (function () {
+      const container = document.getElementById('home-forum-spotlight');
+      if (!container) return;
+
+      const supabaseUrl = (container.getAttribute('data-supabase-url') || '').trim();
+      const supabaseKey = (container.getAttribute('data-supabase-key') || '').trim();
+      const forumBaseHref = container.getAttribute('data-forum-href') || '/forum';
+      const dateLocale = container.getAttribute('data-date-locale') || 'en-US';
+      const replySingular = container.getAttribute('data-reply-singular') || '1 Reply';
+      const replyPluralSuffix = container.getAttribute('data-reply-plural-suffix') || 'Replies';
+      const recentLabel = container.getAttribute('data-recent-label') || 'Recent';
+
+      let popularFallback = {};
+      let latestFallback = {};
+      try {
+        popularFallback = JSON.parse(container.getAttribute('data-fallback-popular') || '{}');
+        latestFallback = JSON.parse(container.getAttribute('data-fallback-latest') || '{}');
+      } catch (_e) {}
+
+      const categoryEl = document.getElementById('spotlight-category');
+      const authorEl = document.getElementById('spotlight-author');
+      const dateEl = document.getElementById('spotlight-date');
+      const repliesEl = document.getElementById('spotlight-replies');
+      const titleEl = document.getElementById('spotlight-title');
+      const excerptEl = document.getElementById('spotlight-excerpt');
+      const cardEl = document.getElementById('spotlight-thread-card');
+      const toggleButtons = container.querySelectorAll('[data-spotlight-mode]');
+
+      const fallbackThreads = {
+        popular: popularFallback,
+        latest: latestFallback,
+      };
+
+      function formatShortDate(rawDate) {
+        if (!rawDate) return recentLabel;
+        const parsed = new Date(rawDate);
+        if (Number.isNaN(parsed.getTime())) return recentLabel;
+        return parsed.toLocaleDateString(dateLocale, {
+          year: 'numeric',
+          month: 'short',
+          day: '2-digit',
+        });
+      }
+
+      function truncateExcerpt(text) {
+        const clean = String(text || '')
+          .replace(/\s+/g, ' ')
+          .trim();
+        if (clean.length <= 200) return clean;
+        return clean.slice(0, 197).trimEnd() + '...';
+      }
+
+      function renderThread(thread) {
+        const category = thread.category || thread.topic || 'Courtyard Dialogue';
+        const author = thread.author_name || thread.author || 'Anonymous Pilgrim';
+        const dateText = formatShortDate(thread.created_at || thread.date);
+        const replies = Number(thread.reply_count ?? thread.replies_count ?? 0);
+        const title = thread.title || popularFallback.title || '';
+        const rawBody = thread.content || thread.body || thread.excerpt || popularFallback.content || '';
+
+        if (categoryEl) categoryEl.textContent = category;
+        if (authorEl) authorEl.textContent = author;
+        if (dateEl) dateEl.textContent = dateText;
+        if (repliesEl) {
+          repliesEl.textContent = replies === 1 ? replySingular : replies + ' ' + replyPluralSuffix;
+        }
+        if (titleEl) titleEl.textContent = title;
+        if (excerptEl) excerptEl.textContent = truncateExcerpt(rawBody);
+        if (cardEl) {
+          cardEl.setAttribute(
+            'href',
+            thread.id ? forumBaseHref + '?thread=' + encodeURIComponent(thread.id) : forumBaseHref
+          );
+        }
+      }
+
+      async function loadSpotlight(mode) {
+        const fallback = fallbackThreads[mode] || fallbackThreads.popular;
+
+        if (
+          !supabaseUrl ||
+          !supabaseKey ||
+          supabaseUrl.includes('YOUR_') ||
+          supabaseKey.includes('YOUR_')
+        ) {
+          renderThread(fallback);
+          return;
+        }
+
+        const orderQuery =
+          mode === 'latest'
+            ? 'created_at.desc'
+            : 'reply_count.desc.nullslast,created_at.desc';
+
+        const endpoints = [
+          supabaseUrl.replace(/\/$/, '') +
+            '/rest/v1/forum_threads?select=*&order=' +
+            encodeURIComponent(orderQuery) +
+            '&limit=1',
+          supabaseUrl.replace(/\/$/, '') +
+            '/rest/v1/threads?select=*&order=' +
+            encodeURIComponent(orderQuery) +
+            '&limit=1',
+        ];
+
+        for (const endpoint of endpoints) {
+          try {
+            const response = await fetch(endpoint, {
+              headers: {
+                apikey: supabaseKey,
+                Authorization: 'Bearer ' + supabaseKey,
+                Accept: 'application/json',
+              },
+            });
+
+            if (!response.ok) continue;
+
+            const rows = await response.json();
+            if (Array.isArray(rows) && rows.length > 0 && rows[0]) {
+              renderThread(rows[0]);
+              return;
+            }
+          } catch (_err) {}
+        }
+
+        renderThread(fallback);
+      }
+
+      toggleButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const mode = btn.getAttribute('data-spotlight-mode') || 'popular';
+          toggleButtons.forEach((other) => {
+            const active = other === btn;
+            other.classList.toggle('active', active);
+            other.setAttribute('aria-selected', String(active));
+          });
+          loadSpotlight(mode);
+        });
+      });
+
+      loadSpotlight('popular');
+    })();
+  </script>
+</BaseLayout>

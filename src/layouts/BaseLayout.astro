@@ -65,6 +65,10 @@ const {
       data-scroll-initial-wait={!startClosed ? 'true' : undefined}
       data-mobile-physics={enableScrollPhysics ? 'true' : undefined}
       data-mobile-start-closed={startClosed ? 'true' : 'false'}
+      data-label-click-unfurl={ui.scrollUi?.clickToUnfurl || 'Click to unfurl'}
+      data-label-click-unfurl-aria={ui.scrollUi?.clickToUnfurlAria || (stage.dataset.labelClickUnfurlAria || 'Click to unfurl the scroll')}
+      data-label-open-scroll-aria={ui.scrollUi?.openScrollAria || 'Open the scroll'}
+      data-label-close-scroll-aria={ui.scrollUi?.closeScrollAria || 'Close the scroll'}
     >
       <div class="scroll-roller-top"></div>
       <main class="washi-scroll">
@@ -81,6 +85,10 @@ const {
         class="global-newsletter-box"
         id="global-newsletter-box"
         data-form-action={siteConfig.mailerlite?.formActionUrl || ''}
+        data-msg-invalid={ui.newsletter.msgInvalidEmail}
+        data-msg-success={ui.newsletter.msgSuccess}
+        data-msg-error={ui.newsletter.msgError}
+        data-msg-preview={ui.newsletter.msgPreviewMode}
       >
         <div class="newsletter-eyebrow">{ui.newsletter.eyebrow}</div>
         <h2 class="newsletter-heading">{ui.newsletter.heading}</h2>
@@ -100,7 +108,7 @@ const {
             class="newsletter-input"
             placeholder={ui.newsletter.placeholder}
             required
-            aria-label="Email Address"
+            aria-label={ui.newsletter.emailAriaLabel || 'Email Address'}
           />
           <div style="position:absolute; left:-5000px;" aria-hidden="true">
             <input
@@ -649,7 +657,7 @@ const {
             '<path d="M12 2V5M4 5L6.5 7.5M2 13H5M20 5L17.5 7.5M4 21L6.5 18.5"/>' +
           '</g>' +
         '</svg>' +
-        '<span>Click to unfurl</span>';
+        '<span>' + (stage.dataset.labelClickUnfurl || 'Click to unfurl') + '</span>';
 
 
 
@@ -984,7 +992,7 @@ const {
       top.setAttribute('tabindex', '0');
       top.setAttribute(
         'aria-label',
-        closed || closing ? 'Open the scroll' : 'Close the scroll'
+        closed || closing ? (stage.dataset.labelOpenScrollAria || 'Open the scroll') : (stage.dataset.labelCloseScrollAria || 'Close the scroll')
       );
       top.setAttribute('aria-expanded', String(!closed && !closing));
 
@@ -992,7 +1000,7 @@ const {
       bottom.setAttribute('tabindex', '0');
       bottom.setAttribute(
         'aria-label',
-        closed || closing ? 'Open the scroll' : 'Close the scroll'
+        closed || closing ? (stage.dataset.labelOpenScrollAria || 'Open the scroll') : (stage.dataset.labelCloseScrollAria || 'Close the scroll')
       );
       bottom.setAttribute('aria-expanded', String(!closed && !closing));
     }
@@ -1043,7 +1051,7 @@ const {
 
           '</g>' +
 
-        '</svg><span>Click to unfurl</span>';
+        '</svg><span>' + (stage.dataset.labelClickUnfurl || 'Click to unfurl') + '</span>';
 
     }
 
@@ -1523,7 +1531,7 @@ const {
           if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             msgEl.hidden = false;
             msgEl.className = 'newsletter-response-msg is-error';
-            msgEl.textContent = 'Please enter a valid email address.';
+            msgEl.textContent = box.getAttribute('data-msg-invalid') || 'Please enter a valid email address.';
             return;
           }
 
@@ -1563,8 +1571,7 @@ const {
             if (submitBtn) submitBtn.disabled = false;
             msgEl.hidden = false;
             msgEl.className = 'newsletter-response-msg is-success';
-            msgEl.textContent =
-              '印 Thank you. Your address has been inscribed in the dispatch ledger. Please check your inbox to confirm. (Local Preview Mode: To enable live subscriptions, paste your MailerLite Form Action URL into "mailerlite.formActionUrl" inside src/data/siteConfig.json.)';
+            msgEl.textContent = box.getAttribute('data-msg-preview') || '印 Thank you. Your address has been inscribed in the dispatch ledger. Please check your inbox to confirm.';
           }
         });
       })();

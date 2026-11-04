@@ -1,8 +1,13 @@
 ---
 import UnderConstructionLayout from '../layouts/UnderConstructionLayout.astro';
+import { getLocaleFromPathname, getPageData } from '../utils/i18n';
+
+const currentLocale = getLocaleFromPathname(Astro.url.pathname);
+const cs = getPageData('coming-soon', currentLocale);
+const pageData = cs.pages?.forum || {};
 ---
 <UnderConstructionLayout
-  title="Forum — Coming Soon"
-  plans="Plans for this page: A full-fledged forum where the community can discuss topics and ask questions related to the pilgrimage."
-  previewHref="../preview/forum"
+  title={pageData.title}
+  plans={pageData.plansHtml}
+  previewHref="/preview/forum"
 />

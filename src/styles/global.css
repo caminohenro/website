@@ -1744,3 +1744,51 @@ body > .scroll-stage > .scroll-roller-bottom[role="button"]:focus-visible {
     --mobile-unfurl-min-duration: 1200;
   }
 }
+
+/* STEP20_LANG_DROPDOWN_START */
+nav.site-nav {
+  gap: 4px;
+}
+
+.nav-btn {
+  padding: 7px 9px;
+}
+
+.nav-btn.donate-btn {
+  margin-left: 6px;
+}
+
+.lang-dropdown {
+  margin-left: 4px;
+}
+
+.lang-dropdown-toggle {
+  padding: 6px 9px;
+  border: 1px solid rgba(230, 223, 207, 0.2);
+  border-radius: 2px;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+}
+
+.lang-dropdown-toggle:hover {
+  border-color: rgba(230, 223, 207, 0.45);
+}
+
+.lang-dropdown-menu {
+  min-width: 162px;
+}
+
+.lang-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: none;
+  letter-spacing: 0.06em;
+  font-size: 0.78rem;
+}
+
+.lang-flag {
+  font-size: 0.92rem;
+  line-height: 1;
+}
+/* STEP20_LANG_DROPDOWN_END */

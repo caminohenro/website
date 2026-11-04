@@ -1,0 +1,37 @@
+{
+  "header": {
+    "home": "Home",
+    "blog": "Blog",
+    "faq": "FAQ",
+    "credits": "Credits",
+    "comingSoon": "Coming Soon",
+    "map": "Map",
+    "inventory": "Inventory",
+    "finances": "Finances",
+    "gallery": "Gallery",
+    "forum": "Forum",
+    "donateBtn": "Donate 印",
+    "languageMenuAria": "Select Language"
+  },
+  "footer": {
+    "scrollFootHint": "↓ Scroll down past the bottom roller to reveal the road beneath ↓"
+  },
+  "newsletter": {
+    "eyebrow": "書簡 • DISPATCHES",
+    "heading": "Pilgrimage Newsletter",
+    "copy": "No noise, no algorithms—only a quiet note in your inbox whenever a new dispatch is written from the trail. Sent via MailerLite.",
+    "placeholder": "Your email address...",
+    "emailAriaLabel": "Email Address",
+    "submitBtn": "Subscribe to Dispatches 印",
+    "msgInvalidEmail": "Please enter a valid email address.",
+    "msgSuccess": "印 Thank you. Your address has been inscribed in the dispatch ledger. Please check your inbox to confirm.",
+    "msgError": "Unable to reach the dispatch ledger right now. Please try again shortly.",
+    "msgPreviewMode": "印 Thank you. Your address has been inscribed in the dispatch ledger. Please check your inbox to confirm. (Local Preview Mode)"
+  },
+  "scrollUi": {
+    "clickToUnfurl": "Click to unfurl",
+    "clickToUnfurlAria": "Click to unfurl the scroll",
+    "openScrollAria": "Open the scroll",
+    "closeScrollAria": "Close the scroll"
+  }
+}

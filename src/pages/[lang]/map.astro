@@ -1,0 +1,22 @@
+---
+
+export function getStaticPaths() {
+  return [
+    { params: { lang: 'pt' } },
+    { params: { lang: 'es' } },
+    { params: { lang: 'fr' } },
+    { params: { lang: 'ja' } },
+  ];
+}
+import UnderConstructionLayout from '../../layouts/UnderConstructionLayout.astro';
+import { getLocaleFromPathname, getPageData } from '../../utils/i18n';
+
+const currentLocale = getLocaleFromPathname(Astro.url.pathname);
+const cs = getPageData('coming-soon', currentLocale);
+const pageData = cs.pages?.map || {};
+---
+<UnderConstructionLayout
+  title={pageData.title}
+  plans={pageData.plansHtml}
+  previewHref="/preview/map"
+/>

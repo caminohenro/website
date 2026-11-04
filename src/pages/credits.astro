@@ -1,47 +1,47 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import creditsData from '../data/credits.json';
+import { getLocaleFromPathname, localizePath, getPageData } from '../utils/i18n';
 
+const currentLocale = getLocaleFromPathname(Astro.url.pathname);
+const ui = getPageData('credits-ui', currentLocale);
+const creditsData = getPageData('credits', currentLocale);
 const sections = Array.isArray(creditsData.sections) ? creditsData.sections : [];
 ---
 
 <BaseLayout
-  title="Credits & Gratitude | CAMINO HENRO"
-  description="Roll of Gratitude honoring the trail hosts, roadside angels, Osettai patrons, and collaborators walking alongside this pilgrimage."
+  title={ui.metaTitle}
+  description={ui.metaDescription}
 >
-  <!-- Editorial Header -->
   <!-- STANDARDIZED_SCROLL_HEADER_START -->
-<div class="scroll-title-block">
-  <div class="scroll-eyebrow">感謝芳名録 • Roll of Gratitude</div>
-  <h1 class="page-heading">Credits</h1>
-  <div class="page-subtitle">Honoring the trail hosts, roadside angels, Osettai patrons, and collaborators who sustain this road</div>
-</div>
+  <div class="scroll-title-block">
+    <div class="scroll-eyebrow">{ui.eyebrow}</div>
+    <h1 class="page-heading">{ui.heading}</h1>
+    <div class="page-subtitle">{ui.subtitle}</div>
+  </div>
 
-<div class="page-break">
-  <div class="line"></div>
-  <div class="kanji">縁</div>
-  <div class="line"></div>
-</div>
-<!-- STANDARDIZED_SCROLL_HEADER_END -->
+  <div class="page-break">
+    <div class="line"></div>
+    <div class="kanji">{ui.kanji}</div>
+    <div class="line"></div>
+  </div>
+  <!-- STANDARDIZED_SCROLL_HEADER_END -->
 
-  <!-- Gratitude Sections -->
   <div class="py-8 space-y-12">
-    {sections.map((section, idx) => (
+    {sections.map((section: any, idx: number) => (
       <section>
         <div class="flex items-baseline justify-between pb-3 mb-4 border-b border-[#6E2B25]">
           <h2 class="font-heading text-2xl sm:text-3xl font-semibold tracking-wider uppercase text-[#1C1A17]">
             {section.title}
           </h2>
           <span class="font-mono text-xs text-[#6E2B25] uppercase tracking-widest">
-             Book 0{idx + 1}
+            {ui.bookPrefix}{idx + 1}
           </span>
         </div>
 
         <div class="divide-y divide-[#1C1A17]/15 border-b border-[#1C1A17]/15">
           {Array.isArray(section.entries) && section.entries.length > 0 ? (
-            section.entries.map((entry) => (
+            section.entries.map((entry: any) => (
               <div class="py-5 grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-6 items-baseline">
-                <!-- Left Column: Name, Role/Location, Optional Date -->
                 <div class="sm:col-span-5">
                   <h3 class="font-heading text-xl font-bold text-[#1C1A17]">
                     {entry.name}
@@ -54,7 +54,6 @@ const sections = Array.isArray(creditsData.sections) ? creditsData.sections : []
                   </div>
                 </div>
 
-                <!-- Right Column: Gratitude Note -->
                 <div class="sm:col-span-7">
                   <p class="font-body text-base text-[#1C1A17]/90 leading-relaxed">
                     {entry.note}
@@ -64,7 +63,7 @@ const sections = Array.isArray(creditsData.sections) ? creditsData.sections : []
             ))
           ) : (
             <p class="py-6 font-mono text-xs text-[#524D46]">
-              Entries for this section will be inscribed as the road unfolds.
+              {ui.emptySectionText}
             </p>
           )}
         </div>
@@ -72,30 +71,29 @@ const sections = Array.isArray(creditsData.sections) ? creditsData.sections : []
     ))}
   </div>
 
-  <!-- Bottom Callout -->
   <section class="pt-4">
     <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-6 sm:p-8 text-center">
       <p class="font-jp text-sm text-[#6E2B25] tracking-widest mb-2">
-        お接待の記録
+        {ui.calloutJp}
       </p>
       <h3 class="font-heading text-2xl font-semibold text-[#1C1A17] mb-2">
-        Walk With This Pilgrimage
+        {ui.calloutHeading}
       </h3>
       <p class="font-body text-base text-[#524D46] max-w-xl mx-auto mb-6">
-        &lt;body&gt;
+        {ui.calloutBody}
       </p>
       <div class="flex flex-wrap justify-center gap-4">
         <a
-          href="/donate"
+          href={localizePath('/donate', currentLocale)}
           class="inline-block bg-[#6E2B25] hover:bg-[#8C3B33] text-[#E6DFCF] font-mono text-xs uppercase tracking-widest px-5 py-3 transition-colors"
         >
-          Offer Osettai →
+          {ui.offerOsettaiBtn}
         </a>
         <a
-          href="/finances"
+          href={localizePath('/finances', currentLocale)}
           class="inline-block border border-[#1C1A17]/30 hover:border-[#6E2B25] text-[#1C1A17] hover:text-[#6E2B25] font-mono text-xs uppercase tracking-widest px-5 py-3 transition-colors"
         >
-          View Financial Ledger
+          {ui.viewLedgerBtn}
         </a>
       </div>
     </div>

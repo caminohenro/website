@@ -2,80 +2,89 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import siteConfig from '../data/siteConfig.json';
 import { getCollection } from 'astro:content';
+import {
+  getLocaleFromPathname,
+  localizePath,
+  getPageData,
+  getDateLocaleTag,
+  applyEssayTranslation,
+} from '../utils/i18n';
+
+const currentLocale = getLocaleFromPathname(Astro.url.pathname);
+const page = getPageData('home', currentLocale);
+const dateLocaleTag = getDateLocaleTag(currentLocale);
 
 const allEssays = await getCollection('essays', ({ data }) => !data.draft);
-const sortedEssays = allEssays.sort(
-  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
-);
+const sortedEssays = allEssays
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .map((entry) => applyEssayTranslation(entry, currentLocale));
 const recentEssays = sortedEssays.slice(0, 4);
 
 const formatDate = (date: Date) =>
-  date.toLocaleDateString('en-US', {
+  date.toLocaleDateString(dateLocaleTag, {
     year: 'numeric',
     month: 'short',
     day: '2-digit',
   });
 ---
 
-<BaseLayout title={`${siteConfig.siteTitleJp} | ${siteConfig.siteTitleEn}`} description={siteConfig.tagline}>
+<BaseLayout title={`${siteConfig.siteTitleJp} | ${page.heading}`} description={page.subtitle}>
   <div class="scroll-title-block">
     <img
       src={siteConfig.crestImage}
       style="width:88px; height:88px; mix-blend-mode:multiply; margin: 0 auto 10px; object-fit:contain;"
       alt="Henro Stamp"
     />
-    <div class="scroll-eyebrow">{siteConfig.routeSummary}</div>
-    <h1 class="page-heading">{siteConfig.siteTitleEn}</h1>
-    <div class="page-subtitle">{siteConfig.tagline}</div>
+    <div class="scroll-eyebrow">{page.eyebrow}</div>
+    <h1 class="page-heading">{page.heading}</h1>
+    <div class="page-subtitle">{page.subtitle}</div>
   </div>
 
   <div class="page-break">
     <div class="line"></div>
-    <div class="kanji">哲学の道 • THE PILGRIM'S MANIFESTO</div>
+    <div class="kanji">{page.manifestoDivider}</div>
     <div class="line"></div>
   </div>
 
   <div class="essay-prose">
     <blockquote>
-      "A boy and a hat set out on a journey to cross a continent and discover a world(view) where money, jobs and human society are simply another part of Nature.<br/>
-      We have never left Nature — we've merely forgotten that everything is, inevitably, Nature. ☯️<br/>
-      For the hat, a homecoming — its very own Odyssey.<br/>
-      For the boy, a rite of initiation, and the beginning of a journey into manhood."
+      "{page.manifestoQuoteLine1}<br/>
+      {page.manifestoQuoteLine2}<br/>
+      {page.manifestoQuoteLine3}<br/>
+      {page.manifestoQuoteLine4}"
     </blockquote>
 
-    <p>
-      Modern life surrounds us with financial instruments, insurance policies, and digital vaults—yet anxiety over basic survival remains sharper than ever. <strong>Camino Henro</strong> is a cross-continental philosophical pilgrimage on foot from Finisterra, Spain to Shikoku, Japan, investigating a single foundational question: <em>What is the true philosophical foundation for building a sense of material security in life?</em>
-    </p>
+    <p set:html={page.manifestoBodyHtml} />
   </div>
 
   <div class="page-break">
     <div class="line"></div>
-    <div class="kanji">随筆 • LATEST PHILOSOPHICAL ESSAYS</div>
+    <div class="kanji">{page.essaysDivider}</div>
     <div class="line"></div>
   </div>
 
   <div>
     {recentEssays.map((essay, idx) => (
-      <a href={`/essays/${essay.slug}`} class="stream-item">
+      <a href={localizePath(`/essays/${essay.slug}`, currentLocale)} class="stream-item">
         <div class="stream-meta">
-          Essay No. {String(sortedEssays.length - idx).padStart(2, '0')}  •  {essay.data.location}  •  {essay.data.readingTime || formatDate(essay.data.date)}
+          {page.essayNumberPrefix} {String(sortedEssays.length - idx).padStart(2, '0')}  •  {essay.data.location}  •  {essay.data.readingTime || formatDate(essay.data.date)}
         </div>
         <div class="stream-title">{essay.data.title}</div>
         <div class="stream-excerpt">{essay.data.excerpt}</div>
-        <span class="stream-read-link">Unroll Essay Scroll ➔</span>
+        <span class="stream-read-link">{page.unrollEssayLink}</span>
       </a>
     ))}
   </div>
 
   <div style="text-align:center; margin-top:36px;">
-    <a href="/essays" class="ink-action-btn">
-      View Full Essay Archive (/essays) ➔
+    <a href={localizePath('/essays', currentLocale)} class="ink-action-btn">
+      {page.viewArchiveBtn}
     </a>
   </div>
 
   <div class="page-break">
     <div class="line"></div>
-    <div class="kanji">広場 • FROM THE PILGRIM'S COURTYARD</div>
+    <div class="kanji">{page.courtyardDivider}</div>
     <div class="line"></div>
   </div>
 
@@ -84,9 +93,16 @@ const formatDate = (date: Date) =>
     class="forum-spotlight-section"
     data-supabase-url={siteConfig.supabase?.url || ''}
     data-supabase-key={siteConfig.supabase?.anonKey || ''}
+    data-forum-href={localizePath('/forum', currentLocale)}
+    data-date-locale={dateLocaleTag}
+    data-reply-singular={page.replySingular}
+    data-reply-plural-suffix={page.replyPluralSuffix}
+    data-recent-label={page.recentFallbackDate}
+    data-fallback-popular={JSON.stringify(page.fallbackPopular)}
+    data-fallback-latest={JSON.stringify(page.fallbackLatest)}
   >
     <div class="spotlight-header-bar">
-      <span class="spotlight-label">COMMUNITY DIALOGUE SPOTLIGHT</span>
+      <span class="spotlight-label">{page.spotlightLabel}</span>
       <div class="spotlight-toggle-group" role="tablist" aria-label="Forum Spotlight Mode">
         <button
           type="button"
@@ -95,7 +111,7 @@ const formatDate = (date: Date) =>
           role="tab"
           aria-selected="true"
         >
-          ★ Most Popular
+          {page.mostPopularTab}
         </button>
         <button
           type="button"
@@ -104,28 +120,28 @@ const formatDate = (date: Date) =>
           role="tab"
           aria-selected="false"
         >
-          ✦ Latest Inquiry
+          {page.latestInquiryTab}
         </button>
       </div>
     </div>
 
-    <a href="/forum" id="spotlight-thread-card" class="spotlight-thread-card">
+    <a href={localizePath('/forum', currentLocale)} id="spotlight-thread-card" class="spotlight-thread-card">
       <div class="spotlight-meta">
-        <span class="spotlight-category-badge" id="spotlight-category">Philosophy &amp; Ethos</span>
+        <span class="spotlight-category-badge" id="spotlight-category">{page.fallbackPopular.category}</span>
         <span class="spotlight-meta-sep">•</span>
-        <span id="spotlight-author">Steppenwolf</span>
+        <span id="spotlight-author">{page.fallbackPopular.author_name}</span>
         <span class="spotlight-meta-sep">•</span>
         <span id="spotlight-date">Oct 2026</span>
         <span class="spotlight-meta-sep">•</span>
-        <span id="spotlight-replies">14 Replies</span>
+        <span id="spotlight-replies">14 {page.replyPluralSuffix}</span>
       </div>
       <h3 class="spotlight-title" id="spotlight-title">
-        On Sufficiency vs. Surplus: Where Does Preparation End and Fear Begin?
+        {page.fallbackPopular.title}
       </h3>
       <p class="spotlight-excerpt" id="spotlight-excerpt">
-        When walking across a continent with everything on your back, every extra ounce is a physical confession of a fear you have not yet made peace with. How do we distinguish wise stewardship from anxiety?
+        {page.fallbackPopular.content}
       </p>
-      <span class="stream-read-link">Enter the Pilgrim's Courtyard (/forum) ➔</span>
+      <span class="stream-read-link">{page.enterCourtyardLink}</span>
     </a>
   </section>
 
@@ -136,6 +152,18 @@ const formatDate = (date: Date) =>
 
       const supabaseUrl = (container.getAttribute('data-supabase-url') || '').trim();
       const supabaseKey = (container.getAttribute('data-supabase-key') || '').trim();
+      const forumBaseHref = container.getAttribute('data-forum-href') || '/forum';
+      const dateLocale = container.getAttribute('data-date-locale') || 'en-US';
+      const replySingular = container.getAttribute('data-reply-singular') || '1 Reply';
+      const replyPluralSuffix = container.getAttribute('data-reply-plural-suffix') || 'Replies';
+      const recentLabel = container.getAttribute('data-recent-label') || 'Recent';
+
+      let popularFallback = {};
+      let latestFallback = {};
+      try {
+        popularFallback = JSON.parse(container.getAttribute('data-fallback-popular') || '{}');
+        latestFallback = JSON.parse(container.getAttribute('data-fallback-latest') || '{}');
+      } catch (_e) {}
 
       const categoryEl = document.getElementById('spotlight-category');
       const authorEl = document.getElementById('spotlight-author');
@@ -147,33 +175,15 @@ const formatDate = (date: Date) =>
       const toggleButtons = container.querySelectorAll('[data-spotlight-mode]');
 
       const fallbackThreads = {
-        popular: {
-          id: '',
-          category: 'Philosophy & Ethos',
-          author_name: 'Steppenwolf',
-          created_at: '2026-10-18T10:00:00Z',
-          reply_count: 14,
-          title: 'On Sufficiency vs. Surplus: Where Does Preparation End and Fear Begin?',
-          content:
-            'When walking across a continent with everything on your back, every extra ounce is a physical confession of a fear you have not yet made peace with. How do we distinguish wise stewardship from anxiety?',
-        },
-        latest: {
-          id: '',
-          category: 'Trail Craft & Gear',
-          author_name: 'Kūkai_Walker',
-          created_at: '2026-10-27T18:30:00Z',
-          reply_count: 5,
-          title: 'On Sufficiency vs. Surplus: Footcare and Cold-Weather Layering Past the Pyrenees',
-          content:
-            'As the autumn frost settles over the stone paths, what minimalist wool and rain shell combinations have proven resilient without burdening the pack beyond six kilograms?',
-        },
+        popular: popularFallback,
+        latest: latestFallback,
       };
 
       function formatShortDate(rawDate) {
-        if (!rawDate) return 'Recent';
+        if (!rawDate) return recentLabel;
         const parsed = new Date(rawDate);
-        if (Number.isNaN(parsed.getTime())) return 'Recent';
-        return parsed.toLocaleDateString('en-US', {
+        if (Number.isNaN(parsed.getTime())) return recentLabel;
+        return parsed.toLocaleDateString(dateLocale, {
           year: 'numeric',
           month: 'short',
           day: '2-digit',
@@ -193,27 +203,21 @@ const formatDate = (date: Date) =>
         const author = thread.author_name || thread.author || 'Anonymous Pilgrim';
         const dateText = formatShortDate(thread.created_at || thread.date);
         const replies = Number(thread.reply_count ?? thread.replies_count ?? 0);
-        const title =
-          thread.title ||
-          'On Sufficiency vs. Surplus: Where Does Preparation End and Fear Begin?';
-        const rawBody =
-          thread.content ||
-          thread.body ||
-          thread.excerpt ||
-          fallbackThreads.popular.content;
+        const title = thread.title || popularFallback.title || '';
+        const rawBody = thread.content || thread.body || thread.excerpt || popularFallback.content || '';
 
         if (categoryEl) categoryEl.textContent = category;
         if (authorEl) authorEl.textContent = author;
         if (dateEl) dateEl.textContent = dateText;
         if (repliesEl) {
-          repliesEl.textContent = replies === 1 ? '1 Reply' : replies + ' Replies';
+          repliesEl.textContent = replies === 1 ? replySingular : replies + ' ' + replyPluralSuffix;
         }
         if (titleEl) titleEl.textContent = title;
         if (excerptEl) excerptEl.textContent = truncateExcerpt(rawBody);
         if (cardEl) {
           cardEl.setAttribute(
             'href',
-            thread.id ? '/forum?thread=' + encodeURIComponent(thread.id) : '/forum'
+            thread.id ? forumBaseHref + '?thread=' + encodeURIComponent(thread.id) : forumBaseHref
           );
         }
       }
@@ -264,9 +268,7 @@ const formatDate = (date: Date) =>
               renderThread(rows[0]);
               return;
             }
-          } catch (_err) {
-            // Fall through to next endpoint or static fallback
-          }
+          } catch (_err) {}
         }
 
         renderThread(fallback);

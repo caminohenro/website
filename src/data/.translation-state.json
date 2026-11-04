@@ -1,0 +1,15 @@
+{
+  "hashes": {
+    "src/data/pages/global-ui.json": "ebf4c886df2c843eef0ca84bbfa7424411bf258e6861bb863a0a8ec72e2ac017",
+    "src/data/pages/home.json": "dde6c887d8a1e7e6de5a81387640ff5d74ffb84aeaf01332da2d316fea8bfa2e",
+    "src/data/pages/donate.json": "d10c62c518159be66e23dc5433da484580d3f5d9d1ac0831d9225bbd23860166",
+    "src/data/pages/credits-ui.json": "8846e47320fc3a7ce02eb90045bcc75164ba4be4c21eec802c151f65e3de3bf4",
+    "src/data/pages/faq-ui.json": "542a9fcab8123c1ed1bca55595a96e05397afc8f0385208c61e86ac739107af9",
+    "src/data/pages/essays-ui.json": "b3718a6e0a345cd8b76adb8b0ce152446cb71078f0f37ba65eb893b4e2ff858e",
+    "src/data/pages/coming-soon.json": "a7b3d7d4333736ba879ae5450be4e00251ad1d43598b09f0fa145b5cc116b4be",
+    "src/data/faq.json": "8988be2bdc1ce46143364039abe2b740bb76e4c07e7547881c58403a441fabae",
+    "src/data/credits.json": "55190b900abe84c77a09adb2436776670d3b9c4585fee2778e4102cd357389eb",
+    "src/content/essays/placeholder-essay-1.md": "47034fd07a47b221fb30204494b2f99952851c452f1cecea1ce67fc5e0ad719f",
+    "src/content/essays/placeholder-essay-2.md": "29c986f07c875af7ce98eff63a6943bffa79ca706569870dea64abdcc78c8113"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "sharedHeading": "Coming soon",
+  "sharedMessageHtml": "Henro is currently working on this page. <br />The road will be shorter than the path to Japan, but patience is still required.",
+  "sneakPreviewBeforeLink": "Want a ",
+  "sneakPreviewLinkText": "sneak preview",
+  "sneakPreviewAfterLink": " of this page?",
+  "pages": {
+    "finances": {
+      "title": "Finances — Coming Soon",
+      "plansHtml": "Plans for this page: Here you'll be able to see how your money is being put to good use."
+    },
+    "forum": {
+      "title": "Forum — Coming Soon",
+      "plansHtml": "Plans for this page: A full-fledged forum where the community can discuss topics and ask questions related to the pilgrimage."
+    },
+    "gallery": {
+      "title": "Gallery — Coming Soon",
+      "plansHtml": "Plans for this page: Here you'll be able to submit your photos of or with Henro."
+    },
+    "inventory": {
+      "title": "Inventory — Coming Soon",
+      "plansHtml": "Plans for this page: A full <b>RPG-style inventory menu</b>, with clickable item thumbnails that open a 'details' window about the item"
+    },
+    "map": {
+      "title": "Map — Coming Soon",
+      "plansHtml": "Plans for this page: A world map showing Henro's current location and walked path."
+    }
+  }
+}
