@@ -1,4 +1,13 @@
 {
-  "lastRun": null,
-  "files": {}
+  "lastRun": "2026-11-04T09:21:06.635Z",
+  "files": {
+    "src/content/essays/placeholder-essay-1.md": {},
+    "src/content/essays/placeholder-essay-2.md": {},
+    "src/data/uiStrings.json": {},
+    "src/data/faq.json": {},
+    "src/data/credits.json": {},
+    "src/data/inventory.json": {},
+    "src/data/route.json": {},
+    "src/data/finances.json": {}
+  }
 }
