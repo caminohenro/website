@@ -216,7 +216,7 @@ const visualBarPct = Math.max(rawPct, 1.5);
               <td class="py-3.5 px-4 font-mono text-xs text-right whitespace-nowrap align-top">
                 {cp.essaySlug ? (
                   <a
-                    href={`/essays/${cp.essaySlug}`}
+                    href={`/blog/${cp.essaySlug}`}
                     class="text-[#6E2B25] hover:text-[#8C3B33] underline underline-offset-4 font-medium"
                   >
                     Read Dispatch →
@@ -400,7 +400,7 @@ const visualBarPct = Math.max(rawPct, 1.5);
         checkpoints.forEach(function (cp) {
           const dispatchLinkHtml = cp.essaySlug
             ? '<div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(28, 26, 23, 0.15);">' +
-              '<a href="/essays/' +
+              '<a href="/blog/' +
               cp.essaySlug +
               '" style="font-family: \'JetBrains Mono\', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #6E2B25; text-decoration: underline; font-weight: 600;">' +
               'Read Dispatch Written Here →' +

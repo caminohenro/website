@@ -131,7 +131,7 @@ const formatDate = (date: Date) =>
 
   <div>
     {recentEssays.map((essay, idx) => (
-      <a href={`/essays/${essay.slug}`} class="stream-item">
+      <a href={`/blog/${essay.slug}`} class="stream-item">
         <div class="stream-meta">
           Essay No. {String(sortedEssays.length - idx).padStart(2, '0')}  •  {essay.data.location}  •  {essay.data.readingTime || formatDate(essay.data.date)}
         </div>
@@ -143,8 +143,8 @@ const formatDate = (date: Date) =>
   </div>
 
   <div style="text-align:center; margin-top:36px;">
-    <a href="/essays" class="ink-action-btn">
-      View Full Essay Archive (/essays) ➔
+    <a href="/blog" class="ink-action-btn">
+      View Full Essay Archive ➔
     </a>
   </div>
 
@@ -177,6 +177,9 @@ const formatDate = (date: Date) =>
   /* ══════════════════════════════════════════════════════════════════
      PRE-SCROLL INQUIRY (Outside Parchment, directly on dark background)
      ══════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════
+     PRE-SCROLL INQUIRY (Outside Parchment, directly on dark background)
+     ══════════════════════════════════════════════════════════════════ */
   .pre-scroll-inquiry-container {
     position: relative;
     z-index: 5; /* Below .scroll-stage (z-index: 10) so the scroll unfurls over it */
@@ -187,6 +190,21 @@ const formatDate = (date: Date) =>
     box-sizing: border-box;
     text-align: center;
     pointer-events: auto;
+    
+    /* The Fade-in Animation */
+    opacity: 0; /* Start invisible */
+    animation: textFadeIn 0.8s ease-out 0.15s forwards;
+  }
+
+  @keyframes textFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .inquiry-kicker {

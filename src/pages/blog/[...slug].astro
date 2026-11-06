@@ -38,7 +38,7 @@ const showGiscusDrawer =
   <!-- a) Minimal Top Breadcrumb -->
   <nav class="mb-6" aria-label="Breadcrumb">
     <a
-      href="/essays"
+      href="/blog"
       class="font-mono text-xs uppercase tracking-widest text-[#524D46] hover:text-[#6E2B25] transition-colors"
     >
       ← Back to All Dispatches
@@ -168,7 +168,7 @@ const showGiscusDrawer =
     >
       <div class="py-5 sm:pr-6">
         {prevEssay ? (
-          <a href={`/essays/${prevEssay.slug}`} class="group block">
+          <a href={`/blog/${prevEssay.slug}`} class="group block">
             <span class="font-mono text-[10px] uppercase tracking-widest text-[#524D46] block mb-1">
               ← Previous Dispatch
             </span>
@@ -190,7 +190,7 @@ const showGiscusDrawer =
 
       <div class="py-5 sm:pl-6 sm:text-right">
         {nextEssay ? (
-          <a href={`/essays/${nextEssay.slug}`} class="group block">
+          <a href={`/blog/${nextEssay.slug}`} class="group block">
             <span class="font-mono text-[10px] uppercase tracking-widest text-[#524D46] block mb-1">
               Next Dispatch →
             </span>

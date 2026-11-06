@@ -13,7 +13,7 @@ content:
   - name: essays
     label: Essays & Dispatches
     type: collection
-    path: src/content/essays
+    path: src/content/blog
     filename: "{year}-{month}-{day}-{primary}.md"
     view:
       primary: title
