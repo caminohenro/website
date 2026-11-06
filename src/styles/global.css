@@ -1682,7 +1682,7 @@ body > .apple-reveal-stage {
 
 body > .apple-reveal-stage > .spacer-for-apple {
   height: var(--newsletter-gap, 100svh);
-  min-height: 0;
+  min-height: 72vh;
   flex: 0 0 auto;
 }
 

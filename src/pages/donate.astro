@@ -1,98 +1,17 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import siteConfig from '../data/siteConfig.json';
-
-const tiers = [
-  {
-    title: 'A Hot Meal on a Rainy Day — €10',
-    amount: '€10',
-    jp: '一椀の糧',
-    description: 'A warm bowl of noodles or soup after a day of wet mountain passes.',
-  },
-  {
-    title: "A Night's Pilgrim Bunk — €20",
-    amount: '€20',
-    jp: '一夜の宿',
-    description: 'Dry shelter, laundry, and a mat to rest during heavy weather.',
-  },
-  {
-    title: 'A Pair of Trail Socks / Gear Repair — €35',
-    amount: '€35',
-    jp: '草鞋と修繕',
-    description: 'Replacing worn merino wool or stitching torn pack seams along the road.',
-  },
-  {
-    title: 'Custom Osettai Offering — Any Amount',
-    amount: 'Open',
-    jp: '随意のお接待',
-    description: 'A modest gift freely offered according to your own means and heart.',
-  },
-];
-
-const paymentMethods = [
-  {
-    id: 'paypal',
-    name: 'PayPal',
-    badge: 'Global / Card',
-    type: 'link',
-    value: 'https://paypal.me/VascoCabrita',
-    displayValue: 'paypal.me/VascoCabrita',
-    instructions: 'Contribute directly via PayPal balance, debit, or credit card.',
-    actionLabel: 'Open PayPal.me →',
-  },
-  {
-    id: 'wise',
-    name: 'Wise',
-    badge: 'Multi-Currency',
-    type: 'link',
-    value: 'https://wise.com/pay/me/henroc?utm_source=request_flow',
-    displayValue: 'wise.com/pay/me/henroc',
-    instructions: 'Low-fee direct bank transfers in EUR, USD, GBP, JPY, and other global currencies.',
-    actionLabel: 'Open Wise Pay Link →',
-  },
-  {
-    id: 'mbway',
-    name: 'MBway',
-    badge: 'Portugal',
-    type: 'copy',
-    value: '+351 915 479 581',
-    displayValue: '+351 915 479 581',
-    instructions: 'Direct mobile transfer for Portuguese bank account holders.',
-    actionLabel: 'Copy Phone Number',
-  },
-  {
-    id: 'bitcoin',
-    name: 'Bitcoin (BTC)',
-    badge: 'On-Chain',
-    type: 'copy',
-    value: 'BC1Q0UGKYRNSD678U7QAHLVNWK87MX0Q3R5U92Q3WP',
-    displayValue: 'BC1Q0UGKYRNSD678U7QAHLVNWK87MX0Q3R5U92Q3WP',
-    instructions: 'Send native Bitcoin (SegWit) directly to Henro’s public wallet.',
-    actionLabel: 'Copy BTC Address',
-  },
-  {
-    id: 'iban',
-    name: 'Bank Transfer (IBAN / SEPA)',
-    badge: 'SEPA / Eurozone',
-    type: 'copy',
-    value: 'PT50 0036 0131 991 0000 5837 50',
-    displayValue: 'PT50 0036 0131 991 0000 5837 50',
-    instructions: 'Standard European bank wire transfer (Millennium BCP).',
-    actionLabel: 'Copy IBAN',
-  },
-];
 ---
 
 <BaseLayout
-  title="Offer Osettai (Donate) | CAMINO HENRO"
-  description="Support the Camino Henro pilgrimage from Spain to Japan in the traditional spirit of Shikoku Osettai and Camino donativo."
+  title="Osettai (Donate) | CAMINO HENRO"
+  description="Support the Camino Henro pilgrimage platform, digital archiving, and book publication in the spirit of Osettai."
 >
   <!-- Centered Crimson Stamp Header -->
   <!-- STANDARDIZED_SCROLL_HEADER_START -->
   <div class="scroll-title-block">
-    <div class="scroll-eyebrow">お接待 • Pilgrimage Alms</div>
-    <h1 class="page-heading">Offer Osettai</h1>
-    <div class="page-subtitle">Sustaining the digital scroll, off-trail archiving, and the future printed book of essays</div>
+    <div class="scroll-eyebrow">お接待 • Osettai</div>
+    <h1 class="page-heading">Donate</h1>
+    <div class="page-subtitle">Show your appreciation for this project</div>
   </div>
 
   <div class="page-break">
@@ -102,237 +21,359 @@ const paymentMethods = [
   </div>
   <!-- STANDARDIZED_SCROLL_HEADER_END -->
 
-  <!-- Long-Form Cultural & Philosophical Explanation -->
-  <section class="py-8 border-b border-[#1C1A17]/15">
-    <div class="essay-prose">
+  <!-- Long-Form Cultural & Philosophical Explanation (Preserving Washi Theme) -->
+  <section class="py-6 border-b border-[#1C1A17]/15">
+    <div class="essay-prose space-y-5 text-[#2C2723] text-base sm:text-lg leading-relaxed">
       <p class="text-lg leading-relaxed text-[#1C1A17] mb-6">
-        <em>“How do you fund your trip?”</em> is one of the most common questions I get asked. The answer is <strong>not</strong> this website.
-      </p>
-      
-      <p class="leading-relaxed text-[#38332C] mb-4">
-        Donations offered via the website do not go to fund the trip itself, as the whole point of the trip is to learn to find security within the local environment. Instead, these donations will fund other things adjacent to the pilgrimage, such as:
+        <em>“How do you fund your trip?”</em> is one of the most common questions I get asked. The answer is... <strong>not</strong> this website.
       </p>
 
-      <ul class="list-disc pl-6 space-y-2 text-[#38332C] mb-6 marker:text-[#6E2B25]">
+      <p>
+        Donations offered via the website do <strong>not</strong> go to fund the trip itself, as the whole point of the trip is to learn to find security within the local environment. Instead, these donations will fund other things adjacent to the pilgrimage, such as:
+      </p>
+
+      <ul class="list-disc pl-6 space-y-2 text-[#3D3730]">
         <li>Maintenance of this website;</li>
         <li>Publication of a future book;</li>
         <li>Kickstarting Henro’s alternative school project (after the pilgrimage ends);</li>
         <li>Emergency fund in case of disastrous failure.</li>
       </ul>
 
-      <p class="leading-relaxed text-[#38332C] mb-4">
-        Other uses for this money can be an object of discussion in the <a href="/forum" class="text-[#6E2B25] underline underline-offset-4 hover:text-[#8C3B33] font-semibold">Forum</a>.
+      <p>
+        Other uses for this money can be object of discussion in the <a href="/forum" class="text-[#6E2B25] underline underline-offset-4 font-semibold hover:text-[#8C3B33] transition-colors">Forum</a>.
       </p>
 
-      <div class="border-l-2 border-[#6E2B25] pl-4 py-2 my-6 bg-[#D8CEB8]/20 text-sm sm:text-base text-[#1C1A17]">
-        <strong>Game over:</strong> The quest will be considered a failure if Henro ever uses money from this fund to sustain his own life on the road.
-      </div>
+      <p class="bg-[#D8CEB8]/40 border-l-2 border-[#6E2B25] p-4 text-sm sm:text-base italic text-[#423C35]">
+        <strong class="text-[#6E2B25]">Game over:</strong> The quest will be considered a failure if Henro ever uses money from this fund to sustain his own life on the road.
+      </p>
 
-      <p class="leading-relaxed text-[#38332C]">
-        All use of this money will be transparently logged in the <a href="/finances" class="text-[#6E2B25] underline underline-offset-4 hover:text-[#8C3B33] font-semibold">Finances ledger</a>, so that you can fiscalize it yourself and decide whether this project is truly worth supporting.
+      <p>
+        All use of this money will be transparently logged in the <a href="/finances" class="text-[#6E2B25] underline underline-offset-4 font-semibold hover:text-[#8C3B33] transition-colors">Finances</a> ledger, so that you can fiscalize it yourself and decide whether this project is truly worth supporting.
       </p>
     </div>
   </section>
 
-  <!-- 4 Suggested Contribution Tiers (2x2 Ink-Bordered Grid) -->
-  <section class="py-10 border-b border-[#1C1A17]/15">
-    <div class="flex items-baseline justify-between mb-6">
-      <h2 class="font-heading text-2xl sm:text-3xl font-semibold uppercase tracking-wider text-[#1C1A17]">
-        Suggested Osettai Offerings
-      </h2>
-      <span class="font-jp text-xs text-[#6E2B25] tracking-widest">喜捨の目安</span>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-      {tiers.map((tier) => (
-        <div class="border border-[#1C1A17]/25 bg-[#D8CEB8]/30 p-6">
-          <div class="flex items-center justify-between font-mono text-xs text-[#6E2B25] mb-2">
-            <span>{tier.jp}</span>
-            <span class="px-2 py-0.5 border border-[#6E2B25] font-semibold">
-              {tier.amount}
-            </span>
-          </div>
-
-          <h3 class="font-heading text-xl font-bold text-[#1C1A17] mb-2">
-            {tier.title}
-          </h3>
-
-          <p class="font-body text-sm sm:text-base text-[#524D46] leading-relaxed">
-            {tier.description}
-          </p>
-        </div>
-      ))}
-    </div>
-  </section>
-
-  <!-- Interactive Payment Options Section -->
-  <section class="py-10 border-b border-[#6E2B25]">
-    <div class="flex items-baseline justify-between mb-6">
-      <div>
-        <div class="font-mono text-xs text-[#6E2B25] tracking-widest uppercase mb-1">決済方法</div>
-        <h2 class="font-heading text-2xl sm:text-3xl font-semibold uppercase tracking-wider text-[#1C1A17]">
-          Payment Options
+  <!-- Modern, Clean Payment Options Section (Sleek UI, Neutral Backdrop) -->
+  <section class="py-10">
+    <div class="max-w-2xl mx-auto">
+      <div class="mb-6">
+        <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 font-sans">
+          Payment options
         </h2>
+        <p class="text-xs sm:text-sm text-neutral-500 font-sans mt-1">
+          Select a payment method below to view transfer details or open direct links.
+        </p>
       </div>
-      <span class="font-mono text-xs text-[#524D46]">Choose a method below</span>
-    </div>
 
-    <!-- Mode Selector: Custom Radio Button Group -->
-    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-6" id="payment-methods-selector" role="radiogroup" aria-label="Payment method selection">
-      {paymentMethods.map((method, idx) => (
-        <button
-          type="button"
-          role="radio"
-          aria-checked={idx === 0 ? "true" : "false"}
-          data-target={method.id}
-          class={`payment-tab-btn text-left p-3 border transition-all text-xs font-mono uppercase tracking-wider ${
-            idx === 0
-              ? 'border-[#6E2B25] bg-[#6E2B25] text-[#E6DFCF] shadow-sm font-semibold'
-              : 'border-[#1C1A17]/20 bg-[#D8CEB8]/40 hover:bg-[#D8CEB8]/70 text-[#1C1A17]'
-          }`}
-        >
-          <div class="font-bold">{method.name}</div>
-          <div class="text-[10px] opacity-80 normal-case">{method.badge}</div>
-        </button>
-      ))}
-    </div>
-
-    <!-- Active Payment Details Cards -->
-    <div id="payment-panels-container">
-      {paymentMethods.map((method, idx) => (
-        <div
-          id={`panel-${method.id}`}
-          class={`payment-panel border border-[#6E2B25] bg-[#D8CEB8]/40 p-6 sm:p-8 ${idx === 0 ? '' : 'hidden'}`}
-        >
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1C1A17]/15 mb-4">
-            <div>
-              <h3 class="font-heading text-2xl font-bold text-[#1C1A17]">
-                {method.name}
-              </h3>
-              <p class="font-body text-sm text-[#524D46] mt-1">
-                {method.instructions}
-              </p>
+      <!-- Vertical Button Selection System -->
+      <div class="flex flex-col gap-3 font-sans" id="payment-options-container">
+        
+        <!-- 1. PayPal -->
+        <div class="payment-method-item border border-neutral-300 hover:border-neutral-400 bg-white rounded-xl shadow-xs overflow-hidden transition-all duration-200">
+          <button
+            type="button"
+            class="payment-toggle-btn w-full px-5 py-4 flex items-center justify-between text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+            data-target="panel-paypal"
+            aria-expanded="false"
+          >
+            <div class="flex items-center gap-3.5">
+              <!-- PayPal Icon -->
+              <div class="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center shrink-0 p-1.5">
+                <img 
+                  src="/assets/paypal.webp" 
+                  alt="PayPal" 
+                  class="max-w-full max-h-full object-contain"
+                  width="32"
+                  height="32"
+                  loading="lazy"
+                />
+              </div>
+              <span class="font-medium text-neutral-800 text-base">PayPal</span>
             </div>
-            <span class="inline-block self-start sm:self-center font-mono text-[11px] uppercase tracking-widest px-2.5 py-1 border border-[#6E2B25] text-[#6E2B25] bg-[#E6DFCF]">
-              {method.badge}
-            </span>
-          </div>
-
-          <!-- Value Display & Direct Action -->
-          <div class="bg-[#F4F1EA] border border-[#1C1A17]/25 p-4 rounded-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
-            <div class="font-mono text-sm sm:text-base text-[#1C1A17] break-all select-all font-medium">
-              {method.displayValue}
+            <svg class="chevron-icon w-4 h-4 text-neutral-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          <div id="panel-paypal" class="payment-detail-panel hidden px-5 pb-5 pt-1 border-t border-neutral-100 bg-neutral-50/70">
+            <p class="text-xs text-neutral-500 mb-3">Direct link via PayPal.me:</p>
+            <div class="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
+              <a
+                href="https://paypal.me/CaminoHenro"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex justify-center items-center gap-2 px-5 py-2.5 bg-[#0070BA] hover:bg-[#003087] text-white text-sm font-medium rounded-lg shadow-xs transition-colors"
+              >
+                Open PayPal
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+              <button
+                type="button"
+                class="copy-btn px-4 py-2.5 bg-white border border-neutral-300 hover:border-neutral-400 text-neutral-700 text-xs font-medium rounded-lg transition-colors cursor-pointer"
+                data-copy="https://paypal.me/CaminoHenro"
+              >
+                Copy Link
+              </button>
             </div>
-
-            <div class="shrink-0 flex items-center gap-2">
-              {method.type === 'link' ? (
-                <a
-                  href={method.value}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="w-full sm:w-auto inline-block text-center bg-[#6E2B25] hover:bg-[#8C3B33] text-[#E6DFCF] font-mono text-xs uppercase tracking-widest px-5 py-3 transition-colors"
-                >
-                  {method.actionLabel}
-                </a>
-              ) : (
-                <button
-                  type="button"
-                  data-copy={method.value}
-                  class="copy-btn w-full sm:w-auto text-center bg-[#6E2B25] hover:bg-[#8C3B33] text-[#E6DFCF] font-mono text-xs uppercase tracking-widest px-5 py-3 transition-colors"
-                >
-                  {method.actionLabel}
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div class="text-right">
-            <span class="copy-status font-mono text-xs text-[#6E2B25] hidden">
-              ✓ Copied to clipboard
-            </span>
           </div>
         </div>
-      ))}
-    </div>
 
-    <!-- Financial Ledger Link -->
-    <div class="mt-8 text-center">
-      <a
-        href="/finances"
-        class="font-mono text-xs text-[#1C1A17] hover:text-[#6E2B25] underline underline-offset-4 transition-colors"
-      >
-        Every euro received is logged openly in the Financial Ledger →
-      </a>
+        <!-- 2. Wise -->
+        <div class="payment-method-item border border-neutral-300 hover:border-neutral-400 bg-white rounded-xl shadow-xs overflow-hidden transition-all duration-200">
+          <button
+            type="button"
+            class="payment-toggle-btn w-full px-5 py-4 flex items-center justify-between text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+            data-target="panel-wise"
+            aria-expanded="false"
+          >
+            <div class="flex items-center gap-3.5">
+              <!-- Wise Fast Flag Icon -->
+              <div class="w-8 h-8 rounded-lg bg-[#9FE870]/25 flex items-center justify-center shrink-0">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 p-1">
+                  <img 
+                    src="/assets/wise.webp" 
+                    alt="Wise" 
+                    class="max-w-full max-h-full object-contain"
+                    width="32"
+                    height="32"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+              <span class="font-medium text-neutral-800 text-base">Wise</span>
+            </div>
+            <svg class="chevron-icon w-4 h-4 text-neutral-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          <div id="panel-wise" class="payment-detail-panel hidden px-5 pb-5 pt-1 border-t border-neutral-100 bg-neutral-50/70">
+            <p class="text-xs text-neutral-500 mb-3">Send directly via Wise transfer link:</p>
+            <div class="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
+              <a
+                href="https://wise.com/pay/me/henroc?utm_source=request_flow"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex justify-center items-center gap-2 px-5 py-2.5 bg-[#163300] hover:bg-[#224d00] text-[#9FE870] text-sm font-medium rounded-lg shadow-xs transition-colors"
+              >
+                Open Wise Payment Link
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+              <button
+                type="button"
+                class="copy-btn px-4 py-2.5 bg-white border border-neutral-300 hover:border-neutral-400 text-neutral-700 text-xs font-medium rounded-lg transition-colors cursor-pointer"
+                data-copy="https://wise.com/pay/me/henroc?utm_source=request_flow"
+              >
+                Copy Link
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. MBway -->
+        <div class="payment-method-item border border-neutral-300 hover:border-neutral-400 bg-white rounded-xl shadow-xs overflow-hidden transition-all duration-200">
+          <button
+            type="button"
+            class="payment-toggle-btn w-full px-5 py-4 flex items-center justify-between text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+            data-target="panel-mbway"
+            aria-expanded="false"
+          >
+            <div class="flex items-center gap-3.5">
+              <!-- MBway Badge Icon -->
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
+                <img 
+                  src="/assets/mbway.webp" 
+                  alt="MB WAY" 
+                  class="w-full h-full object-contain"
+                  width="32"
+                  height="32"
+                  loading="lazy"
+                />
+              </div>
+              <span class="font-medium text-neutral-800 text-base">MBway</span>
+            </div>
+            <svg class="chevron-icon w-4 h-4 text-neutral-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          <div id="panel-mbway" class="payment-detail-panel hidden px-5 pb-5 pt-1 border-t border-neutral-100 bg-neutral-50/70">
+            <p class="text-xs text-neutral-500 mb-2">Phone number for MBway transfer:</p>
+            <div class="flex items-center justify-between gap-3 p-3 bg-white border border-neutral-200 rounded-lg">
+              <span class="font-mono text-base font-semibold text-neutral-900 tracking-wide">+351 915 479 581</span>
+              <button
+                type="button"
+                class="copy-btn px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-medium rounded-md transition-colors cursor-pointer"
+                data-copy="+351 915 479 581"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Bitcoin -->
+        <div class="payment-method-item border border-neutral-300 hover:border-neutral-400 bg-white rounded-xl shadow-xs overflow-hidden transition-all duration-200">
+          <button
+            type="button"
+            class="payment-toggle-btn w-full px-5 py-4 flex items-center justify-between text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+            data-target="panel-bitcoin"
+            aria-expanded="false"
+          >
+            <div class="flex items-center gap-3.5">
+              <!-- Bitcoin Icon -->
+              <div class="w-8 h-8 rounded-lg bg-[#F7931A]/10 flex items-center justify-center shrink-0 overflow-hidden">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 overflow-hidden p-1.5">
+                  <img 
+                    src="/assets/bitcoin.webp" 
+                    alt="MB WAY" 
+                    class="w-full h-full object-contain"
+                    width="32"
+                    height="32"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+              <span class="font-medium text-neutral-800 text-base">Bitcoin</span>
+            </div>
+            <svg class="chevron-icon w-4 h-4 text-neutral-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          <div id="panel-bitcoin" class="payment-detail-panel hidden px-5 pb-5 pt-1 border-t border-neutral-100 bg-neutral-50/70">
+            <p class="text-xs text-neutral-500 mb-2">Native SegWit (Bech32) Bitcoin address:</p>
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-white border border-neutral-200 rounded-lg">
+              <span class="font-mono text-xs sm:text-sm font-semibold text-neutral-900 break-all">
+                BC1Q0UGKYRNSD678U7QAHLVNWK87MX0Q3R5U92Q3WP
+              </span>
+              <button
+                type="button"
+                class="copy-btn shrink-0 px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-medium rounded-md transition-colors cursor-pointer"
+                data-copy="BC1Q0UGKYRNSD678U7QAHLVNWK87MX0Q3R5U92Q3WP"
+              >
+                Copy Address
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. IBAN -->
+        <div class="payment-method-item border border-neutral-300 hover:border-neutral-400 bg-white rounded-xl shadow-xs overflow-hidden transition-all duration-200">
+          <button
+            type="button"
+            class="payment-toggle-btn w-full px-5 py-4 flex items-center justify-between text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+            data-target="panel-iban"
+            aria-expanded="false"
+          >
+            <div class="flex items-center gap-3.5">
+              <!-- Bank / Wire Icon -->
+              <div class="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-neutral-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+              </div>
+              <span class="font-medium text-neutral-800 text-base">IBAN</span>
+            </div>
+            <svg class="chevron-icon w-4 h-4 text-neutral-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          <div id="panel-iban" class="payment-detail-panel hidden px-5 pb-5 pt-1 border-t border-neutral-100 bg-neutral-50/70">
+            <p class="text-xs text-neutral-500 mb-2">SEPA / International Wire IBAN:</p>
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-white border border-neutral-200 rounded-lg">
+              <span class="font-mono text-xs sm:text-sm font-semibold text-neutral-900 tracking-wider">
+                PT50 0036 0131 991 0000 5837 50
+              </span>
+              <button
+                type="button"
+                class="copy-btn shrink-0 px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-medium rounded-md transition-colors cursor-pointer"
+                data-copy="PT50003601319910000583750"
+              >
+                Copy IBAN
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Financial Ledger Sub-link -->
+      <div class="mt-8 text-center">
+        <a
+          href="/finances"
+          class="font-mono text-xs text-[#1C1A17]/80 hover:text-[#6E2B25] underline underline-offset-4 transition-colors"
+        >
+          Every euro spent is logged openly in the Financial Ledger →
+        </a>
+      </div>
     </div>
   </section>
-</BaseLayout>
 
-<script is:inline>
-  (function () {
-    const tabButtons = document.querySelectorAll('.payment-tab-btn');
-    const panels = document.querySelectorAll('.payment-panel');
+  <!-- Interactive Logic: Accordion Toggle & Clipboard Copy -->
+  <script is:inline>
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleBtns = document.querySelectorAll('.payment-toggle-btn');
+      
+      toggleBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.getAttribute('data-target');
+          const panel = document.getElementById(targetId);
+          const chevron = btn.querySelector('.chevron-icon');
+          const isExpanded = btn.getAttribute('aria-expanded') === 'true';
 
-    tabButtons.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const targetId = btn.getAttribute('data-target');
+          // Close all other panels (Accordion behavior)
+          document.querySelectorAll('.payment-detail-panel').forEach((p) => {
+            if (p.id !== targetId) p.classList.add('hidden');
+          });
+          document.querySelectorAll('.payment-toggle-btn').forEach((b) => {
+            if (b !== btn) {
+              b.setAttribute('aria-expanded', 'false');
+              const icon = b.querySelector('.chevron-icon');
+              if (icon) icon.classList.remove('rotate-180');
+            }
+          });
 
-        // Toggle Buttons State
-        tabButtons.forEach((other) => {
-          const isActive = other === btn;
-          other.setAttribute('aria-checked', String(isActive));
-          if (isActive) {
-            other.className =
-              'payment-tab-btn text-left p-3 border transition-all text-xs font-mono uppercase tracking-wider border-[#6E2B25] bg-[#6E2B25] text-[#E6DFCF] shadow-sm font-semibold';
-          } else {
-            other.className =
-              'payment-tab-btn text-left p-3 border transition-all text-xs font-mono uppercase tracking-wider border-[#1C1A17]/20 bg-[#D8CEB8]/40 hover:bg-[#D8CEB8]/70 text-[#1C1A17]';
-          }
-        });
-
-        // Toggle Panels
-        panels.forEach((panel) => {
-          if (panel.id === 'panel-' + targetId) {
-            panel.classList.remove('hidden');
-          } else {
+          // Toggle clicked panel
+          if (isExpanded) {
             panel.classList.add('hidden');
+            btn.setAttribute('aria-expanded', 'false');
+            if (chevron) chevron.classList.remove('rotate-180');
+          } else {
+            panel.classList.remove('hidden');
+            btn.setAttribute('aria-expanded', 'true');
+            if (chevron) chevron.classList.add('rotate-180');
+          }
+        });
+      });
+
+      // Handle Copy-to-Clipboard functionality
+      const copyBtns = document.querySelectorAll('.copy-btn');
+      copyBtns.forEach((btn) => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const textToCopy = btn.getAttribute('data-copy');
+          if (!textToCopy) return;
+
+          try {
+            await navigator.clipboard.writeText(textToCopy);
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            btn.classList.add('bg-neutral-800', 'text-white');
+            setTimeout(() => {
+              btn.textContent = originalText;
+              btn.classList.remove('bg-neutral-800', 'text-white');
+            }, 1800);
+          } catch (_err) {
+            btn.textContent = 'Failed to copy';
           }
         });
       });
     });
-
-    // Copy to clipboard handler
-    const copyButtons = document.querySelectorAll('.copy-btn');
-    copyButtons.forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const textToCopy = btn.getAttribute('data-copy');
-        const originalText = btn.textContent;
-        const panel = btn.closest('.payment-panel');
-        const statusEl = panel ? panel.querySelector('.copy-status') : null;
-
-        try {
-          await navigator.clipboard.writeText(textToCopy);
-          btn.textContent = '✓ Copied!';
-          if (statusEl) statusEl.classList.remove('hidden');
-
-          setTimeout(() => {
-            btn.textContent = originalText;
-            if (statusEl) statusEl.classList.add('hidden');
-          }, 2500);
-        } catch (_err) {
-          // Fallback if clipboard API is blocked
-          const tempInput = document.createElement('input');
-          tempInput.value = textToCopy;
-          document.body.appendChild(tempInput);
-          tempInput.select();
-          document.execCommand('copy');
-          document.body.removeChild(tempInput);
-
-          btn.textContent = '✓ Copied!';
-          setTimeout(() => {
-            btn.textContent = originalText;
-          }, 2500);
-        }
-      });
-    });
-  })();
-</script>
+  </script>
+</BaseLayout>
