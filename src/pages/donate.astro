@@ -7,25 +7,78 @@ const tiers = [
     title: 'A Hot Meal on a Rainy Day — €10',
     amount: '€10',
     jp: '一椀の糧',
-    description: '<body>',
+    description: 'A warm bowl of noodles or soup after a day of wet mountain passes.',
   },
   {
     title: "A Night's Pilgrim Bunk — €20",
     amount: '€20',
     jp: '一夜の宿',
-    description: '<body>',
+    description: 'Dry shelter, laundry, and a mat to rest during heavy weather.',
   },
   {
     title: 'A Pair of Trail Socks / Gear Repair — €35',
     amount: '€35',
     jp: '草鞋と修繕',
-    description: '<body>',
+    description: 'Replacing worn merino wool or stitching torn pack seams along the road.',
   },
   {
     title: 'Custom Osettai Offering — Any Amount',
     amount: 'Open',
     jp: '随意のお接待',
-    description: '<body>',
+    description: 'A modest gift freely offered according to your own means and heart.',
+  },
+];
+
+const paymentMethods = [
+  {
+    id: 'paypal',
+    name: 'PayPal',
+    badge: 'Global / Card',
+    type: 'link',
+    value: 'https://paypal.me/VascoCabrita',
+    displayValue: 'paypal.me/VascoCabrita',
+    instructions: 'Contribute directly via PayPal balance, debit, or credit card.',
+    actionLabel: 'Open PayPal.me →',
+  },
+  {
+    id: 'wise',
+    name: 'Wise',
+    badge: 'Multi-Currency',
+    type: 'link',
+    value: 'https://wise.com/pay/me/henroc?utm_source=request_flow',
+    displayValue: 'wise.com/pay/me/henroc',
+    instructions: 'Low-fee direct bank transfers in EUR, USD, GBP, JPY, and other global currencies.',
+    actionLabel: 'Open Wise Pay Link →',
+  },
+  {
+    id: 'mbway',
+    name: 'MBway',
+    badge: 'Portugal',
+    type: 'copy',
+    value: '+351 915 479 581',
+    displayValue: '+351 915 479 581',
+    instructions: 'Direct mobile transfer for Portuguese bank account holders.',
+    actionLabel: 'Copy Phone Number',
+  },
+  {
+    id: 'bitcoin',
+    name: 'Bitcoin (BTC)',
+    badge: 'On-Chain',
+    type: 'copy',
+    value: 'BC1Q0UGKYRNSD678U7QAHLVNWK87MX0Q3R5U92Q3WP',
+    displayValue: 'BC1Q0UGKYRNSD678U7QAHLVNWK87MX0Q3R5U92Q3WP',
+    instructions: 'Send native Bitcoin (SegWit) directly to Henro’s public wallet.',
+    actionLabel: 'Copy BTC Address',
+  },
+  {
+    id: 'iban',
+    name: 'Bank Transfer (IBAN / SEPA)',
+    badge: 'SEPA / Eurozone',
+    type: 'copy',
+    value: 'PT50 0036 0131 991 0000 5837 50',
+    displayValue: 'PT50 0036 0131 991 0000 5837 50',
+    instructions: 'Standard European bank wire transfer (Millennium BCP).',
+    actionLabel: 'Copy IBAN',
   },
 ];
 ---
@@ -36,30 +89,53 @@ const tiers = [
 >
   <!-- Centered Crimson Stamp Header -->
   <!-- STANDARDIZED_SCROLL_HEADER_START -->
-<div class="scroll-title-block">
-  <div class="scroll-eyebrow">お接待 • Pilgrimage Alms</div>
-  <h1 class="page-heading">Offer Osettai</h1>
-  <div class="page-subtitle">Sustaining the digital scroll, off-trail archiving, and the future printed book of essays</div>
-</div>
+  <div class="scroll-title-block">
+    <div class="scroll-eyebrow">お接待 • Pilgrimage Alms</div>
+    <h1 class="page-heading">Offer Osettai</h1>
+    <div class="page-subtitle">Sustaining the digital scroll, off-trail archiving, and the future printed book of essays</div>
+  </div>
 
-<div class="page-break">
-  <div class="line"></div>
-  <div class="kanji">志</div>
-  <div class="line"></div>
-</div>
-<!-- STANDARDIZED_SCROLL_HEADER_END -->
+  <div class="page-break">
+    <div class="line"></div>
+    <div class="kanji">志</div>
+    <div class="line"></div>
+  </div>
+  <!-- STANDARDIZED_SCROLL_HEADER_END -->
 
   <!-- Long-Form Cultural & Philosophical Explanation -->
   <section class="py-8 border-b border-[#1C1A17]/15">
     <div class="essay-prose">
-      <p>
-        &lt;body&gt;
+      <p class="text-lg leading-relaxed text-[#1C1A17] mb-6">
+        <em>“How do you fund your trip?”</em> is one of the most common questions I get asked. The answer is <strong>not</strong> this website.
+      </p>
+      
+      <p class="leading-relaxed text-[#38332C] mb-4">
+        Donations offered via the website do not go to fund the trip itself, as the whole point of the trip is to learn to find security within the local environment. Instead, these donations will fund other things adjacent to the pilgrimage, such as:
+      </p>
+
+      <ul class="list-disc pl-6 space-y-2 text-[#38332C] mb-6 marker:text-[#6E2B25]">
+        <li>Maintenance of this website;</li>
+        <li>Publication of a future book;</li>
+        <li>Kickstarting Henro’s alternative school project (after the pilgrimage ends);</li>
+        <li>Emergency fund in case of disastrous failure.</li>
+      </ul>
+
+      <p class="leading-relaxed text-[#38332C] mb-4">
+        Other uses for this money can be an object of discussion in the <a href="/forum" class="text-[#6E2B25] underline underline-offset-4 hover:text-[#8C3B33] font-semibold">Forum</a>.
+      </p>
+
+      <div class="border-l-2 border-[#6E2B25] pl-4 py-2 my-6 bg-[#D8CEB8]/20 text-sm sm:text-base text-[#1C1A17]">
+        <strong>Game over:</strong> The quest will be considered a failure if Henro ever uses money from this fund to sustain his own life on the road.
+      </div>
+
+      <p class="leading-relaxed text-[#38332C]">
+        All use of this money will be transparently logged in the <a href="/finances" class="text-[#6E2B25] underline underline-offset-4 hover:text-[#8C3B33] font-semibold">Finances ledger</a>, so that you can fiscalize it yourself and decide whether this project is truly worth supporting.
       </p>
     </div>
   </section>
 
   <!-- 4 Suggested Contribution Tiers (2x2 Ink-Bordered Grid) -->
-  <section class="py-10 border-b border-[#6E2B25]">
+  <section class="py-10 border-b border-[#1C1A17]/15">
     <div class="flex items-baseline justify-between mb-6">
       <h2 class="font-heading text-2xl sm:text-3xl font-semibold uppercase tracking-wider text-[#1C1A17]">
         Suggested Osettai Offerings
@@ -67,55 +143,196 @@ const tiers = [
       <span class="font-jp text-xs text-[#6E2B25] tracking-widest">喜捨の目安</span>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
       {tiers.map((tier) => (
-        <a
-          href={siteConfig.stripeDonationUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="group block border border-[#1C1A17]/25 hover:border-[#6E2B25] bg-[#D8CEB8]/35 hover:bg-[#D8CEB8]/65 p-6 transition-all"
-        >
+        <div class="border border-[#1C1A17]/25 bg-[#D8CEB8]/30 p-6">
           <div class="flex items-center justify-between font-mono text-xs text-[#6E2B25] mb-2">
             <span>{tier.jp}</span>
-            <span class="px-2 py-0.5 border border-[#6E2B25] group-hover:bg-[#6E2B25] group-hover:text-[#E6DFCF] transition-colors">
+            <span class="px-2 py-0.5 border border-[#6E2B25] font-semibold">
               {tier.amount}
             </span>
           </div>
 
-          <h3 class="font-heading text-xl font-bold text-[#1C1A17] group-hover:text-[#6E2B25] transition-colors mb-2">
+          <h3 class="font-heading text-xl font-bold text-[#1C1A17] mb-2">
             {tier.title}
           </h3>
 
-          <p class="font-body text-sm sm:text-base text-[#524D46] leading-relaxed mb-4">
+          <p class="font-body text-sm sm:text-base text-[#524D46] leading-relaxed">
             {tier.description}
           </p>
+        </div>
+      ))}
+    </div>
+  </section>
 
-          <span class="font-mono text-[11px] uppercase tracking-widest text-[#6E2B25] group-hover:underline underline-offset-4">
-            Select Offering via Stripe →
-          </span>
-        </a>
+  <!-- Interactive Payment Options Section -->
+  <section class="py-10 border-b border-[#6E2B25]">
+    <div class="flex items-baseline justify-between mb-6">
+      <div>
+        <div class="font-mono text-xs text-[#6E2B25] tracking-widest uppercase mb-1">決済方法</div>
+        <h2 class="font-heading text-2xl sm:text-3xl font-semibold uppercase tracking-wider text-[#1C1A17]">
+          Payment Options
+        </h2>
+      </div>
+      <span class="font-mono text-xs text-[#524D46]">Choose a method below</span>
+    </div>
+
+    <!-- Mode Selector: Custom Radio Button Group -->
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-6" id="payment-methods-selector" role="radiogroup" aria-label="Payment method selection">
+      {paymentMethods.map((method, idx) => (
+        <button
+          type="button"
+          role="radio"
+          aria-checked={idx === 0 ? "true" : "false"}
+          data-target={method.id}
+          class={`payment-tab-btn text-left p-3 border transition-all text-xs font-mono uppercase tracking-wider ${
+            idx === 0
+              ? 'border-[#6E2B25] bg-[#6E2B25] text-[#E6DFCF] shadow-sm font-semibold'
+              : 'border-[#1C1A17]/20 bg-[#D8CEB8]/40 hover:bg-[#D8CEB8]/70 text-[#1C1A17]'
+          }`}
+        >
+          <div class="font-bold">{method.name}</div>
+          <div class="text-[10px] opacity-80 normal-case">{method.badge}</div>
+        </button>
       ))}
     </div>
 
-    <!-- Prominent Primary CTA & Transparent Ledger Link -->
-    <div class="border border-[#6E2B25] bg-[#D8CEB8]/50 p-6 sm:p-8 text-center">
-      <a
-        href={siteConfig.stripeDonationUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="inline-block w-full sm:w-auto bg-[#6E2B25] hover:bg-[#8C3B33] text-[#E6DFCF] font-mono text-sm uppercase tracking-widest px-8 py-4 transition-colors mb-4"
-      >
-        Offer Osettai via Stripe →
-      </a>
-
-      <div class="pt-2">
-        <a
-          href="/finances"
-          class="font-mono text-xs text-[#1C1A17] hover:text-[#6E2B25] underline underline-offset-4 transition-colors"
+    <!-- Active Payment Details Cards -->
+    <div id="payment-panels-container">
+      {paymentMethods.map((method, idx) => (
+        <div
+          id={`panel-${method.id}`}
+          class={`payment-panel border border-[#6E2B25] bg-[#D8CEB8]/40 p-6 sm:p-8 ${idx === 0 ? '' : 'hidden'}`}
         >
-          Every euro received is logged openly in the Financial Ledger →
-        </a>
-      </div>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1C1A17]/15 mb-4">
+            <div>
+              <h3 class="font-heading text-2xl font-bold text-[#1C1A17]">
+                {method.name}
+              </h3>
+              <p class="font-body text-sm text-[#524D46] mt-1">
+                {method.instructions}
+              </p>
+            </div>
+            <span class="inline-block self-start sm:self-center font-mono text-[11px] uppercase tracking-widest px-2.5 py-1 border border-[#6E2B25] text-[#6E2B25] bg-[#E6DFCF]">
+              {method.badge}
+            </span>
+          </div>
+
+          <!-- Value Display & Direct Action -->
+          <div class="bg-[#F4F1EA] border border-[#1C1A17]/25 p-4 rounded-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
+            <div class="font-mono text-sm sm:text-base text-[#1C1A17] break-all select-all font-medium">
+              {method.displayValue}
+            </div>
+
+            <div class="shrink-0 flex items-center gap-2">
+              {method.type === 'link' ? (
+                <a
+                  href={method.value}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="w-full sm:w-auto inline-block text-center bg-[#6E2B25] hover:bg-[#8C3B33] text-[#E6DFCF] font-mono text-xs uppercase tracking-widest px-5 py-3 transition-colors"
+                >
+                  {method.actionLabel}
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  data-copy={method.value}
+                  class="copy-btn w-full sm:w-auto text-center bg-[#6E2B25] hover:bg-[#8C3B33] text-[#E6DFCF] font-mono text-xs uppercase tracking-widest px-5 py-3 transition-colors"
+                >
+                  {method.actionLabel}
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div class="text-right">
+            <span class="copy-status font-mono text-xs text-[#6E2B25] hidden">
+              ✓ Copied to clipboard
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Financial Ledger Link -->
+    <div class="mt-8 text-center">
+      <a
+        href="/finances"
+        class="font-mono text-xs text-[#1C1A17] hover:text-[#6E2B25] underline underline-offset-4 transition-colors"
+      >
+        Every euro received is logged openly in the Financial Ledger →
+      </a>
     </div>
   </section>
 </BaseLayout>
+
+<script is:inline>
+  (function () {
+    const tabButtons = document.querySelectorAll('.payment-tab-btn');
+    const panels = document.querySelectorAll('.payment-panel');
+
+    tabButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-target');
+
+        // Toggle Buttons State
+        tabButtons.forEach((other) => {
+          const isActive = other === btn;
+          other.setAttribute('aria-checked', String(isActive));
+          if (isActive) {
+            other.className =
+              'payment-tab-btn text-left p-3 border transition-all text-xs font-mono uppercase tracking-wider border-[#6E2B25] bg-[#6E2B25] text-[#E6DFCF] shadow-sm font-semibold';
+          } else {
+            other.className =
+              'payment-tab-btn text-left p-3 border transition-all text-xs font-mono uppercase tracking-wider border-[#1C1A17]/20 bg-[#D8CEB8]/40 hover:bg-[#D8CEB8]/70 text-[#1C1A17]';
+          }
+        });
+
+        // Toggle Panels
+        panels.forEach((panel) => {
+          if (panel.id === 'panel-' + targetId) {
+            panel.classList.remove('hidden');
+          } else {
+            panel.classList.add('hidden');
+          }
+        });
+      });
+    });
+
+    // Copy to clipboard handler
+    const copyButtons = document.querySelectorAll('.copy-btn');
+    copyButtons.forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const textToCopy = btn.getAttribute('data-copy');
+        const originalText = btn.textContent;
+        const panel = btn.closest('.payment-panel');
+        const statusEl = panel ? panel.querySelector('.copy-status') : null;
+
+        try {
+          await navigator.clipboard.writeText(textToCopy);
+          btn.textContent = '✓ Copied!';
+          if (statusEl) statusEl.classList.remove('hidden');
+
+          setTimeout(() => {
+            btn.textContent = originalText;
+            if (statusEl) statusEl.classList.add('hidden');
+          }, 2500);
+        } catch (_err) {
+          // Fallback if clipboard API is blocked
+          const tempInput = document.createElement('input');
+          tempInput.value = textToCopy;
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          document.execCommand('copy');
+          document.body.removeChild(tempInput);
+
+          btn.textContent = '✓ Copied!';
+          setTimeout(() => {
+            btn.textContent = originalText;
+          }, 2500);
+        }
+      });
+    });
+  })();
+</script>
