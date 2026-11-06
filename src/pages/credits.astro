@@ -1,103 +1,638 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
 import creditsData from '../data/credits.json';
+import siteConfig from '../data/siteConfig.json';
+import '../styles/global.css';
 
 const sections = Array.isArray(creditsData.sections) ? creditsData.sections : [];
 ---
 
-<BaseLayout
-  title="Credits & Gratitude | CAMINO HENRO"
-  description="Roll of Gratitude honoring the trail hosts, roadside angels, Osettai patrons, and collaborators walking alongside this pilgrimage."
->
-  <!-- Editorial Header -->
-  <!-- STANDARDIZED_SCROLL_HEADER_START -->
-<div class="scroll-title-block">
-  <div class="scroll-eyebrow">感謝芳名録 • Roll of Gratitude</div>
-  <h1 class="page-heading">Credits</h1>
-  <div class="page-subtitle">Honoring the trail hosts, roadside angels, Osettai patrons, and collaborators who sustain this road</div>
-</div>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Credits & Gratitude | CAMINO HENRO</title>
+    <meta
+      name="description"
+      content="Roll of Gratitude honoring the trail hosts, roadside angels, Osettai patrons, and collaborators walking alongside this pilgrimage."
+    />
+  </head>
+  <body class="credits-body">
+    <!-- Fixed Background (Road & Apple) matching BaseLayout -->
+    <div
+      class="fixed-backdrop"
+      style="background-image: url('/assets/apple-bg.jpeg'), url('/assets/apple-diff.jpg');"
+    ></div>
+    <div class="backdrop-dimmer"></div>
 
-<div class="page-break">
-  <div class="line"></div>
-  <div class="kanji">縁</div>
-  <div class="line"></div>
-</div>
-<!-- STANDARDIZED_SCROLL_HEADER_END -->
+    <!-- Persistent Header Outside Scroll -->
+    <Header />
 
-  <!-- Gratitude Sections -->
-  <div class="py-8 space-y-12">
-    {sections.map((section, idx) => (
-      <section>
-        <div class="flex items-baseline justify-between pb-3 mb-4 border-b border-[#6E2B25]">
-          <h2 class="font-heading text-2xl sm:text-3xl font-semibold tracking-wider uppercase text-[#1C1A17]">
-            {section.title}
-          </h2>
-          <span class="font-mono text-xs text-[#6E2B25] uppercase tracking-widest">
-             Book 0{idx + 1}
-          </span>
-        </div>
+    <!-- Movie Credits Viewport -->
+    <main class="credits-viewport" id="credits-viewport">
+      <!-- Vignette Fade Masks -->
+      <div class="vignette-top" aria-hidden="true"></div>
+      <div class="vignette-bottom" aria-hidden="true"></div>
 
-        <div class="divide-y divide-[#1C1A17]/15 border-b border-[#1C1A17]/15">
-          {Array.isArray(section.entries) && section.entries.length > 0 ? (
-            section.entries.map((entry) => (
-              <div class="py-5 grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-6 items-baseline">
-                <!-- Left Column: Name, Role/Location, Optional Date -->
-                <div class="sm:col-span-5">
-                  <h3 class="font-heading text-xl font-bold text-[#1C1A17]">
-                    {entry.name}
-                  </h3>
-                  <div class="font-mono text-xs text-[#6E2B25] mt-0.5">
-                    <span>{entry.locationOrRole}</span>
-                    {entry.date && (
-                      <span class="text-[#524D46]"> · {entry.date}</span>
-                    )}
-                  </div>
-                </div>
+      <!-- 
+        AUDIO INTEGRATION: 
+        Place your soft music file in your public/assets/ folder named 'credits-theme.mp3' 
+      -->
+      <audio id="credits-audio" loop preload="auto">
+        <source src="/assets/credits-theme.mp3" type="audio/mpeg" />
+      </audio>
 
-                <!-- Right Column: Gratitude Note -->
-                <div class="sm:col-span-7">
-                  <p class="font-body text-base text-[#1C1A17]/90 leading-relaxed">
-                    {entry.note}
-                  </p>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p class="py-6 font-mono text-xs text-[#524D46]">
-              Entries for this section will be inscribed as the road unfolds.
-            </p>
-          )}
-        </div>
-      </section>
-    ))}
-  </div>
-
-  <!-- Bottom Callout -->
-  <section class="pt-4">
-    <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-6 sm:p-8 text-center">
-      <p class="font-jp text-sm text-[#6E2B25] tracking-widest mb-2">
-        お接待の記録
-      </p>
-      <h3 class="font-heading text-2xl font-semibold text-[#1C1A17] mb-2">
-        Walk With This Pilgrimage
-      </h3>
-      <p class="font-body text-base text-[#524D46] max-w-xl mx-auto mb-6">
-        &lt;body&gt;
-      </p>
-      <div class="flex flex-wrap justify-center gap-4">
-        <a
-          href="/donate"
-          class="inline-block bg-[#6E2B25] hover:bg-[#8C3B33] text-[#E6DFCF] font-mono text-xs uppercase tracking-widest px-5 py-3 transition-colors"
-        >
-          Offer Osettai →
-        </a>
-        <a
-          href="/finances"
-          class="inline-block border border-[#1C1A17]/30 hover:border-[#6E2B25] text-[#1C1A17] hover:text-[#6E2B25] font-mono text-xs uppercase tracking-widest px-5 py-3 transition-colors"
-        >
-          View Financial Ledger
-        </a>
+      <!-- Playback Floating Pill Controls -->
+      <div class="credits-controls" aria-label="Credits playback controls">
+        <button type="button" id="toggle-roll-btn" class="control-btn" aria-label="Pause Roll">
+          <span id="toggle-icon">❚❚</span>
+          <span id="toggle-text">Pause</span>
+        </button>
+        <button type="button" id="speed-btn" class="control-btn" aria-label="Toggle Roll Speed">
+          <span id="speed-text">1×</span>
+        </button>
+        <button type="button" id="restart-btn" class="control-btn" aria-label="Restart Roll">
+          <span>↺</span>
+        </button>
+        <div class="control-divider"></div>
+        <button type="button" id="mute-btn" class="control-btn" aria-label="Toggle Audio Mute">
+          <span id="mute-icon">🔊</span>
+        </button>
       </div>
-    </div>
-  </section>
-</BaseLayout>
+
+      <!-- Moving Credits Track -->
+      <div class="credits-track" id="credits-track">
+        <!-- Lead Title Card -->
+        <header class="credits-lead">
+          <div class="credits-kanji-eyebrow">カミノ・遍路</div>
+          <h1 class="credits-main-title">CAMINO HENRO</h1>
+          <p class="credits-lead-subtitle">
+            To all of you who somehow made this journey possible or worthwhile.
+          </p>
+          <div class="credits-emblem-divider">
+            <span class="emblem-line"></span>
+            <span class="emblem-glyph">縁</span>
+            <span class="emblem-line"></span>
+          </div>
+        </header>
+
+        <!-- Dynamic Sections -->
+        <div class="credits-sections-stack">
+          {sections.map((section) => {
+            const isSpecialThanks = section.title.toLowerCase().includes('special thanks');
+
+            return (
+              <section class="credit-group">
+                <div class="credit-group-header">
+                  <h2 class="credit-group-title">{section.title}</h2>
+                  <div class="credit-group-rule" />
+                </div>
+
+                {isSpecialThanks ? (
+                  /* Reversed Column Layout: Name on Left / Role on Right */
+                  <div class="split-credits-table">
+                    {section.entries.map((entry) => (
+                      <div class="split-credit-row">
+                        <div class="credit-name">{entry.name}</div>
+                        <div class="credit-role">{entry.locationOrRole}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* Standard Cast / Contributor Film Columns */
+                  <ul class="credits-names-grid">
+                    {section.entries.map((entry) => (
+                      <li class="grid-credit-item">{entry.name}</li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            );
+          })}
+        </div>
+
+        <!-- Outro Card -->
+        <footer class="credits-tail">
+          <div class="credits-emblem-divider">
+            <span class="emblem-line"></span>
+            <span class="emblem-glyph">同行二人</span>
+            <span class="emblem-line"></span>
+          </div>
+          <p class="tail-kanji">歩いた道は、出会った人々で出来ている。</p>
+          <p class="tail-prose">
+            The road walked is made of every hand extended along the way.
+          </p>
+
+          <div class="tail-actions" id="tail-actions">
+            <a href="/donate" class="tail-cta-btn">
+              Offer Osettai →
+            </a>
+            <a href="/finances" class="tail-secondary-btn">
+              Financial Ledger
+            </a>
+            <a href="/" class="tail-secondary-btn">
+              Return Home
+            </a>
+          </div>
+        </footer>
+      </div>
+    </main>
+
+    <script is:inline>
+      (function () {
+        const track = document.getElementById('credits-track');
+        const tailActions = document.getElementById('tail-actions');
+        
+        // Scroll Controls
+        const toggleBtn = document.getElementById('toggle-roll-btn');
+        const toggleIcon = document.getElementById('toggle-icon');
+        const toggleText = document.getElementById('toggle-text');
+        const speedBtn = document.getElementById('speed-btn');
+        const speedText = document.getElementById('speed-text');
+        const restartBtn = document.getElementById('restart-btn');
+        
+        // Audio Controls
+        const audio = document.getElementById('credits-audio');
+        const muteBtn = document.getElementById('mute-btn');
+        const muteIcon = document.getElementById('mute-icon');
+
+        if (!track) return;
+
+        let isPlaying = true;
+        let speedMultiplier = 1;
+        let currentY = 0;
+        let lastTimestamp = 0;
+        let maxScroll = 0;
+        const baseSpeed = 42; // pixels per second
+
+        // AUDIO SETUP
+        let audioStarted = false;
+        if (audio) {
+          audio.volume = 0.5; // Soft volume
+          audio.playbackRate = speedMultiplier;
+          
+          // Attempt to play immediately, fallback to playing on first user interaction
+          const attemptPlay = () => {
+            if (!audioStarted) {
+              audio.play().then(() => {
+                audioStarted = true;
+                document.removeEventListener('click', attemptPlay);
+                document.removeEventListener('touchstart', attemptPlay);
+              }).catch(() => {
+                // Autoplay blocked, wait for user interaction
+              });
+            }
+          };
+          
+          document.addEventListener('click', attemptPlay);
+          document.addEventListener('touchstart', attemptPlay, { passive: true });
+          attemptPlay();
+        }
+
+        // Recalculates the exact stop point so the buttons land in the vertical center
+        function calculateMaxScroll() {
+          if (tailActions && track) {
+            const tailCenter = tailActions.offsetTop + (tailActions.offsetHeight / 2);
+            maxScroll = tailCenter - (window.innerHeight / 2);
+          } else {
+            maxScroll = track.offsetHeight - window.innerHeight * 0.4;
+          }
+        }
+
+        window.addEventListener('resize', calculateMaxScroll);
+        calculateMaxScroll();
+
+        function setPlaybackState(playing) {
+          isPlaying = playing;
+          if (toggleIcon) toggleIcon.textContent = isPlaying ? '❚❚' : '▶';
+          if (toggleText) toggleText.textContent = isPlaying ? 'Pause' : 'Play';
+        }
+
+        function step(timestamp) {
+          if (!lastTimestamp) lastTimestamp = timestamp;
+          const delta = (timestamp - lastTimestamp) / 1000;
+          lastTimestamp = timestamp;
+
+          if (isPlaying) {
+            currentY += baseSpeed * speedMultiplier * delta;
+
+            if (currentY >= maxScroll) {
+              currentY = maxScroll; // Lock it exactly to center
+              setPlaybackState(false); // Halt scrolling (music keeps playing)
+              track.style.transform = `translate3d(0, -${currentY}px, 0)`;
+            } else {
+              track.style.transform = `translate3d(0, -${currentY}px, 0)`;
+            }
+          }
+
+          requestAnimationFrame(step);
+        }
+
+        requestAnimationFrame(step);
+
+        // Scroll Play/Pause
+        if (toggleBtn) {
+          toggleBtn.addEventListener('click', () => {
+            if (currentY >= maxScroll && !isPlaying) {
+              return; // Prevent playing if we are already at the end
+            }
+            setPlaybackState(!isPlaying);
+          });
+        }
+
+        // Audio Mute
+        if (muteBtn && audio) {
+          muteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            audio.muted = !audio.muted;
+            muteIcon.textContent = audio.muted ? '🔇' : '🔊';
+          });
+        }
+
+        // Speed Toggle
+        if (speedBtn) {
+          speedBtn.addEventListener('click', () => {
+            if (speedMultiplier === 1) {
+              speedMultiplier = 2;
+            } else if (speedMultiplier === 2) {
+              speedMultiplier = 3.5;
+            } else {
+              speedMultiplier = 1;
+            }
+            if (speedText) speedText.textContent = `${speedMultiplier}×`;
+            if (audio) audio.playbackRate = speedMultiplier; // Speed up the music for fun
+          });
+        }
+
+        // Restart Roll
+        if (restartBtn) {
+          restartBtn.addEventListener('click', () => {
+            currentY = 0;
+            track.style.transform = 'translate3d(0, 0, 0)';
+            setPlaybackState(true);
+          });
+        }
+
+        // Allow manual scroll/drag or mouse wheel to adjust current position smoothly
+        window.addEventListener(
+          'wheel',
+          (e) => {
+            currentY = Math.max(0, Math.min(maxScroll, currentY + e.deltaY));
+            track.style.transform = `translate3d(0, -${currentY}px, 0)`;
+            // Auto-pause if user scrolls to the very end manually
+            if (currentY >= maxScroll && isPlaying) setPlaybackState(false);
+          },
+          { passive: true }
+        );
+
+        let touchStartY = 0;
+        window.addEventListener(
+          'touchstart',
+          (e) => {
+            touchStartY = e.touches[0].clientY;
+          },
+          { passive: true }
+        );
+
+        window.addEventListener(
+          'touchmove',
+          (e) => {
+            const touchY = e.touches[0].clientY;
+            const delta = touchStartY - touchY;
+            touchStartY = touchY;
+            currentY = Math.max(0, Math.min(maxScroll, currentY + delta));
+            track.style.transform = `translate3d(0, -${currentY}px, 0)`;
+            if (currentY >= maxScroll && isPlaying) setPlaybackState(false);
+          },
+          { passive: true }
+        );
+      })();
+    </script>
+
+    <style>
+      .credits-body {
+        margin: 0;
+        padding: 0;
+        background-color: #0c0b0a;
+        color: #f4f1ea;
+        overflow: hidden;
+        height: 100vh;
+        width: 100vw;
+        font-family: 'EB Garamond', Georgia, serif;
+      }
+
+      /* Fixed road backdrop */
+      .fixed-backdrop {
+        position: fixed;
+        inset: 0;
+        background-size: cover;
+        background-position: center bottom;
+        background-repeat: no-repeat;
+        z-index: 1;
+      }
+
+      .backdrop-dimmer {
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle at center, rgba(12, 11, 10, 0.72) 0%, rgba(12, 11, 10, 0.92) 100%);
+        z-index: 2;
+      }
+
+      /* Viewport wrapper */
+      .credits-viewport {
+        position: relative;
+        z-index: 10;
+        height: 100vh;
+        width: 100%;
+        overflow: hidden;
+      }
+
+      /* Vignette edge gradients */
+      .vignette-top,
+      .vignette-bottom {
+        position: fixed;
+        left: 0;
+        right: 0;
+        height: 18vh;
+        pointer-events: none;
+        z-index: 20;
+      }
+
+      .vignette-top {
+        top: 0;
+        background: linear-gradient(to bottom, #0c0b0a 15%, rgba(12, 11, 10, 0));
+      }
+
+      .vignette-bottom {
+        bottom: 0;
+        background: linear-gradient(to top, #0c0b0a 20%, rgba(12, 11, 10, 0));
+      }
+
+      /* Controls */
+      .credits-controls {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 30;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(18, 16, 14, 0.85);
+        border: 1px solid rgba(230, 223, 207, 0.2);
+        padding: 6px 10px;
+        border-radius: 9999px;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      }
+
+      .control-divider {
+        width: 1px;
+        height: 14px;
+        background: rgba(230, 223, 207, 0.25);
+        margin: 0 4px;
+      }
+
+      .control-btn {
+        background: transparent;
+        border: none;
+        color: #e6dfcf;
+        cursor: pointer;
+        font-family: 'JetBrains Mono', Consolas, monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        padding: 4px 8px;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: color 0.15s ease, background 0.15s ease;
+      }
+
+      .control-btn:hover {
+        background: rgba(230, 223, 207, 0.12);
+        color: #ffffff;
+      }
+
+      /* Track */
+      .credits-track {
+        position: relative; /* Essential for accurate offsetTop calculations */
+        max-width: 820px;
+        margin: 0 auto;
+        padding-top: 85vh; /* Starts below screen and rolls upward */
+        padding-bottom: 35vh;
+        padding-left: 24px;
+        padding-right: 24px;
+        box-sizing: border-box;
+        text-align: center;
+        will-change: transform;
+      }
+
+      /* Lead Header */
+      .credits-lead {
+        margin-bottom: 7rem;
+      }
+
+      .credits-kanji-eyebrow {
+        font-family: 'Shippori Mincho', serif;
+        font-size: 0.95rem;
+        letter-spacing: 0.35em;
+        color: #d35144;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+      }
+
+      .credits-main-title {
+        font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+        font-size: 3rem;
+        font-weight: 500;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: #f4f1ea;
+        margin: 0 0 16px;
+        text-shadow: 0 2px 14px rgba(0, 0, 0, 0.8);
+      }
+
+      .credits-lead-subtitle {
+        font-size: 1.15rem;
+        line-height: 1.6;
+        color: rgba(230, 223, 207, 0.85);
+        max-width: 580px;
+        margin: 0 auto;
+      }
+
+      .credits-emblem-divider {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin-top: 2rem;
+      }
+
+      .emblem-line {
+        height: 1px;
+        width: 60px;
+        background: rgba(230, 223, 207, 0.25);
+      }
+
+      .emblem-glyph {
+        color: #d35144;
+        font-size: 1.25rem;
+      }
+
+      /* Stack & Groups */
+      .credits-sections-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 6rem;
+      }
+
+      .credit-group-header {
+        margin-bottom: 2.5rem;
+      }
+
+      .credit-group-title {
+        font-family: 'JetBrains Mono', Consolas, monospace;
+        font-size: 0.9rem;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: #e5c158;
+        margin: 0 0 10px;
+      }
+
+      .credit-group-rule {
+        width: 36px;
+        height: 1px;
+        background: rgba(230, 223, 207, 0.3);
+        margin: 0 auto;
+      }
+
+      /* Movie Split Column (Name / Role format) */
+      .split-credits-table {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      .split-credit-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 2.5rem;
+        align-items: baseline;
+      }
+
+      .credit-name {
+        text-align: right; /* Flipped to maintain central gutter */
+        font-size: 1.35rem;
+        letter-spacing: 0.04em;
+        color: #ffffff;
+      }
+
+      .credit-role {
+        text-align: left; /* Flipped to maintain central gutter */
+        font-family: 'JetBrains Mono', Consolas, monospace;
+        font-size: 0.82rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(230, 223, 207, 0.65);
+      }
+
+      /* Names Multi-Column Grid */
+      .credits-names-grid {
+        list-style: none;
+        padding: 0;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        row-gap: 0.85rem;
+        column-gap: 2rem;
+        max-width: 640px;
+      }
+
+      @media (min-width: 640px) {
+        .credits-names-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+
+      .grid-credit-item {
+        font-size: 1.15rem;
+        letter-spacing: 0.04em;
+        color: rgba(244, 241, 234, 0.92);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* Outro */
+      .credits-tail {
+        margin-top: 8rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.25rem;
+      }
+
+      .tail-kanji {
+        font-family: 'Shippori Mincho', serif;
+        font-size: 1.15rem;
+        letter-spacing: 0.25em;
+        color: #d35144;
+        margin: 0;
+      }
+
+      .tail-prose {
+        font-style: italic;
+        font-size: 1.15rem;
+        color: rgba(230, 223, 207, 0.85);
+        margin: 0;
+      }
+
+      .tail-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 1.75rem;
+      }
+
+      .tail-cta-btn {
+        background: #6e2b25;
+        color: #e6dfcf;
+        border: 1px solid #8c3b33;
+        font-family: 'JetBrains Mono', Consolas, monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        padding: 10px 20px;
+        text-decoration: none;
+        transition: background 0.2s ease, transform 0.2s ease;
+      }
+
+      .tail-cta-btn:hover {
+        background: #8c3b33;
+        transform: translateY(-1px);
+      }
+
+      .tail-secondary-btn {
+        background: rgba(230, 223, 207, 0.05);
+        color: #e6dfcf;
+        border: 1px solid rgba(230, 223, 207, 0.25);
+        font-family: 'JetBrains Mono', Consolas, monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        padding: 10px 18px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+      }
+
+      .tail-secondary-btn:hover {
+        border-color: #d35144;
+        color: #ffffff;
+      }
+    </style>
+  </body>
+</html>
