@@ -55,8 +55,12 @@ const {
     <!-- PERSISTENT WEBSITE HEADER (Outside the Scroll) -->
     <Header />
 
+    <!-- PRE-SCROLL INQUIRY CALLOUT (Outside, lower z-index than scroll) -->
+    <slot name="pre-scroll" />
+
     <!-- LAYER 2: THE INDIVIDUAL PAGE SCROLL WITH WOODEN ROLLERS -->
     <div
+      class="scroll-stage"
       class="scroll-stage"
       data-desktop-click-unfurl={startClosed ? 'true' : undefined}
       data-scroll-initial-wait={!startClosed ? 'true' : undefined}
@@ -80,9 +84,9 @@ const {
         data-form-action={siteConfig.mailerlite?.formActionUrl || ''}
       >
         <div class="newsletter-eyebrow">書簡 • DISPATCHES</div>
-        <h2 class="newsletter-heading">Pilgrimage Newsletter</h2>
+        <h2 class="newsletter-heading">Henro's Newsletter</h2>
         <p class="newsletter-copy">
-          No noise, no algorithms—only a quiet note in your inbox whenever a new dispatch is written from the trail. Sent via MailerLite.
+          Subscribe to receive monthly updates on the journey. Sent via MailerLite.
         </p>
         <form
           class="newsletter-form"
@@ -111,7 +115,7 @@ const {
           <input type="hidden" name="ml-submit" value="1" />
           <input type="hidden" name="anticsrf" value="true" />
           <button type="submit" class="newsletter-submit-btn">
-            Subscribe to Dispatches 印
+            Subscribe to the Newsletter 印
           </button>
         </form>
         <div
@@ -1546,12 +1550,12 @@ const {
               msgEl.hidden = false;
               msgEl.className = 'newsletter-response-msg is-success';
               msgEl.textContent =
-                '印 Thank you. Your address has been inscribed in the dispatch ledger. Please check your inbox to confirm.';
+                '印 Thank you. Your address has been registered. Please check your inbox to confirm.';
             } catch (_err) {
               msgEl.hidden = false;
               msgEl.className = 'newsletter-response-msg is-error';
               msgEl.textContent =
-                'Unable to reach the dispatch ledger right now. Please try again shortly.';
+                'An error occurred. Please try again shortly.';
             } finally {
               if (submitBtn) submitBtn.disabled = false;
             }
@@ -1561,7 +1565,7 @@ const {
             msgEl.hidden = false;
             msgEl.className = 'newsletter-response-msg is-success';
             msgEl.textContent =
-              '印 Thank you. Your address has been inscribed in the dispatch ledger. Please check your inbox to confirm. (Local Preview Mode: To enable live subscriptions, paste your MailerLite Form Action URL into "mailerlite.formActionUrl" inside src/data/siteConfig.json.)';
+              '印 Thank you. Your address has been registered. Please check your inbox to confirm. (Local Preview Mode: To enable live subscriptions, paste your MailerLite Form Action URL into "mailerlite.formActionUrl" inside src/data/siteConfig.json.)';
           }
         });
       })();
