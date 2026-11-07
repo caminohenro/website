@@ -1571,5 +1571,953 @@ const {
       })();
     </script>
     <!-- STEP13_MAILERLITE_SCRIPT_END -->
+
+<!-- LAUNCH_RIBBON_ANIMATION_START -->
+    <div id="launch-ceremony-overlay" aria-hidden="true" style="display: none;">
+      <div class="launch-dimmer" id="launch-dimmer"></div>
+      <canvas id="launch-fx-canvas"></canvas>
+
+      <div class="launch-stage" id="launch-stage">
+        <svg
+          id="launch-svg"
+          viewBox="0 0 2400 800"
+          preserveAspectRatio="xMidYMid slice"
+        >
+          <defs>
+            <!-- Base Silk Velvet Gradient (userSpaceOnUse keeps depth even when horizontal) -->
+            <linearGradient id="silk-base-grad" x1="0" y1="365" x2="0" y2="435" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ff9ebb" />
+              <stop offset="22%" stop-color="#ff5c8a" />
+              <stop offset="55%" stop-color="#e01e5a" />
+              <stop offset="85%" stop-color="#b81447" />
+              <stop offset="100%" stop-color="#ff759f" />
+            </linearGradient>
+
+            <!-- Dynamic Moving Silk Lustre Sheen (Animated in JS to simulate light catching waving silk) -->
+            <linearGradient id="silk-sheen-grad" x1="600" y1="340" x2="1800" y2="460" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ffffff" stop-opacity="0" />
+              <stop offset="18%" stop-color="#ffeef5" stop-opacity="0.32" />
+              <stop offset="33%" stop-color="#80082c" stop-opacity="0.22" />
+              <stop offset="50%" stop-color="#ffffff" stop-opacity="0.45" />
+              <stop offset="67%" stop-color="#80082c" stop-opacity="0.22" />
+              <stop offset="82%" stop-color="#ffeef5" stop-opacity="0.32" />
+              <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+            </linearGradient>
+
+            <!-- Soft Silk Edge Trim Gradient -->
+            <linearGradient id="silk-trim-grad" x1="0" y1="365" x2="0" y2="435" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ffd6e4" stop-opacity="0.65" />
+              <stop offset="50%" stop-color="#ffffff" stop-opacity="0.15" />
+              <stop offset="100%" stop-color="#ffb3cc" stop-opacity="0.55" />
+            </linearGradient>
+
+            <!-- Schoolkid Scissors: Metallic Blade Gradient -->
+            <linearGradient id="scissor-steel" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#f8fafc" />
+              <stop offset="45%" stop-color="#cbd5e1" />
+              <stop offset="55%" stop-color="#94a3b8" />
+              <stop offset="100%" stop-color="#64748b" />
+            </linearGradient>
+
+            <!-- Schoolkid Scissors: Chunky Blue Plastic Handle -->
+            <radialGradient id="scissor-blue-plastic" cx="30%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#60a5fa" />
+              <stop offset="45%" stop-color="#2563eb" />
+              <stop offset="85%" stop-color="#1d4ed8" />
+              <stop offset="100%" stop-color="#1e3a8a" />
+            </radialGradient>
+
+            <!-- Soft Elevation Shadow -->
+            <filter id="silk-drop-shadow" x="-20%" y="-40%" width="140%" height="180%">
+              <feDropShadow dx="0" dy="10" stdDeviation="7" flood-color="#2b0414" flood-opacity="0.26" />
+            </filter>
+          </defs>
+
+          <!-- LEFT RIBBON ARM & LEFT BOW TIE -->
+          <g id="ribbon-left-group" filter="url(#silk-drop-shadow)">
+            <!-- Left Arm Base Silk -->
+            <path
+              id="ribbon-arm-left"
+              d="M 1200,400 C 1200,400 1200,400 1200,400"
+              fill="none"
+              stroke="url(#silk-base-grad)"
+              stroke-width="44"
+              stroke-linecap="round"
+            />
+            <!-- Left Arm Shimmering Silk Lustre Overlay -->
+            <path
+              id="ribbon-sheen-left"
+              d="M 1200,400 C 1200,400 1200,400 1200,400"
+              fill="none"
+              stroke="url(#silk-sheen-grad)"
+              stroke-width="44"
+              stroke-linecap="round"
+            />
+            <!-- Left Arm Delicate Satin Edge Trim -->
+            <path
+              id="ribbon-trim-left"
+              d="M 1200,400 C 1200,400 1200,400 1200,400"
+              fill="none"
+              stroke="url(#silk-trim-grad)"
+              stroke-width="38"
+              stroke-linecap="round"
+              stroke-dasharray="1 7"
+            />
+
+            <!-- Left Tie Loop (Rotated independently from the arms!) -->
+            <g id="tie-left-angle-wrapper">
+              <path
+                id="tie-loop-left"
+                d="M 1200,400 C 1085,295 1035,475 1200,410"
+                fill="none"
+                stroke="url(#silk-base-grad)"
+                stroke-width="38"
+                stroke-linecap="round"
+              />
+              <path
+                id="tie-loop-left-sheen"
+                d="M 1200,400 C 1085,295 1035,475 1200,410"
+                fill="none"
+                stroke="url(#silk-sheen-grad)"
+                stroke-width="38"
+                stroke-linecap="round"
+              />
+            </g>
+          </g>
+
+          <!-- RIGHT RIBBON ARM & RIGHT BOW TIE -->
+          <g id="ribbon-right-group" filter="url(#silk-drop-shadow)">
+            <!-- Right Arm Base Silk -->
+            <path
+              id="ribbon-arm-right"
+              d="M 1200,400 C 1200,400 1200,400 1200,400"
+              fill="none"
+              stroke="url(#silk-base-grad)"
+              stroke-width="44"
+              stroke-linecap="round"
+            />
+            <!-- Right Arm Shimmering Silk Lustre Overlay -->
+            <path
+              id="ribbon-sheen-right"
+              d="M 1200,400 C 1200,400 1200,400 1200,400"
+              fill="none"
+              stroke="url(#silk-sheen-grad)"
+              stroke-width="44"
+              stroke-linecap="round"
+            />
+            <!-- Right Arm Delicate Satin Edge Trim -->
+            <path
+              id="ribbon-trim-right"
+              d="M 1200,400 C 1200,400 1200,400 1200,400"
+              fill="none"
+              stroke="url(#silk-trim-grad)"
+              stroke-width="38"
+              stroke-linecap="round"
+              stroke-dasharray="1 7"
+            />
+
+            <!-- Right Tie Loop & Knot (Rotated independently from the arms!) -->
+            <g id="tie-right-angle-wrapper">
+              <path
+                id="tie-loop-right"
+                d="M 1200,410 C 1315,485 1365,305 1200,400"
+                fill="none"
+                stroke="url(#silk-base-grad)"
+                stroke-width="38"
+                stroke-linecap="round"
+              />
+              <path
+                id="tie-loop-right-sheen"
+                d="M 1200,410 C 1315,485 1365,305 1200,400"
+                fill="none"
+                stroke="url(#silk-sheen-grad)"
+                stroke-width="38"
+                stroke-linecap="round"
+              />
+              <!-- Silk Center Knot -->
+              <g id="knot-container" transform="translate(1200, 405)">
+                <rect
+                  id="center-knot"
+                  x="-19"
+                  y="-22"
+                  width="38"
+                  height="44"
+                  rx="14"
+                  fill="url(#silk-base-grad)"
+                  transform="scale(0)"
+                />
+                <rect
+                  id="center-knot-sheen"
+                  x="-19"
+                  y="-22"
+                  width="38"
+                  height="44"
+                  rx="14"
+                  fill="url(#silk-sheen-grad)"
+                  transform="scale(0)"
+                />
+              </g>
+            </g>
+          </g>
+
+          <!-- CARTOON SCHOOLKID SCISSORS (50% Smaller, Fades In Calmly, Pauses, Then Cuts) -->
+          <g
+            id="cartoon-scissors"
+            opacity="0"
+            transform="translate(1200, 480) scale(0.56)"
+            filter="url(#silk-drop-shadow)"
+          >
+            <!-- Left Blade + Right Handle (Pivots around 0,0) -->
+            <g id="scissor-half-left" transform="rotate(-26)">
+              <path
+                d="M -14,10 L -18,-175 C -18,-198 16,-198 16,-170 L 14,10 Z"
+                fill="url(#scissor-steel)"
+                stroke="#475569"
+                stroke-width="2.5"
+              />
+              <path
+                d="M -7,-165 L -7,-20"
+                stroke="rgba(255,255,255,0.8)"
+                stroke-width="4"
+                stroke-linecap="round"
+              />
+              <path
+                d="M -12,5 C -10,45 15,75 45,110 C 78,148 135,130 132,75 C 130,30 78,5 38,5 Z M 55,42 C 78,42 98,58 98,78 C 98,98 78,108 56,92 C 38,78 34,42 55,42 Z"
+                fill="url(#scissor-blue-plastic)"
+                fill-rule="evenodd"
+              />
+              <path
+                d="M 48,22 C 80,22 114,45 116,76"
+                fill="none"
+                stroke="rgba(255,255,255,0.55)"
+                stroke-width="6.5"
+                stroke-linecap="round"
+              />
+            </g>
+
+            <!-- Right Blade + Left Handle (Pivots around 0,0) -->
+            <g id="scissor-half-right" transform="rotate(26)">
+              <path
+                d="M 14,10 L 18,-175 C 18,-198 -16,-198 -16,-170 L -14,10 Z"
+                fill="url(#scissor-steel)"
+                stroke="#475569"
+                stroke-width="2.5"
+              />
+              <path
+                d="M 7,-165 L 7,-20"
+                stroke="rgba(255,255,255,0.8)"
+                stroke-width="4"
+                stroke-linecap="round"
+              />
+              <path
+                d="M 12,5 C 10,45 -15,75 -45,110 C -78,148 -135,130 -132,75 C -130,30 -78,5 -38,5 Z M -55,42 C -78,42 -98,58 -98,78 C -98,98 -78,108 -56,92 C -38,78 -34,42 -55,42 Z"
+                fill="url(#scissor-blue-plastic)"
+                fill-rule="evenodd"
+              />
+              <path
+                d="M -48,22 C -80,22 -114,45 -116,76"
+                fill="none"
+                stroke="rgba(255,255,255,0.55)"
+                stroke-width="6.5"
+                stroke-linecap="round"
+              />
+            </g>
+
+            <!-- Center Pivot Screw -->
+            <circle cx="0" cy="-4" r="11" fill="#e2e8f0" stroke="#475569" stroke-width="2.5" />
+            <line x1="-6" y1="-8" x2="6" y2="0" stroke="#64748b" stroke-width="3" stroke-linecap="round" />
+          </g>
+        </svg>
+      </div>
+
+      <!-- AUDIO FILE CONFIGURATION -->
+      <audio id="launch-cheer-audio" src="/audio/kids-cheer.mp3" preload="auto"></audio>
+    </div>
+
+    <style>
+      #launch-ceremony-overlay {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100dvh;
+        z-index: 999999;
+        pointer-events: auto;
+        overflow: hidden;
+        user-select: none;
+        -webkit-user-select: none;
+        cursor: pointer;
+      }
+
+      .launch-dimmer {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          circle at center,
+          rgba(8, 6, 10, 0.72) 0%,
+          rgba(4, 3, 6, 0.88) 100%
+        );
+        opacity: 1;
+        transition: opacity 1.6s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      #launch-fx-canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 3;
+      }
+
+      .launch-stage {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+        pointer-events: none;
+        transition: opacity 1.3s ease;
+      }
+
+      #launch-svg {
+        width: 145vw;
+        height: 145vh;
+        min-width: 1200px;
+        overflow: visible;
+      }
+    </style>
+
+    <script is:inline>
+      (function () {
+        function initLaunchCeremony() {
+          const url = new URL(window.location.href);
+          const isHome = url.pathname === '/' || url.pathname === '';
+          const hasLaunchTag =
+            url.searchParams.has('launch') ||
+            url.hash.toLowerCase() === '#launch';
+
+          if (!isHome || !hasLaunchTag) return;
+
+          const overlay = document.getElementById('launch-ceremony-overlay');
+          const dimmer = document.getElementById('launch-dimmer');
+          const stage = document.getElementById('launch-stage');
+          const canvas = document.getElementById('launch-fx-canvas');
+          const sheenGrad = document.getElementById('silk-sheen-grad');
+
+          const leftGroup = document.getElementById('ribbon-left-group');
+          const rightGroup = document.getElementById('ribbon-right-group');
+
+          const leftArm = document.getElementById('ribbon-arm-left');
+          const rightArm = document.getElementById('ribbon-arm-right');
+          const leftSheen = document.getElementById('ribbon-sheen-left');
+          const rightSheen = document.getElementById('ribbon-sheen-right');
+          const leftTrim = document.getElementById('ribbon-trim-left');
+          const rightTrim = document.getElementById('ribbon-trim-right');
+
+          const tieLeftWrapper = document.getElementById('tie-left-angle-wrapper');
+          const tieRightWrapper = document.getElementById('tie-right-angle-wrapper');
+          const tieLeft = document.getElementById('tie-loop-left');
+          const tieLeftSheen = document.getElementById('tie-loop-left-sheen');
+          const tieRight = document.getElementById('tie-loop-right');
+          const tieRightSheen = document.getElementById('tie-loop-right-sheen');
+          const knot = document.getElementById('center-knot');
+          const knotSheen = document.getElementById('center-knot-sheen');
+
+          const scissors = document.getElementById('cartoon-scissors');
+          const bladeLeft = document.getElementById('scissor-half-left');
+          const bladeRight = document.getElementById('scissor-half-right');
+          const audioEl = document.getElementById('launch-cheer-audio');
+
+          if (!overlay || !canvas) return;
+
+          overlay.style.display = 'block';
+          const prevOverflow = document.documentElement.style.overflow;
+          document.documentElement.style.overflow = 'hidden';
+
+          // Measure loop lengths for self-tying stroke animation
+          const lenL = tieLeft.getTotalLength() || 360;
+          const lenR = tieRight.getTotalLength() || 360;
+          [tieLeft, tieLeftSheen].forEach((el) => {
+            el.style.strokeDasharray = lenL;
+            el.style.strokeDashoffset = lenL;
+          });
+          [tieRight, tieRightSheen].forEach((el) => {
+            el.style.strokeDasharray = lenR;
+            el.style.strokeDashoffset = lenR;
+          });
+
+          // 1. Arm Angle (-30° to 30°) vs Independent Tie Angle Offset (-22° to +22°)
+          const armTwistDeg = Math.random() * 60 - 30;
+          const tieOffsetDeg = (Math.random() > 0.5 ? 1 : -1) * (10 + Math.random() * 14);
+          stage.style.transform = 'rotate(' + armTwistDeg.toFixed(2) + 'deg)';
+          tieLeftWrapper.setAttribute('transform', 'rotate(' + tieOffsetDeg.toFixed(2) + ' 1200 405)');
+          tieRightWrapper.setAttribute('transform', 'rotate(' + tieOffsetDeg.toFixed(2) + ' 1200 405)');
+
+          const ctx = canvas.getContext('2d');
+          let cw = (canvas.width = window.innerWidth);
+          let ch = (canvas.height = window.innerHeight);
+
+          function onResize() {
+            cw = canvas.width = window.innerWidth;
+            ch = canvas.height = window.innerHeight;
+          }
+          window.addEventListener('resize', onResize);
+
+          const particles = [];
+          const sprinkleColors = ['#ff85c0', '#ffd6e7', '#ffadd2', '#fff0f6', '#ffe58f', '#b5f5ec'];
+          const confettiColors = ['#ff4d94', '#3b82f6', '#facc15', '#4ade80', '#a855f7', '#fb923c', '#ffffff'];
+
+          function spawnSprinkles(x, y, count) {
+            for (let i = 0; i < count; i++) {
+              const angle = Math.random() * Math.PI * 2;
+              const speed = 1.2 + Math.random() * 5.5;
+              particles.push({
+                type: 'sprinkle',
+                x: x + (Math.random() - 0.5) * 36,
+                y: y + (Math.random() - 0.5) * 36,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed - 1.2,
+                r: 3.5 + Math.random() * 4.5,
+                rot: Math.random() * Math.PI * 2,
+                vRot: (Math.random() - 0.5) * 0.14,
+                color: sprinkleColors[Math.floor(Math.random() * sprinkleColors.length)],
+                alpha: 1,
+                decay: 0.014 + Math.random() * 0.012,
+              });
+            }
+          }
+
+          function spawnConfettiExplosion() {
+            const cx = cw / 2;
+            const cy = ch / 2;
+            // Heavily increased count and spread for a highly visible burst
+            for (let i = 0; i < 400; i++) {
+              const angle = Math.random() * Math.PI * 2;
+              const speed = 8 + Math.random() * 28;
+              particles.push({
+                type: 'confetti',
+                x: cx + (Math.random() - 0.5) * 50,
+                y: cy + (Math.random() - 0.5) * 50,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed - (12 + Math.random() * 12),
+                w: 8 + Math.random() * 12,
+                h: 5 + Math.random() * 9,
+                rot: Math.random() * Math.PI * 2,
+                vRot: (Math.random() - 0.5) * 0.22,
+                wobble: Math.random() * 10,
+                wobbleSpeed: 0.06 + Math.random() * 0.08,
+                color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
+                alpha: 1,
+                // Slow decay so confetti keeps fluttering down for ~4.5 seconds
+                decay: 0.0018 + Math.random() * 0.0022,
+              });
+            }
+          }
+
+          let fxRunning = true;
+          function renderParticles() {
+            if (!fxRunning) return;
+            ctx.clearRect(0, 0, cw, ch);
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+              const p = particles[i];
+              p.x += p.vx;
+              p.y += p.vy;
+              p.rot += p.vRot;
+
+              if (p.type === 'sprinkle') {
+                p.vy += 0.1;
+                p.vx *= 0.98;
+                p.alpha -= p.decay;
+              } else {
+                p.vy += 0.22; // gentle flutter gravity
+                p.vx *= 0.965;
+                p.wobble += p.wobbleSpeed;
+                p.x += Math.sin(p.wobble) * 1.9;
+                p.alpha -= p.decay;
+              }
+
+              if (p.alpha <= 0 || p.y > ch + 80) {
+                particles.splice(i, 1);
+                continue;
+              }
+
+              ctx.save();
+              ctx.globalAlpha = Math.max(0, p.alpha);
+              ctx.translate(p.x, p.y);
+              ctx.rotate(p.rot);
+              ctx.fillStyle = p.color;
+
+              // Swapped roundRect for universal safe shapes so it never fails on older browsers
+              if (p.type === 'sprinkle') {
+                ctx.beginPath();
+                ctx.arc(-p.r/2, 0, p.r/2, Math.PI/2, -Math.PI/2);
+                ctx.arc(p.r/2, 0, p.r/2, -Math.PI/2, Math.PI/2);
+                ctx.closePath();
+                ctx.fill();
+              } else {
+                ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+              }
+              ctx.restore();
+            }
+
+            requestAnimationFrame(renderParticles);
+          }
+          requestAnimationFrame(renderParticles);
+
+          function easeOutBack(x) {
+            const c1 = 1.70158;
+            const c3 = c1 + 1;
+            return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+          }
+
+          function easeInOutCubic(x) {
+            return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+          }
+
+          let canCut = false;
+          let isCutting = false;
+          let isSevered = false;
+
+          function setLeftArmPaths(d) {
+            leftArm.setAttribute('d', d);
+            leftSheen.setAttribute('d', d);
+            leftTrim.setAttribute('d', d);
+          }
+
+          function setRightArmPaths(d) {
+            rightArm.setAttribute('d', d);
+            rightSheen.setAttribute('d', d);
+            rightTrim.setAttribute('d', d);
+          }
+
+          // Wait 1 second before starting the silk ribbon emergence
+          setTimeout(() => {
+            const tieStart = performance.now();
+            const rad = (armTwistDeg * Math.PI) / 180;
+
+            function animateRibbon(now) {
+              if (isSevered) return;
+              const elapsed = now - tieStart;
+
+              // Continuously shift the silk sheen gradient so light ripples across the satin
+              const sheenShift = Math.sin(now * 0.003) * 320;
+              if (sheenGrad) {
+                sheenGrad.setAttribute('x1', (600 + sheenShift).toFixed(1));
+                sheenGrad.setAttribute('x2', (1800 + sheenShift).toFixed(1));
+              }
+
+              // Phase 1: Left silk loop ties itself (0ms - 500ms)
+              if (elapsed < 500) {
+                const p = elapsed / 500;
+                const offset = lenL * (1 - easeInOutCubic(p));
+                tieLeft.style.strokeDashoffset = offset;
+                tieLeftSheen.style.strokeDashoffset = offset;
+              } else {
+                tieLeft.style.strokeDashoffset = 0;
+                tieLeftSheen.style.strokeDashoffset = 0;
+              }
+
+              // Phase 2: Right silk loop ties itself (420ms - 920ms)
+              if (elapsed >= 420 && elapsed < 920) {
+                const p = (elapsed - 420) / 500;
+                const offset = lenR * (1 - easeInOutCubic(p));
+                tieRight.style.strokeDashoffset = offset;
+                tieRightSheen.style.strokeDashoffset = offset;
+              } else if (elapsed >= 920) {
+                tieRight.style.strokeDashoffset = 0;
+                tieRightSheen.style.strokeDashoffset = 0;
+              }
+
+              if (elapsed < 920 && Math.random() < 0.28) {
+                spawnSprinkles(cw / 2, ch / 2, 2);
+              }
+
+              // Phase 3: Center silk knot settles in (820ms - 1150ms)
+              if (elapsed >= 820) {
+                const p = Math.min(1, (elapsed - 820) / 330);
+                const sc = Math.max(0, easeOutBack(p)).toFixed(3);
+                knot.setAttribute('transform', 'scale(' + sc + ')');
+                knotSheen.setAttribute('transform', 'scale(' + sc + ')');
+              }
+
+              // Phase 4: Silky arms wave outward and keep gently undulating in the breeze
+              if (elapsed > 1000) {
+                const armElapsed = elapsed - 1000;
+                const armDuration = 1650; // Smooth, unhurried silk extension
+                const rawP = Math.min(1, armElapsed / armDuration);
+                const reachP = easeInOutCubic(rawP);
+
+                const dist = reachP * 1450;
+
+                // Large curvy slackness while extending + subtle continuous silk breeze after taut
+                const extensionSlack = Math.sin(rawP * Math.PI) * Math.pow(1 - rawP, 0.45) * 270;
+                const silkBreeze = Math.sin(now * 0.0045) * (18 + (1 - rawP) * 95);
+                const silkRipple = Math.cos(now * 0.006 + 1.2) * (14 + (1 - rawP) * 75);
+
+                const lx1 = 1200 - dist * 0.33;
+                const ly1 = 400 + extensionSlack + silkBreeze;
+                const lx2 = 1200 - dist * 0.66;
+                const ly2 = 400 - extensionSlack * 0.85 + silkRipple;
+                const lxEnd = 1200 - dist;
+                const lyEnd = 400 + (1 - rawP) * 60 + silkBreeze * 0.3;
+
+                const rx1 = 1200 + dist * 0.33;
+                const ry1 = 400 - extensionSlack - silkBreeze;
+                const rx2 = 1200 + dist * 0.66;
+                const ry2 = 400 + extensionSlack * 0.85 - silkRipple;
+                const rxEnd = 1200 + dist;
+                const ryEnd = 400 + (1 - rawP) * 60 - silkBreeze * 0.3;
+
+                setLeftArmPaths(
+                  'M 1200,400 C ' +
+                  lx1.toFixed(1) + ',' + ly1.toFixed(1) + ' ' +
+                  lx2.toFixed(1) + ',' + ly2.toFixed(1) + ' ' +
+                  lxEnd.toFixed(1) + ',' + lyEnd.toFixed(1)
+                );
+
+                setRightArmPaths(
+                  'M 1200,400 C ' +
+                  rx1.toFixed(1) + ',' + ry1.toFixed(1) + ' ' +
+                  rx2.toFixed(1) + ',' + ry2.toFixed(1) + ' ' +
+                  rxEnd.toFixed(1) + ',' + ryEnd.toFixed(1)
+                );
+
+                if (rawP < 0.96 && Math.random() < 0.55) {
+                  const screenReach = reachP * (cw * 0.55);
+                  spawnSprinkles(
+                    cw / 2 - Math.cos(rad) * screenReach,
+                    ch / 2 - Math.sin(rad) * screenReach,
+                    2
+                  );
+                  spawnSprinkles(
+                    cw / 2 + Math.cos(rad) * screenReach,
+                    ch / 2 + Math.sin(rad) * screenReach,
+                    2
+                  );
+                }
+
+                if (rawP >= 0.35) {
+                  canCut = true;
+                }
+              }
+
+              requestAnimationFrame(animateRibbon);
+            }
+
+            requestAnimationFrame(animateRibbon);
+          }, 1000);
+
+          // Sound Effect 1: Crisp Metallic Scissor Snip
+          function playScissorSnipSound(actx) {
+            const now = actx.currentTime;
+            const snipNoise = actx.createBuffer(1, Math.floor(actx.sampleRate * 0.11), actx.sampleRate);
+            const snipData = snipNoise.getChannelData(0);
+            for (let i = 0; i < snipData.length; i++) {
+              snipData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (actx.sampleRate * 0.022));
+            }
+            const snipSrc = actx.createBufferSource();
+            snipSrc.buffer = snipNoise;
+            const snipFilter = actx.createBiquadFilter();
+            snipFilter.type = 'bandpass';
+            snipFilter.frequency.setValueAtTime(3400, now);
+            snipFilter.Q.setValueAtTime(4.0, now);
+            const snipGain = actx.createGain();
+            snipGain.gain.setValueAtTime(0.95, now);
+            snipSrc.connect(snipFilter).connect(snipGain).connect(actx.destination);
+            snipSrc.start(now);
+          }
+
+          // Sound Effect 2: Confetti Popper & Children Cheering "Yeeeeah!"
+          function playChildrenYeaahAndConfetti(actx) {
+            if (audioEl) {
+              audioEl.volume = 0.9;
+              audioEl.play().catch(() => {});
+            }
+            if (!actx) return;
+
+            const now = actx.currentTime;
+
+            // A. Confetti Cannon Thump & Fluttering Paper Burst
+            const popOsc = actx.createOscillator();
+            const popGain = actx.createGain();
+            popOsc.type = 'sine';
+            popOsc.frequency.setValueAtTime(165, now);
+            popOsc.frequency.exponentialRampToValueAtTime(38, now + 0.14);
+            popGain.gain.setValueAtTime(0.75, now);
+            popGain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+            popOsc.connect(popGain).connect(actx.destination);
+            popOsc.start(now);
+            popOsc.stop(now + 0.17);
+
+            const whooshBuf = actx.createBuffer(1, Math.floor(actx.sampleRate * 0.35), actx.sampleRate);
+            const wData = whooshBuf.getChannelData(0);
+            for (let i = 0; i < wData.length; i++) {
+              wData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (actx.sampleRate * 0.09));
+            }
+            const wSrc = actx.createBufferSource();
+            wSrc.buffer = whooshBuf;
+            const wFilter = actx.createBiquadFilter();
+            wFilter.type = 'bandpass';
+            wFilter.frequency.setValueAtTime(1100, now);
+            wFilter.Q.setValueAtTime(1.2, now);
+            const wGain = actx.createGain();
+            wGain.gain.setValueAtTime(0.45, now);
+            wSrc.connect(wFilter).connect(wGain).connect(actx.destination);
+            wSrc.start(now);
+
+            // B. Realistic Vocal Tract Formant Synthesis of Children Shouting "Yeeee-aaah!"
+            const numKids = 11;
+            const fundamentalPitches = [390, 415, 440, 465, 495, 520, 545, 575, 605, 635, 660];
+
+            const breathBuf = actx.createBuffer(1, Math.floor(actx.sampleRate * 2.2), actx.sampleRate);
+            const bData = breathBuf.getChannelData(0);
+            for (let i = 0; i < bData.length; i++) {
+              bData[i] = Math.random() * 2 - 1;
+            }
+
+            for (let i = 0; i < numKids; i++) {
+              const t0 = now + 0.05 + i * 0.018 + Math.random() * 0.04;
+              const dur = 1.45 + Math.random() * 0.45;
+              const f0 = fundamentalPitches[i] * (0.97 + Math.random() * 0.06);
+
+              const voiceOsc = actx.createOscillator();
+              voiceOsc.type = 'sawtooth';
+
+              voiceOsc.frequency.setValueAtTime(f0 * 0.92, t0);
+              voiceOsc.frequency.exponentialRampToValueAtTime(f0 * 1.18, t0 + 0.26);
+              voiceOsc.frequency.exponentialRampToValueAtTime(f0 * 1.12, t0 + 0.85);
+              voiceOsc.frequency.exponentialRampToValueAtTime(f0 * 0.86, t0 + dur);
+
+              const vibOsc = actx.createOscillator();
+              const vibGain = actx.createGain();
+              vibOsc.frequency.setValueAtTime(5.5 + Math.random() * 1.5, t0);
+              vibGain.gain.setValueAtTime(f0 * 0.018, t0);
+              vibOsc.connect(vibGain).connect(voiceOsc.frequency);
+
+              const breathSrc = actx.createBufferSource();
+              breathSrc.buffer = breathBuf;
+              const breathGain = actx.createGain();
+              breathGain.gain.setValueAtTime(0.18, t0);
+              breathSrc.connect(breathGain);
+
+              const f1 = actx.createBiquadFilter();
+              f1.type = 'bandpass';
+              f1.Q.setValueAtTime(6.5, t0);
+              f1.frequency.setValueAtTime(370, t0);
+              f1.frequency.exponentialRampToValueAtTime(850, t0 + 0.28);
+              f1.frequency.setValueAtTime(850, t0 + dur * 0.75);
+              f1.frequency.exponentialRampToValueAtTime(720, t0 + dur);
+
+              const f2 = actx.createBiquadFilter();
+              f2.type = 'bandpass';
+              f2.Q.setValueAtTime(8.0, t0);
+              f2.frequency.setValueAtTime(2950, t0);
+              f2.frequency.exponentialRampToValueAtTime(1850, t0 + 0.30);
+              f2.frequency.setValueAtTime(1850, t0 + dur * 0.75);
+              f2.frequency.exponentialRampToValueAtTime(1650, t0 + dur);
+
+              const f3 = actx.createBiquadFilter();
+              f3.type = 'bandpass';
+              f3.Q.setValueAtTime(9.0, t0);
+              f3.frequency.setValueAtTime(3650, t0);
+              f3.frequency.exponentialRampToValueAtTime(3150, t0 + 0.30);
+
+              const f1Gain = actx.createGain();
+              const f2Gain = actx.createGain();
+              const f3Gain = actx.createGain();
+              f1Gain.gain.setValueAtTime(1.0, t0);
+              f2Gain.gain.setValueAtTime(0.65, t0);
+              f3Gain.gain.setValueAtTime(0.28, t0);
+
+              const warmLowpass = actx.createBiquadFilter();
+              warmLowpass.type = 'lowpass';
+              warmLowpass.frequency.setValueAtTime(4200, t0);
+
+              const voiceEnv = actx.createGain();
+              voiceEnv.gain.setValueAtTime(0.0001, t0);
+              voiceEnv.gain.linearRampToValueAtTime(0.085, t0 + 0.09);
+              voiceEnv.gain.setValueAtTime(0.085, t0 + dur * 0.6);
+              voiceEnv.gain.exponentialRampToValueAtTime(0.0005, t0 + dur);
+
+              voiceOsc.connect(f1);
+              voiceOsc.connect(f2);
+              voiceOsc.connect(f3);
+              breathGain.connect(f1);
+              breathGain.connect(f2);
+              breathGain.connect(f3);
+
+              f1.connect(f1Gain).connect(warmLowpass);
+              f2.connect(f2Gain).connect(warmLowpass);
+              f3.connect(f3Gain).connect(warmLowpass);
+              warmLowpass.connect(voiceEnv).connect(actx.destination);
+
+              voiceOsc.start(t0);
+              vibOsc.start(t0);
+              breathSrc.start(t0);
+              voiceOsc.stop(t0 + dur + 0.05);
+              vibOsc.stop(t0 + dur + 0.05);
+              breathSrc.stop(t0 + dur + 0.05);
+            }
+          }
+
+          // Step 3: Calm Scissor Fade-in -> Pause -> Forceful Cut -> Long Confetti
+          function triggerCut(event) {
+            if (!canCut || isCutting) return;
+            if (event) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+            isCutting = true;
+
+            window.removeEventListener('pointerdown', triggerCut, true);
+            window.removeEventListener('keydown', triggerCut, true);
+            window.removeEventListener('touchstart', triggerCut, true);
+
+            // Initialize AudioContext inside the user gesture so browser unlocks it
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            const actx = AudioCtx ? new AudioCtx() : null;
+
+            const cutStart = performance.now();
+            let snipSoundPlayed = false;
+            let confettiThrown = false;
+            let fadeStarted = false;
+
+            const baseScale = 0.56;
+
+            function animateCutSequence(now) {
+              const elapsed = now - cutStart;
+
+              // PHASE A (0ms - 750ms): Scissors fade in calmly and glide gently into position
+              if (elapsed <= 750) {
+                const p = easeInOutCubic(Math.min(1, elapsed / 750));
+                const y = 468 - p * 56; // Gently glides from 468 up to 412
+                scissors.setAttribute('opacity', p.toFixed(3));
+                scissors.setAttribute(
+                  'transform',
+                  'translate(1200, ' + y.toFixed(1) + ') scale(' + baseScale + ')'
+                );
+                bladeLeft.setAttribute('transform', 'rotate(-26)');
+                bladeRight.setAttribute('transform', 'rotate(26)');
+              }
+              // PHASE B (750ms - 1300ms): Deliberate Pause! (Blades open slightly wider in anticipation)
+              else if (elapsed <= 1300) {
+                const pauseP = easeInOutCubic((elapsed - 750) / 550);
+                const openAngle = 26 + pauseP * 9; // Slowly opens from 26° to 35° to build anticipation
+                const hoverY = 412 + pauseP * 4;
+                scissors.setAttribute('opacity', '1');
+                scissors.setAttribute(
+                  'transform',
+                  'translate(1200, ' + hoverY.toFixed(1) + ') scale(' + baseScale + ')'
+                );
+                bladeLeft.setAttribute('transform', 'rotate(' + (-openAngle).toFixed(1) + ')');
+                bladeRight.setAttribute('transform', 'rotate(' + openAngle.toFixed(1) + ')');
+              }
+              // PHASE C (1300ms - 1420ms): *CUT* WITH FORCE!
+              else if (elapsed <= 1420) {
+                if (!snipSoundPlayed) {
+                  snipSoundPlayed = true;
+                  if (actx) playScissorSnipSound(actx);
+                }
+
+                const snapP = Math.min(1, (elapsed - 1300) / 120);
+                // Fast, forceful cubic-in snap past 0° to 8° overlap
+                const forceCurve = snapP * snapP;
+                const angle = 35 - forceCurve * 43;
+                // Thrust upward slightly and punch scale on impact
+                const thrustY = 416 - Math.sin(snapP * Math.PI) * 14;
+                const punchScale = baseScale * (1 + Math.sin(snapP * Math.PI) * 0.26);
+
+                scissors.setAttribute(
+                  'transform',
+                  'translate(1200, ' + thrustY.toFixed(1) + ') scale(' + punchScale.toFixed(3) + ')'
+                );
+                bladeLeft.setAttribute('transform', 'rotate(' + (-angle).toFixed(1) + ')');
+                bladeRight.setAttribute('transform', 'rotate(' + angle.toFixed(1) + ')');
+
+                if (snapP >= 0.65 && !confettiThrown) {
+                  confettiThrown = true;
+                  isSevered = true;
+                  spawnConfettiExplosion();
+                  spawnSprinkles(cw / 2, ch / 2, 50);
+                  playChildrenYeaahAndConfetti(actx);
+                }
+              }
+              // PHASE D (1420ms+): Silk halves snap apart & drape down; scissors fade out; confetti keeps falling
+              else {
+                const afterElapsed = elapsed - 1420;
+                const afterP = Math.min(1, afterElapsed / 1150);
+                const easeOut = 1 - Math.pow(1 - afterP, 3);
+
+                // Forceful recoil of the cut silk ribbon halves
+                const recoilX = easeOut * 740;
+                const dropY = Math.pow(afterP, 1.65) * 410;
+                const rotAngle = easeOut * 26;
+
+                leftGroup.setAttribute(
+                  'transform',
+                  'translate(' + (-recoilX).toFixed(1) + ', ' + dropY.toFixed(1) + ') rotate(' + (-rotAngle).toFixed(1) + ' 800 400)'
+                );
+                rightGroup.setAttribute(
+                  'transform',
+                  'translate(' + recoilX.toFixed(1) + ', ' + dropY.toFixed(1) + ') rotate(' + rotAngle.toFixed(1) + ' 1600 400)'
+                );
+
+                // Scissors gently drift down and fade out
+                const scFade = Math.max(0, 1 - afterElapsed / 550);
+                const scDrop = 416 + Math.pow(Math.min(1, afterElapsed / 700), 2) * 120;
+                scissors.setAttribute('opacity', scFade.toFixed(3));
+                scissors.setAttribute(
+                  'transform',
+                  'translate(1200, ' + scDrop.toFixed(1) + ') scale(' + baseScale + ')'
+                );
+
+                // Fade the dark dimmer & ribbon stage at +650ms after the cut,
+                // while keeping the overlay canvas visible so confetti continues falling over the normal website!
+                if (afterElapsed >= 650 && !fadeStarted) {
+                  fadeStarted = true;
+                  dimmer.style.opacity = '0';
+                  stage.style.opacity = '0';
+                  overlay.style.pointerEvents = 'none';
+                  document.documentElement.style.overflow = prevOverflow;
+                }
+              }
+
+              // Let the confetti continue falling for a full 4.2 seconds after the cut
+              if (elapsed < 5600) {
+                requestAnimationFrame(animateCutSequence);
+              } else {
+                fxRunning = false;
+                overlay.style.display = 'none';
+                window.removeEventListener('resize', onResize);
+
+                url.searchParams.delete('launch');
+                const cleanUrl =
+                  url.pathname +
+                  (url.searchParams.toString() ? '?' + url.searchParams.toString() : '') +
+                  (url.hash.toLowerCase() === '#launch' ? '' : url.hash);
+                window.history.replaceState({}, '', cleanUrl);
+              }
+            }
+
+            requestAnimationFrame(animateCutSequence);
+          }
+
+          window.addEventListener('pointerdown', triggerCut, true);
+          window.addEventListener('keydown', triggerCut, true);
+          window.addEventListener('touchstart', triggerCut, { capture: true, passive: false });
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initLaunchCeremony, { once: true });
+        } else {
+          initLaunchCeremony();
+        }
+        document.addEventListener('astro:page-load', initLaunchCeremony);
+      })();
+    </script>
+    <!-- LAUNCH_RIBBON_ANIMATION_END -->
+
   </body>
 </html>
