@@ -3,7 +3,7 @@ title: On What Sustains Us and Where to Find It
 subtitle: The Renewability of Goods
 date: 2026-11-03
 location: <location>
-readingTime: <reading_time>
+readingTime: 6min
 excerpt: When a slice of pizza becomes your teacher, you learn to change your
   mindset to overcome attachment.
 draft: false

@@ -1,16 +1,15 @@
 ---
-title: "<title>"
-subtitle: "<subtitle>"
+title: "Coming Soon"
+subtitle: "Essay coming soon"
 date: 2026-10-14
 location: "<location>"
 kilometersWalked: 0
-readingTime: "<reading_time>"
-excerpt: "<excerpt>"
+readingTime: "0min"
+excerpt: "This essay is currently being written and will soon be available for viewing."
 draft: false
 ---
 
-&lt;body&gt;
+This essay is currently being written and will soon be available for viewing.
 
-> &lt;quote&gt;
+> Thank you for your patience.
 
-&lt;body&gt;

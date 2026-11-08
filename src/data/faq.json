@@ -1,7 +1,7 @@
 {
   "categories": [
     {
-      "categoryName": "The Route & Logistics",
+      "categoryName": "The Route",
       "items": [
         {
           "question": "Where are you from?",
@@ -18,7 +18,7 @@
       ]
     },
     {
-      "categoryName": "Philosophy & Material Security",
+      "categoryName": "Philosophy",
       "items": [
         {
           "question": "Why are you doing this trip?",
@@ -35,7 +35,7 @@
       ]
     },
     {
-      "categoryName": "Daily Life on the Trail",
+      "categoryName": "Daily Life",
       "items": [
         {
           "question": "How many languages do you speak?",
