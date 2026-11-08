@@ -524,6 +524,21 @@ const {
 
   };
 
+  // Use exactly the same paper-unfurl animation on every opening.
+  window.playScrollUnfurl = function (paper) {
+    paper.style.animation = 'none';
+
+    // Force a reflow so the animation can restart.
+    void paper.offsetHeight;
+
+    window.prepareScrollUnfurl(paper);
+
+    paper.style.animation =
+      'scrollUnfurlDown var(--unfurl-duration, 8s) ' +
+      'var(--unfurl-easing, cubic-bezier(0.33, 1, 0.62, 1)) ' +
+      'var(--pause-duration, 0.1s) both';
+  };
+
 })();
     </script>
     <!-- HOME_DESKTOP_CLICK_V1 -->
@@ -711,33 +726,20 @@ const {
         if (disposed) return;
 
 
-
-        // Hold the final position before cancelling the movement.
-
-        // Only this state allows the paper to begin unfurling.
-
-        window.prepareScrollUnfurl(paper);
+        // The stage is positioned. Now start the shared paper animation.
         stage.dataset.homeUnfurl = 'opening';
 
-
-
         if (movement) {
-
           movement.cancel();
-
           movement = null;
-
         }
-
-
 
         paper.inert = previousInert;
 
         restoreControls();
-
         hint.remove();
 
-      }
+        window.playScrollUnfurl(paper);
 
 
 
@@ -1193,42 +1195,21 @@ const {
         if (!completed || disposed || epoch !== repeatEpoch) return;
 
 
-
         /*
-
-         * Release manual height control and replay the original CSS unfurl.
-
-         * The rollers then follow the paper through normal layout.
-
+         * Release manual height control and replay the same
+         * animation used by the first desktop opening.
          */
 
         stage.dataset.homeUnfurl = 'opening';
 
-        paper.style.animation = 'none';
-
         delete stage.dataset.wholeScrollControl;
-
         stage.style.removeProperty('--whole-scroll-height');
-
-
-
-        void paper.offsetHeight;
-
-
 
         paper.inert = previousInert;
 
-        window.prepareScrollUnfurl(paper);
-        paper.style.animation = 'scrollUnfurlDown var(--unfurl-duration, 8s) ' +
-
-          'var(--unfurl-easing, cubic-bezier(0.33, 1, 0.62, 1)) ' +
-
-          'var(--pause-duration, 0.1s) both';
-
-
+        window.playScrollUnfurl(paper);
 
         refreshControls();
-
         placeNewsletter();
 
         return;
@@ -1335,52 +1316,41 @@ const {
 
 
 
-        window.scrollTo({ top: 0, behavior: 'instant' });
+        // Preserve the user's current document position.
+        // The scroll is no longer located at document Y = 0.
 
-
+        const scrollY = window.scrollY;
 
         const currentTranslate = window.getComputedStyle(stage).translate;
 
         const offset = currentTranslate === 'none'
-
           ? 0
-
           : parseFloat(currentTranslate.split(/\s+/)[1]) || 0;
 
-
-
+        // Find the scroll's center without its current stage translation.
         const center =
-
           (
-
             top.getBoundingClientRect().top +
-
             bottom.getBoundingClientRect().bottom
-
-          ) / 2 + window.scrollY - offset;
-
-
+          ) / 2 + scrollY - offset;
 
         const visual = window.visualViewport;
 
         const screenCenter = visual
-
           ? visual.offsetTop + visual.height / 2
-
           : window.innerHeight / 2;
 
+        // Center the closed scroll visually WITHOUT scrolling the document.
+        const targetOffset = screenCenter + scrollY - center;
 
-
-        moveDesktopPosition(Math.max(0, screenCenter - center)).then(ok => {
-
+        moveDesktopPosition(targetOffset).then(ok => {
           if (ok && !disposed && epoch === repeatEpoch && closed) {
             window.endNewsletterCloseHold();
             window.startDesktopSneakPeek(stage, () => !disposed && closed && !closing);
             showRepeatHintLater();
-
           }
-
         });
+
 
       }
 

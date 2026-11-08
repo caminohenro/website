@@ -1117,35 +1117,36 @@
 
       mobileCentered = true;
 
-      window.scrollTo({
-        top: 0,
-        behavior: 'instant',
-      });
+      // Preserve the current document position.
+      const scrollY = window.scrollY;
 
       const rollerCenter =
         (
           topRoller.getBoundingClientRect().top +
           roller.getBoundingClientRect().bottom
-        ) / 2 + window.scrollY - mobileOffset;
+        ) / 2 + scrollY - mobileOffset;
 
       const view = viewport();
 
-      const target = Math.max(
-        0,
-        view.top + view.height / 2 - rollerCenter
-      );
+      // Center the closed scroll without jumping to the document top.
+      const target =
+        view.top + view.height / 2 + scrollY - rollerCenter;
 
       moveMobilePosition(target, updateHint);
     }
 
-    function returnMobileToTop() {
+    function returnMobileToTop(finished) {
       mobileHasInteracted = true;
 
-      if (!mobileCentered && mobileOffset === 0) return;
+      if (!mobileCentered && mobileOffset === 0) {
+        if (finished) finished();
+        return;
+      }
 
       mobileCentered = false;
 
-      moveMobilePosition(0, updateHint);
+      // Finish repositioning before beginning the paper unfurl.
+      moveMobilePosition(0, finished);
     }
 
     // ========================================================================
@@ -1172,35 +1173,38 @@
       onTouchCancel();
       cancelTopClose();
 
-      returnMobileToTop();
+      // First return the scroll to its original position.
+      returnMobileToTop(function () {
 
-      if (reducedMotion.matches) {
-        revealed = height;
-        render();
-        return;
-      }
+        if (disposed || fullyOpen) return;
 
-      const remaining = Math.max(0, height - revealed);
+        if (reducedMotion.matches) {
+          revealed = height;
+          render();
+          return;
+        }
 
-      if (remaining <= 0.01) return;
+        const remaining = Math.max(0, height - revealed);
 
-      const settings = mobileOpeningSettings();
+        if (remaining <= 0.01) return;
 
-      opening = {
-        automatic: true,
-        followHeight: true,
-        startedAt: performance.now(),
-        start: revealed,
-        remaining,
-        duration: mobileOpeningDuration(remaining, settings),
+        const settings = mobileOpeningSettings();
 
-        // Restore the original gradual mobile ease-in-out.
-        points: [0.42, 0, 0.58, 1],
-      };
+        // Use exactly the same easing and duration as the initial opening.
+        opening = {
+          automatic: true,
+          followHeight: true,
+          startedAt: performance.now(),
+          start: revealed,
+          remaining,
+          duration: mobileOpeningDuration(remaining, settings),
+          points: [0.42, 0, 0.58, 1],
+        };
 
-      velocity = 0;
+        velocity = 0;
 
-      beginFrame();
+        beginFrame();
+      });
     }
 
     openAllBtn.addEventListener('click', function (event) {
