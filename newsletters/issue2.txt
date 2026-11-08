@@ -1,0 +1,579 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
+  <head>
+    <!--{$head_top}-->
+    <meta content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="x-apple-disable-message-reformatting">
+    <title>カミノ遍路 • Digital Scroll Launch Announcement</title>
+
+    <!--{$head_bottom}-->
+  </head>
+
+  <body style="margin:0; padding:0; width:100%; background-color:#FCE1E8; font-family:'EB Garamond', 'Cormorant Garamond', Georgia, 'Times New Roman', serif; color:#1C1A17;">
+    <!--{$body_top}--><!--{$head_top}-->
+
+    <style type="text/css">
+      /*
+      CAMINO HENRO — EMAIL-SAFE SPACING GUIDE
+      ---------------------------------------
+      The inline styles below are the most reliable source of layout styling in email.
+      Search for the labels "SPACING CONTROL" to find the individual values to edit.
+
+      Main desktop width:             600px
+      Roller width:                   600px (same as parchment)
+      Parchment inner padding:        36px 44px 40px 44px
+      Mobile inner padding:           36px 20px 40px 20px
+      General paragraph spacing:      mostly 16px (kept from original)
+      Section spacing:                retained individually from original
+
+      Keep the inline padding/margin values and these mobile overrides in sync when
+      changing a spacing value that should behave differently on phones.
+    */
+
+      @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Serif+JP:wght@400;600&family=Shippori+Mincho:wght@400;600&display=swap');
+
+      html,
+      body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+      }
+
+      body,
+      table,
+      td,
+      p,
+      a,
+      li,
+      blockquote {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+
+      table,
+      td {
+        mso-table-lspace: 0pt;
+        mso-table-rspace: 0pt;
+        border-collapse: collapse;
+      }
+
+      img {
+        -ms-interpolation-mode: bicubic;
+        border: 0;
+        outline: none;
+        text-decoration: none;
+        display: block;
+        height: auto;
+        line-height: 100%;
+      }
+
+      a {
+        text-decoration: none;
+      }
+
+      /* Do not animate the layout: many email clients partially support animation
+       and clipping, which can make the parchment appear offset or cut off. */
+      .scroll-unfurl-container {
+        overflow: visible;
+        animation: none !important;
+        -webkit-animation: none !important;
+        clip-path: none !important;
+        -webkit-clip-path: none !important;
+        max-height: none !important;
+      }
+
+      @media only screen and (max-width: 640px) {
+        .email-shell {
+          width: 100% !important;
+          max-width: 100% !important;
+        }
+
+        .responsive-table {
+          width: 100% !important;
+          max-width: 100% !important;
+        }
+
+        .mobile-padding {
+          padding: 36px 20px 40px 20px !important;
+        }
+
+        .mobile-stack {
+          display: block !important;
+          width: 100% !important;
+        }
+
+        .mobile-center {
+          text-align: center !important;
+        }
+
+        .mobile-roller-knob {
+          display: none !important;
+          width: 0 !important;
+        }
+
+        .mobile-hero-title {
+          font-size: 25px !important;
+        }
+
+        .mobile-greeting {
+          font-size: 42px !important;
+        }
+
+        .mobile-section-title {
+          font-size: 27px !important;
+        }
+
+        .mobile-full-image {
+          width: 100% !important;
+          max-width: 100% !important;
+          height: auto !important;
+        }
+      }
+    </style>
+
+    <!--{$head_bottom}-->
+
+
+    <!--[if gte mso 9]>
+  <v:background fill="t">
+    <v:fill type="tile" src="https://placeholder.mailerlite.com/590x220-icon_v3.jpg" color="#FCE1E8" />
+  </v:background>
+  <![endif]-->
+
+    <!--{$body_top}-->
+
+    <!-- PREHEADER / INBOX SNIPPET -->
+    <div style="display:none; font-size:1px; color:#1A1816; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;">
+      カミノ遍路 has unrolled its digital scroll: A quiet home for philosophical dispatches from the road across the Silk Road.
+    </div>
+
+    <!-- OUTER BACKGROUND WRAPPER -->
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#FCE1E8" background="https://storage.mlcdn.com/account_image/2695563/g4NEN3ZDtVfmevnHPYkKYkVbMZ83TmCAKqR0wAwU.png" style="width:100%; background-color:#FCE1E8; background-image:url('https://storage.mlcdn.com/account_image/2695563/g4NEN3ZDtVfmevnHPYkKYkVbMZ83TmCAKqR0wAwU.png'); background-repeat:repeat;">
+      <tbody>
+        <tr>
+          <td align="center" valign="top" bgcolor="#FCE1E8" background="https://storage.mlcdn.com/account_image/2695563/g4NEN3ZDtVfmevnHPYkKYkVbMZ83TmCAKqR0wAwU.png" style="padding:24px 12px 48px 12px; background-color:#FCE1E8; background-image:url('https://storage.mlcdn.com/account_image/2695563/g4NEN3ZDtVfmevnHPYkKYkVbMZ83TmCAKqR0wAwU.png'); background-repeat:repeat;">
+
+            <!--[if mso]>
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center">
+          <tr><td>
+        <![endif]-->
+
+            <!-- FIXED / FLUID EMAIL SHELL: one 600px alignment reference for all scroll parts -->
+            <table role="presentation" class="email-shell" border="0" cellpadding="0" cellspacing="0" width="100%" align="center" style="width:100%; max-width:600px; margin:0 auto;">
+              <tbody>
+                <tr>
+                  <td align="center" valign="top" style="padding:0;">
+
+                    <!-- TOP UTILITY BAR | SPACING CONTROL: bottom gap = 16px -->
+                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%; margin:0 0 16px 0;">
+                      <tbody>
+                        <tr>
+                          <td align="left" valign="middle" style="font-family:'EB Garamond', Georgia, serif; font-size:13px; line-height:1.4; color:#8F877C; letter-spacing:0.08em; text-transform:uppercase;">
+                            書簡 • DISPATCH NO. 02
+                          </td>
+                          <td align="right" valign="middle" style="font-family:'EB Garamond', Georgia, serif; font-size:13px; line-height:1.4;">
+                            <a href="{$url}" target="_blank" style="color:#A39682; text-decoration:underline;">View in browser</a>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    <!-- TOP WOODEN SCROLL ROLLER (JIKUGI) | WIDTH MATCHES PARCHMENT: 600px -->
+                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" align="center" style="width:100%; max-width:600px; margin:0 auto;">
+                      <tbody>
+                        <tr>
+                          <td class="mobile-roller-knob" width="18" height="32" align="right" valign="middle" bgcolor="#26160C" style="width:18px; height:32px; background-color:#26160C; border-left:2px solid #5C381E; border-top:1px solid #5C381E; border-bottom:1px solid #140A04; border-radius:4px 0 0 4px; font-size:1px; line-height:1px;">&nbsp;</td>
+                          <td width="8" height="26" align="center" valign="middle" bgcolor="#A78435" style="width:8px; height:26px; background-color:#A78435; border-top:1px solid #FDF0A6; border-bottom:1px solid #36260C; font-size:1px; line-height:1px;">&nbsp;</td>
+                          <td height="26" align="center" valign="middle" bgcolor="#2A170C" style="height:26px; background-color:#2A170C; border-top:1px solid #6E4529; border-bottom:1px solid #0D0502; font-size:1px; line-height:1px;">&nbsp;</td>
+                          <td width="8" height="26" align="center" valign="middle" bgcolor="#A78435" style="width:8px; height:26px; background-color:#A78435; border-top:1px solid #FDF0A6; border-bottom:1px solid #36260C; font-size:1px; line-height:1px;">&nbsp;</td>
+                          <td class="mobile-roller-knob" width="18" height="32" align="left" valign="middle" bgcolor="#26160C" style="width:18px; height:32px; background-color:#26160C; border-right:2px solid #5C381E; border-top:1px solid #5C381E; border-bottom:1px solid #140A04; border-radius:0 4px 4px 0; font-size:1px; line-height:1px;">&nbsp;</td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    <!-- MAIN WASHI SCROLL PARCHMENT -->
+
+                    <!-- SPACING CONTROL: parchment inner padding = 36px top, 44px sides, 40px bottom. Mobile override is in .mobile-padding. -->
+                    <table role="presentation" class="responsive-table scroll-unfurl-container" border="0" cellpadding="0" cellspacing="0" width="100%" align="center" bgcolor="#E6DFCF" style="width:100%; max-width:600px; margin:0 auto; background-color:#E6DFCF; border-left:1px solid #C8BEA7; border-right:1px solid #C8BEA7; box-shadow:0 16px 40px rgba(0,0,0,0.35);">
+                      <tbody>
+                        <tr>
+                          <td class="mobile-padding" valign="top" style="padding:36px 44px 40px 44px;">
+
+                            <!-- SITE BRANDING / TOP HEADER BLOCK -->
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%;">
+                              <tbody>
+                                <tr>
+                                  <td class="mobile-stack" align="left" valign="middle" style="padding-bottom:16px;">
+                                    <img src="https://storage.mlcdn.com/account_image/2695563/GgX0uWoGMWNXISVN0az0gEhKTVh2lTxqWPdiJauu.png" alt="Camino Henro Crest" width="128" style="display:block; width:128px; max-width:128px; height:auto; border:0;">
+                                  </td>
+                                  <td class="mobile-stack mobile-center" align="right" valign="middle" style="padding-bottom:16px;">
+                                    <div style="font-family:'Shippori Mincho', 'Noto Serif JP', Georgia, serif; font-size:14px; line-height:1.5; letter-spacing:0.2em; color:#6E2B25;">
+                                      カミノ遍路
+                                    </div>
+                                    <div style="font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size:20px; line-height:1.3; font-weight:800; letter-spacing:0.07em; color:#1C1A17; margin-top:3px; text-decoration-thickness:1px; text-decoration-color:#1C1A17; text-decoration-skip-ink:none;">
+                                      CAMINO HENRO
+                                    </div>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+
+                            <!-- KANJI SEPARATOR LINE | SPACING CONTROL: 12px above, 24px below -->
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%; margin:12px 0 24px 0;">
+                              <tbody>
+                                <tr>
+                                  <td width="42%" style="width:42%; border-bottom:1px solid #C8BEA7; font-size:1px; line-height:1px;">&nbsp;</td>
+                                  <td width="16%" align="center" style="width:16%; font-family:'Shippori Mincho', 'Noto Serif JP', serif; font-size:15px; line-height:1.4; color:#6E2B25; padding:0 6px;">道</td>
+                                  <td width="42%" style="width:42%; border-bottom:1px solid #C8BEA7; font-size:1px; line-height:1px;">&nbsp;</td>
+                                </tr>
+                              </tbody>
+                            </table>
+
+                            <!-- ANNOUNCEMENT TITLE & HERO HEADLINE -->
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%;">
+                              <tbody>
+                                <tr>
+                                  <td align="center" style="padding-bottom:14px;">
+                                    <div style="display:inline-block; padding:4px 12px; background-color:#D8CEB8; border:1px solid #C5BAA2; font-family:'EB Garamond', Georgia, serif; font-size:12px; line-height:1.4; letter-spacing:0.18em; text-transform:uppercase; color:#5A534A; border-radius:2px;">
+                                      WEBSITE LAUNCH ANNOUNCEMENT
+                                    </div>
+                                    <h1 class="mobile-hero-title" style="margin:16px 0 8px 0; font-family:'Shippori Mincho', 'EB Garamond', Georgia, serif; font-size:26px; font-weight:600; line-height:1.25; color:#1C1A17; letter-spacing:0.02em;">
+                                      🎋 HENRO TO JAPAN 👣
+                                    </h1>
+                                    <div style="font-family:'EB Garamond', Georgia, serif; font-size:14px; line-height:1.4; letter-spacing:0.15em; text-transform:uppercase; color:#6E2B25; font-weight:600;">
+                                      Second issue
+                                    </div>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+
+                            <!-- HERO IMAGE | SPACING CONTROL: 12px above, 22px after image block -->
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%; margin:12px 0 22px 0;">
+                              <tbody>
+                                <tr>
+                                  <td align="center" bgcolor="#D8CEB8" style="border:1px solid #C5BAA2; background-color:#D8CEB8; padding:4px;">
+                                    <a href="https://caminohenro.world" target="_blank" style="text-decoration:none; display:block;">
+                                      <img class="mobile-full-image" src="https://storage.mlcdn.com/account_image/2695563/Vb16DNLhFjnxkSoy5v1B1swHcoFUcum9o5SNCB4b.jpg" alt="The Road from Finisterra to Shikoku" width="504" style="display:block; width:100%; max-width:504px; height:auto; border:0;">
+                                    </a>
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td align="center" style="font-family:'EB Garamond', Georgia, serif; font-size:12px; line-height:1.5; font-style:italic; color:#5A534A; padding-top:6px;">
+                                    Henro, Kasa and a temporary furry companion: Neko.
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+
+                            <!-- MULTILINGUAL TRANSLATION NOTICE | SPACING CONTROL: 20px top, 50px bottom -->
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#D8CEB8" style="width:100%; background-color:#D8CEB8; border-left:3px solid #6E2B25; margin:20px 0 50px 0;">
+                              <tbody>
+                                <tr>
+                                  <td style="padding:14px 16px; font-family:'EB Garamond', Georgia, serif; font-size:12px; line-height:1.6; color:#5A534A;">
+                                    <p style="margin:0 0 6px 0;"><strong>🌐 Multi-Language Reader Guide:</strong></p>
+                                    <p style="margin:0 0 4px 0;">🇬🇧/🇺🇸 <em>Please translate this newsletter into your own language using your browser or AI translation tool.</em></p>
+                                    <p style="margin:0 0 4px 0;">🇵🇹 <em>Por favor, traduza esta newsletter para a sua própria língua através do seu navegador ou ferramenta de IA.</em></p>
+                                    <p style="margin:0 0 4px 0;">🇪🇸 <em>Por favor, traduzca este boletín a su propio idioma con el navegador o una herramienta de IA.</em></p>
+                                    <p style="margin:0 0 4px 0;">🇫🇷 <em>Veuillez traduire cette newsletter dans votre propre langue à l'aide de votre navigateur ou d'un outil d'IA.</em></p>
+                                    <p style="margin:0 0 4px 0;">🇮🇹 <em> Si prega di tradurre questa newsletter nella propria lingua utilizzando il browser o uno strumento di intelligenza artificiale.</em></p>
+                                    <p style="margin:0 0 4px 0;">🇩🇪 <em> Bitte übersetzen Sie diesen Newsletter mit Ihrem Browser oder einem KI-Tool in Ihre eigene Sprache.</em></p>
+                                    <p style="margin:0 0 4px 0;">🇳🇱 <em> Vertaal deze nieuwsbrief naar uw eigen taal met behulp van uw browser of een AI-tool.</em></p>
+                                    <p style="margin:0 0 4px 0;">🇰🇷 <em> 브라우저나 AI 도구를 사용하여 이 뉴스레터를 귀하의 언어로 번역해 주세요. 방법을 모르시는 경우 가족이나 친척에게 도움을 요청하세요</em></p>
+                                    <p style="margin:0 0 4px 0;">🇯🇵 <em>ブラウザやAIツールを使用して、このニュースレターをご自身の言語に翻訳してご覧ください。</em></p>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+
+                            <!-- KANJI SEPARATOR LINE | SPACING CONTROL: 12px top, 50px bottom -->
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%; margin:12px 0 50px 0;">
+                              <tbody>
+                                <tr>
+                                  <td width="42%" style="width:42%; border-bottom:1px solid #C8BEA7; font-size:1px; line-height:1px;">&nbsp;</td>
+                                  <td width="16%" align="center" style="width:16%; font-family:'Shippori Mincho', 'Noto Serif JP', serif; font-size:15px; line-height:1.4; color:#6E2B25; padding:0 6px;">話</td>
+                                  <td width="42%" style="width:42%; border-bottom:1px solid #C8BEA7; font-size:1px; line-height:1px;">&nbsp;</td>
+                                </tr>
+                              </tbody>
+                            </table>
+
+                            <!-- GREETING & OPENING LETTER -->
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%;">
+                              <tbody>
+                                <tr>
+                                  <td style="font-family:Arial, Georgia, serif; font-size:16px; line-height:1.7; color:#1C1A17;">
+                                    <div class="mobile-greeting" style="font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size:58px; font-weight:1000; line-height:1.15; color:#6E2B25; margin:0 0 4px 0;">
+                                      Kon'nichiwa!
+                                    </div>
+                                    <div style="font-family:'Shippori Mincho', 'Noto Serif JP', Georgia, serif; font-size:18px; font-weight:400; line-height:1.5; color:#5A534A; margin:0 0 60px 0;">
+                                      こんにちは！
+                                    </div>
+                                    <p style="font-size:18px; font-weight:600; margin:4px 0 45px 0;">
+                                      Dear friends, followers, and fellow pilgrims,
+                                    </p>
+                                    <p style="margin:0 0 16px 0;">
+                                      I completely forgot to introduce you to <strong>Neko </strong> 🐈 in the last newsletter! That cute little cat followed me for about 2 hours during the second week of the Camino. He and Kasa seemed to get along really well.
+                                    </p>
+                                    <p style="margin:0 0 16px 0;">
+                                      This month brings some very exciting news for the Camino Henro community! For starters, it's the <strong>grand opening</strong> of the website you've all been waiting for! 🎉
+                                    </p>
+                                    <p style="margin:0 0 16px 0;">
+                                      As usual, let's start with a brief overview:
+                                    </p>
+                                    <ul style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; line-height:1.7; padding-left:24px; margin:12px 0 40px 0;">
+                                      <li style="margin-bottom:8px;">Website is ready!</li>
+                                      <li style="margin-bottom:8px;">Donkey updates</li>
+                                      <li style="margin-bottom:8px;">Japanese calligraphy</li>
+                                      <li style="margin-bottom:8px;">About my first camino</li>
+                                    </ul>
+                                    <p style="margin:0 0 66px 0;">
+                                      Ready? Let's go 👇
+                                    </p>
+                                    <div class="mobile-section-title" style="font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size:30px; font-weight:1000; line-height:1.15; color:#6E2B25; margin:0 0 20px 0;">
+                                      1. The Website is ready!
+                                    </div>
+                                    <p style="font-size:15.5px; margin:0 0 10px 0;">
+                                      As promised, the <strong>Camino Henro website</strong> is now ready to be browsed. It is still in version 1.0, which does not include all the features I envisioned, but the basics are there.
+                                    </p>
+                                    <p style="font-size:15.5px; margin:0 0 10px 0;">
+                                      It's been an arduous task to get this up and running without basic knowledge about website developing - I have the AI's to thank for.
+                                    </p>
+                                    <p style="font-size:15.5px; margin:0 0 10px 0;">
+                                      But instead of writing more about that, I'll just let you explore the website on your own! Click below and enjoy ;)
+                                    </p>
+                                    <p style="font-size:14px; margin:30px 0 10px 0;">
+                                      Oh, just one note on <u>languages support</u>... I <u>plan to translate</u> the website into several languages later on, but right now the website is <strong>only in english</strong>. If you would like to read it in your language, please use the browser translator or AI, but keep in mind that some things will sound weird!
+                                    </p>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+
+                            <!-- PRIMARY CTA BUTTON | SPACING CONTROL: 28px above, 72px below -->
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%; margin:28px 0 72px 0;">
+                              <tbody>
+                                <tr>
+                                  <td align="center">
+                                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center">
+                                      <tbody>
+                                        <tr>
+                                          <td align="center" bgcolor="#6E2B25" style="background-color:#6E2B25; border-radius:3px; box-shadow:0 4px 10px rgba(110,43,37,0.35);">
+                                            <a href="https://caminohenro.world/?launch" target="_blank" style="display:inline-block; padding:14px 32px; font-family:'EB Garamond', Georgia, serif; font-size:16px; line-height:1.4; font-weight:600; letter-spacing:0.1em; color:#F4F1EA; text-decoration:none; border:1px solid #8C3B33;">
+                                              Explore the Website 印 ➔
+                                            </a>
+                                          </td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                    <div style="font-family:'EB Garamond', Georgia, serif; font-size:12px; line-height:1.5; color:#5A534A; margin-top:8px; font-style:italic;">
+                                      Direct address: https://caminohenro.world
+                                    </div>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+
+                            <!-- 2. DONKEY UPDATES | SPACING CONTROL: section bottom gap = 76px -->
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%; margin:0 0 76px 0;">
+                              <tbody>
+                                <tr>
+                                  <td style="font-family:Arial, Georgia, serif; font-size:16px; line-height:1.7; color:#1C1A17;">
+                                    <div class="mobile-section-title" style="font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size:30px; font-weight:1000; line-height:1.15; color:#6E2B25; margin:0 0 20px 0;">
+                                      2. Donkey updates 🫏
+                                    </div>
+                                    <p style="font-size:15.5px; margin:0 0 6px 0;">
+                                      Remember how I wanted to get myself a donkey for when I resume the pilgrimage? That project is well under way!
+                                    </p>
+                                    <p style="font-size:15.5px; margin:0 0 15px 0;">
+                                      A friend of mine just happened to have an aunt who owns donkeys, and guess what? They had <em>too many males</em> so they actually appreciate the opportunity to let one go! But I still need to learn how to take care of the animal, so after next week I'll move into the farm to help them with the work.
+                                    </p>
+                                    <!-- FIXED: the original style attribute was missing its closing quote. SPACING CONTROL: image bottom gap = 50px. -->
+                                    <img class="mobile-full-image" src="https://storage.mlcdn.com/account_image/2695563/5Imf9PBMQgTnIGO2n3pbs4prEn4rmFDZfHqEaEgR.jpg" alt="Camino Henro Stamp" width="504" style="display:block; width:100%; max-width:504px; height:auto; border:0; margin:0 0 50px 0;">
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+
+                            <!-- 3. JAPANESE CALLIGRAPHY | SPACING CONTROL: section bottom gap = 30px -->
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%; margin:0 0 30px 0;">
+                              <tbody>
+                                <tr>
+                                  <td style="font-family:Arial, Georgia, serif; font-size:16px; line-height:1.7; color:#1C1A17;">
+                                    <div class="mobile-section-title" style="font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size:30px; font-weight:1000; line-height:1.15; color:#6E2B25; margin:0 0 20px 0;">
+                                      3. Japanese Calligraphy ✍🏻
+                                    </div>
+                                    <p style="font-size:15.5px; margin:0 0 6px 0;">
+                                      I've been thinking about a new way to fund my trip: <strong>Japanese calligraphy!</strong>
+                                    </p>
+                                    <p style="font-size:15.5px; margin:0 0 6px 0;">
+                                      Imagine Henro sitting quietly beside a canal, painting beautiful kanji with a brush on a piece of paper, and offering them to people on the street in exchange for a small donation. I've always been wanting to practice this kind of calligraphy, so if I can get it to make me some money, it's a perfect combination.
+                                    </p>
+                                    <p style="font-size:15.5px; margin:0 0 6px 0;">
+                                      I'm planning to order a starter kit soon to get some practice before I hit the road in January. Hopefully by the next newsletter you'll already be able to see some of my work!
+                                    </p>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+
+                            <!-- 4. FIRST CAMINO | SPACING CONTROL: section bottom gap = 30px -->
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%; margin:0 0 30px 0;">
+                              <tbody>
+                                <tr>
+                                  <td style="font-family:Arial, Georgia, serif; font-size:16px; line-height:1.7; color:#1C1A17;">
+                                    <div class="mobile-section-title" style="font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size:30px; font-weight:1000; line-height:1.15; color:#6E2B25; margin:0 0 20px 0;">
+                                      4. About my first camino
+                                    </div>
+                                    <p style="font-size:15.5px; margin:0 0 6px 0;">
+                                      I know I promised to talk about my first and second caminos in these two newsletters, which corresponded exactly to the two months, etc., etc...
+                                    </p>
+                                    <p style="font-size:15.5px; margin:0 0 6px 0;">
+                                      The thing is, I've been putting so much work and time on the website, that I didn't have space to properly write a text about them. What I'm feeling now is that it would be undignified to cram that into this newsletter in a rush. I'll eventually either write an essay <strong>on the website</strong> about them, or do it in <strong>the next newsletter</strong>.
+                                    </p>
+                                    <p style="font-size:15.5px; margin:0 0 6px 0;">
+                                      I don't imagine anyone will be upset about that, but if it does happen, feel free to reach out! I'd love to know it if you really are so eager to read about my first two 'pilot' pilgrimages 😁
+                                    </p>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+
+                            <!-- SIGN-OFF BLOCK -->
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%; border-top:1px solid #C8BEA7;">
+                              <tbody>
+                                <tr>
+                                  <td style="padding-top:40px; font-family:'EB Garamond', Georgia, serif; font-size:15px; line-height:1.6; color:#1C1A17;">
+                                    <p style="margin:0 0 10px 0;">
+                                      It's been really nice to prepare these newsletters and this website for you all. I never imagined myself doing something like this, but I'm honestly enjoying it! I truly hope you will <strong>reach out</strong> and reply to this newsletter if there's anything you want to say: a critique, a comment, a praise, a question... I will be happy to reply - if not sooner, then later.
+                                    </p>
+                                    <p style="margin:40px 0 10px 0;">
+                                      Warm autumn regards,
+                                    </p>
+                                    <p style="margin:30px 0 10px 0; font-style:italic; color:#5A534A;">
+                                      Your pilgrim,<br>
+                                      <span style="color:#1C1A17; font-weight:500;">Henro</span>
+                                    </p>
+                                    <img src="https://storage.mlcdn.com/account_image/2695563/Le1PfSkGogbiRsa4yesWFxZn4T9wht1RRNsDyUOc.png" alt="Camino Henro Stamp" width="128" style="display:block; width:128px; max-width:128px; height:auto; border:0;">
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+
+                            <!-- HIGHLIGHT FEATURES PANEL | SPACING CONTROL: 46px above, 28px below -->
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#DFD7C4" style="width:100%; background-color:#DFD7C4; border:1px solid #C8BEA7; margin:46px 0 28px 0;">
+                              <tbody>
+                                <tr>
+                                  <td style="padding:20px 22px;">
+                                    <div style="font-family:'EB Garamond', Georgia, serif; font-size:13px; line-height:1.5; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; color:#6E2B25; margin-bottom:12px;">
+                                      HIGHLIGHTS OF THE MONTH
+                                    </div>
+
+                                    <!-- HIGHLIGHT ITEM 1 | SPACING CONTROL: item bottom gap = 12px -->
+                                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%; margin:0 0 12px 0;">
+                                      <tbody>
+                                        <tr>
+                                          <td width="28" valign="top" style="width:28px; font-size:16px; line-height:1.3;">完</td>
+                                          <td valign="top" style="font-family:'EB Garamond', Georgia, serif; font-size:15px; line-height:1.5; color:#1C1A17;">
+                                            <strong>Finished the Website</strong> <em style="font-size:13.5px;">(again)</em> — After many dedicated hours, which sometimes involved physical pain from all the sitting, the website is finally ready. But this is only the beginning... My friend Afonso will be helping me to launch <em style="color:#E82B25;">Phase 2.0</em> in the near future. Stay tuned for cool future updates ;)
+                                          </td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+
+                                    <!-- HIGHLIGHT ITEM 2 -->
+                                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%; margin:0 0 12px 0;">
+                                      <tbody>
+                                        <tr>
+                                          <td width="28" valign="top" style="width:28px; font-size:16px; line-height:1.3;">地</td>
+                                          <td valign="top" style="font-family:'EB Garamond', Georgia, serif; font-size:15px; line-height:1.5; color:#1C1A17;">
+                                            <strong>Miracle Project got the land!</strong> — Remember <a href="https://miracleproject.earth" target="_blank" style="color:#6E2B25; text-decoration:underline;">Miracle Project</a> from the last newsletter? Your contribtions helped them reach a milestone - they finally got the land! Thanks to everyone who lent a hand and shared the campaign.
+                                          </td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+
+                                    <!-- HIGHLIGHT ITEM 3 -->
+                                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%; margin:0 0 12px 0;">
+                                      <tbody>
+                                        <tr>
+                                          <td width="28" valign="top" style="width:28px; font-size:16px; line-height:1.3;">教</td>
+                                          <td valign="top" style="font-family:'EB Garamond', Georgia, serif; font-size:15px; line-height:1.5; color:#1C1A17;">
+                                            <strong>Held my own NVC workshop</strong> — Just yesterday, the 7th of November, I held a Nonviolent Communication workshop at my hometown of Coimbra, Portugal. A small group of people joined and everyone seemed to come out enriched, so I'd call it a success!
+                                          </td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    <!-- BOTTOM WOODEN SCROLL ROLLER (JIKUGI) | WIDTH MATCHES PARCHMENT: 600px -->
+                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" align="center" style="width:100%; max-width:600px; margin:0 auto;">
+                      <tbody>
+                        <tr>
+                          <td class="mobile-roller-knob" width="18" height="32" align="right" valign="middle" bgcolor="#26160C" style="width:18px; height:32px; background-color:#26160C; border-left:2px solid #5C381E; border-top:1px solid #5C381E; border-bottom:1px solid #140A04; border-radius:4px 0 0 4px; font-size:1px; line-height:1px;">&nbsp;</td>
+                          <td width="8" height="26" align="center" valign="middle" bgcolor="#A78435" style="width:8px; height:26px; background-color:#A78435; border-top:1px solid #FDF0A6; border-bottom:1px solid #36260C; font-size:1px; line-height:1px;">&nbsp;</td>
+                          <td height="26" align="center" valign="middle" bgcolor="#2A170C" style="height:26px; background-color:#2A170C; border-top:1px solid #6E4529; border-bottom:1px solid #0D0502; font-size:1px; line-height:1px;">&nbsp;</td>
+                          <td width="8" height="26" align="center" valign="middle" bgcolor="#A78435" style="width:8px; height:26px; background-color:#A78435; border-top:1px solid #FDF0A6; border-bottom:1px solid #36260C; font-size:1px; line-height:1px;">&nbsp;</td>
+                          <td class="mobile-roller-knob" width="18" height="32" align="left" valign="middle" bgcolor="#26160C" style="width:18px; height:32px; background-color:#26160C; border-right:2px solid #5C381E; border-top:1px solid #5C381E; border-bottom:1px solid #140A04; border-radius:0 4px 4px 0; font-size:1px; line-height:1px;">&nbsp;</td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    <!-- EXTERNAL FOOTER | SPACING CONTROL: 36px above footer -->
+                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" align="center" style="width:100%; max-width:540px; margin:36px auto 0 auto; text-align:center;">
+                      <tbody>
+                        <tr>
+                          <td align="center" style="font-family:'EB Garamond', Georgia, serif; font-size:12px; line-height:1.6; color:#8F877C;">
+                            <p style="margin:0 0 8px 0; letter-spacing:0.1em; text-transform:uppercase;">
+                              お接待 • Osettai — The simplest gift of the road is enough.
+                            </p>
+                            <p style="margin:0 0 12px 0; color:#6E675D;">
+                              You received this email because your address is subscribed to Camino Henro's mailing list. Opt out by clicking "Unsubscribe" below.
+                            </p>
+                            <p style="margin:0;">
+                              <a href="https://caminohenro.world" style="color:#A39682; text-decoration:underline; margin:0 8px;">Website</a>
+                              •
+                              <a href="https://caminohenro.world/blog" style="color:#A39682; text-decoration:underline; margin:0 8px;">Blog</a>
+                              •
+                              <a href="https://caminohenro.world/donate" style="color:#A39682; text-decoration:underline; margin:0 8px;">Donate</a>
+                              •
+                              <a href="{$unsubscribe}" style="color:#A39682; text-decoration:underline; margin:0 8px;">Unsubscribe</a>
+                            </p>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!--[if mso]>
+          </td></tr>
+        </table>
+        <![endif]-->
+
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!--{$body_bottom}-->
+
+
+    <!--{$body_bottom}-->
+  </body>
+
+</html>

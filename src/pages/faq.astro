@@ -50,9 +50,10 @@ const categories = Array.isArray(faqData.categories) ? faqData.categories : [];
                     <span class="hidden group-open:inline">−</span>
                   </span>
                 </summary>
-                <div class="mt-3 pr-6 font-body text-base sm:text-lg text-[#1C1A17]/90 leading-relaxed">
-                  <p>{item.answer}</p>
-                </div>
+                <div
+                  class="faq-answer-content mt-3 pr-6 font-body text-base sm:text-lg text-[#1C1A17]/90 leading-relaxed whitespace-pre-line"
+                  set:html={item.answer}
+                />
               </details>
             ))}
         </div>
@@ -65,18 +66,33 @@ const categories = Array.isArray(faqData.categories) ? faqData.categories : [];
     <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
         <h3 class="font-heading text-xl font-semibold text-[#1C1A17] mb-1">
-          Walk Alongside the Dispatches
+          Dive Deeper into the Journey
         </h3>
         <p class="font-body text-sm sm:text-base text-[#524D46]">
-          Explore the long-form philosophical essays written directly from the trail.
+          Explore Henro's most intriguing insights and meditations.
         </p>
       </div>
       <a
         href="/blog"
         class="inline-block text-center bg-[#6E2B25] hover:bg-[#8C3B33] text-[#E6DFCF] font-mono text-xs uppercase tracking-widest px-5 py-3 transition-colors shrink-0"
       >
-        Read Trail Dispatches →
+        Read the Blog →
       </a>
     </div>
   </section>
 </BaseLayout>
+
+<style>
+  .faq-answer-content :global(strong),
+  .faq-answer-content :global(b) {
+    font-weight: 700;
+    color: #1C1A17;
+  }
+  .faq-answer-content :global(em),
+  .faq-answer-content :global(i) {
+    font-style: italic;
+  }
+  .faq-answer-content :global(u) {
+    text-decoration: underline;
+  }
+</style>
