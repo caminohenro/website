@@ -23,12 +23,30 @@ const formatDate = (date: Date) =>
        Stationary in the document flow, lower z-index than .scroll-stage.
        ══════════════════════════════════════════════════════════════════ -->
   <aside slot="pre-scroll" class="pre-scroll-inquiry-container">
+
+    <div class="scroll-title-block new-samurai-header">
+      <h1 class="samurai-title">
+        <span class="jp">カミノ・遍路</span><br />
+        <span class="en">CAMINO HENRO</span>
+      </h1>
+      
+      <!-- Large UnderConstruction Logo -->
+      <img
+        src="/assets/logo.png"
+        class="construction-style-logo"
+        alt="Camino Henro Logo"
+        width="200"
+        height="200"
+      />
+    </div>
+
     <div class="pre-scroll-inquiry-inner">
       <div class="inquiry-kicker">
-        <span class="ink-kanji">問い</span>
+        <span class="ink-kanji">安</span>
         <span class="kicker-line"></span>
-        <span class="inquiry-en">THE UNSETTLED QUESTION</span>
+        <span class="inquiry-en">A QUEST FOR SECURITY</span>
         <span class="kicker-line"></span>
+        <span class="ink-kanji">全</span>
       </div>
 
       <p class="inquiry-p1">
@@ -178,12 +196,75 @@ const formatDate = (date: Date) =>
 </BaseLayout>
 
 <style>
-  /* ══════════════════════════════════════════════════════════════════
-     PRE-SCROLL INQUIRY (Outside Parchment, directly on dark background)
-     ══════════════════════════════════════════════════════════════════ */
+
 /* ══════════════════════════════════════════════════════════════════
      PRE-SCROLL INQUIRY (Outside Parchment, directly on dark background)
      ══════════════════════════════════════════════════════════════════ */
+
+  @import url('https://fonts.googleapis.com/css2?family=Yuji+Boku&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap');
+
+  @font-face {
+  font-family: 'Mashiro';
+  src: url('/fonts/Mashiro.otf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+  }
+
+  .new-samurai-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-top: clamp(3.5rem, 8vh, 5rem);
+    margin-bottom: 2rem;
+  }
+
+  .samurai-title {
+    font-family: 'Mashiro', 'Yuji Syuku', serif; /* Sharp, traditional Japanese brush font */
+    color: #08090C; /* Deep black */
+    /* Sharp white accents/outline to make it stand out */
+    text-shadow: 
+      -1px -1px 0 #F8F6F0,  
+       1px -1px 0 #F8F6F0,
+      -1px  1px 0 #F8F6F0,
+       1px  1px 0 #F8F6F0,
+       0px 4px 5px rgba(255, 255, 255, 0.95);
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+  }
+
+  .samurai-title .jp {
+    font-size: clamp(2.5rem, 6vw, 3.5rem);
+    font-weight: 700;
+  }
+
+  .samurai-title .en {
+    font-family: 'Mashiro', 'Yuji Syuku' 'Cormorant Garamond', serif;
+    font-size: clamp(2.4rem, 4.5vw, 3.8rem);
+    letter-spacing: 0.15em;
+    display: block;
+    margin-top: 0.2rem;
+  }
+
+  .construction-style-logo {
+    width: 200px;
+    height: 200px; 
+    object-fit: contain;
+    margin-bottom: 3.5rem;
+    filter: drop-shadow(0px 3px 4.5px rgba(253, 252, 252, 0.95));
+  }
+
+  .crest-stamp {
+    width: 88px;
+    height: 88px; 
+    object-fit: contain;
+    mix-blend-mode: multiply;
+    margin-bottom: 1.5rem;
+  }
+
   .pre-scroll-inquiry-container {
     position: relative;
     z-index: 5; /* Below .scroll-stage (z-index: 10) so the scroll unfurls over it */
@@ -216,13 +297,13 @@ const formatDate = (date: Date) =>
     align-items: center;
     justify-content: center;
     gap: 12px;
-    margin-bottom: 1.25rem;
+    margin-bottom: 5.25rem;
   }
 
   .ink-kanji {
     font-family: 'Shippori Mincho', 'Noto Serif JP', serif;
     font-size: 1.1rem;
-    color: #dfaa5b;
+    color: #F9DA7B;
   }
 
   .kicker-line {
