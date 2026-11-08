@@ -5,7 +5,7 @@
       "items": [
         {
           "question": "Where are you from?",
-          "answer": "\n<answer>"
+          "answer": "This is by far the most common question, asked to travellers, but people don't realize how difficult it is to answer. It all depends on the <em>scale</em>. \n\nIn terms of space, the answer could range from the exact coordinates of the maternity ward where I was born, to the entire universe as my place of origin.\nIn terms of time, it depends on whether you consider my existence to begin when I was forced out of my mother's womb, or if you go farther into the past to the beginning of the universe, or even if you consider I am reborn a new person every morning.\n\nMost people assume implicitly that the scale is \"What country were you brought out of your mother's womb at\", in which case the answer is <strong>Portugal</strong>. More specifically, the city of Coimbra."
         },
         {
           "question": "How many kilometers/days to Japan?",
@@ -13,7 +13,7 @@
         },
         {
           "question": "What route will you take to Japan? How will you cross the ocean?",
-          "answer": "<answer>"
+          "answer": "I plan to take as many existing pilgrimage routes as possible because it is probably the easiest way. I started with Camino de Santiago. Then I'll make my way to Italy using the Via Francigena, later I'll use the roads to Jerusalem and then I'll have to decide whether to cross through Iran or go around over the Caspian sea, depending on the political developments by the time I get there. \n\nEither way, the route will be very close to the ancient Silk Road.\n\nFor more information, check the Map page (currently under construction)."
         }
       ]
     },
