@@ -4,7 +4,7 @@ subtitle: The longer answer to a common question.
 date: 2026-11-11
 location: Coimbra, Portugal
 readingTime: 0min
-excerpt: If you stopped working today, how long could you survive? I'm going to
+excerpt: If you stopped working today, how long could you survive? I want to
   discover how many different ways I can sustain a human life on an
   ever-changing environment, with very little room for possessions. This, I
   believe, is true wealth.
@@ -20,9 +20,9 @@ We've all heard it: you have to do well at school so you can get better grades, 
 
 My 97-year old grandma always says "I just want to see you thrive". To her, thriving means having a stable, well-paying job, earning at least 1500€ a month, paying my bills on time, being able to dine out at least once a week, having a nice house or farm somewhere, and a family of my own.
 
-To me, that may or may not be thriving. It is certainly <strong>not</strong> thriving if I am doing a job that drains me just because it's the only way I know how to support my family.
+To me, that may or may not be thriving. It is certainly **not** thriving if I am doing a job that drains me just because it's the only way I know how to support my family.
 
-To me, thriving means being able to get out of a situation that I don't like <em>while</em> being able to support my family. In other words, thriving means <em>freedom</em>, or autonomy. And that takes three things: experience, knowledge and creativity.
+To me, thriving means being able to get out of a situation that I don't like *while* being able to support my family. In other words, thriving means *freedom*, or autonomy. And that takes three things: experience, knowledge and creativity.
 
 So I'm going on this trip to fuel these three things - especially the last one, financial creativity. I'm going to discover how many different ways I can find to sustain a human life on an ever-changing environment, with very little room for possessions. This, I believe, is true wealth - not what you have accumulated, but the ability to acquire what you need, when you need it. That's where real security lies.
 
