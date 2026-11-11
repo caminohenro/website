@@ -1,7 +1,7 @@
 ---
 title: "Coming Soon"
 subtitle: "Essay coming soon"
-date: 2026-10-14
+date: 2026-11-16
 location: "<location>"
 kilometersWalked: 0
 readingTime: "0min"
