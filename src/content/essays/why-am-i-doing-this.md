@@ -4,7 +4,7 @@ subtitle: The longer answer to a common question.
 date: 2026-11-11
 location: Coimbra, Portugal
 readingTime: 0min
-excerpt: If you stopped working today, how long could you survive? I want to
+excerpt: If you stopped working today, how long could you survive? I'm going on this journey to
   discover how many different ways I can sustain a human life on an
   ever-changing environment, with very little room for possessions. This, I
   believe, is true wealth.

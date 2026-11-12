@@ -85,6 +85,20 @@ const formatDate = (date: Date) =>
     <div class="page-subtitle">{siteConfig.tagline}</div>
   </div>
 
+  <!-- HENRO PICTURE -->
+  <figure class="henro-hero-portrait">
+    <div class="portrait-frame">
+      <img
+        src="/assets/Henro.jpg"
+        alt="Henro smiling at the camera, right hand holding his broken sedge hat, left hand holding the two bamboo walking staves vertically, red backpack on his back"
+        loading="eager"
+      />
+    </div>
+    <figcaption class="portrait-caption">
+      Henro holding his two symbols — Kasa the sedge hat and bamboo staves.
+    </figcaption>
+  </figure>
+
   <div class="page-break">
     <div class="line"></div>
     <div class="kanji">道の哲学 • PHILOSOPHY OF THE ROAD</div>
@@ -401,6 +415,42 @@ const formatDate = (date: Date) =>
   /* ══════════════════════════════════════════════════════════════════
      INSIDE THE SCROLL (The Emakimono Journey Presentation)
      ══════════════════════════════════════════════════════════════════ */
+
+
+  .henro-hero-portrait {
+    margin: 1.5rem auto 2rem;
+    max-width: 540px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .portrait-frame {
+    padding: 6px;
+    background: rgba(205, 178, 137, 0.18);
+    border: 1px solid rgba(140, 45, 25, 0.35);
+    border-radius: 4px;
+    box-shadow: 0 6px 18px rgba(28, 26, 23, 0.12);
+  }
+
+  .portrait-frame img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;    /* Locks proportions across all screen sizes (try 1 / 1 for a stronger crop) */
+    object-fit: cover;
+    object-position: top;   /* Anchors the top so only the bottom is cropped */
+    border-radius: 2px;
+  }
+
+  .portrait-caption {
+    margin-top: 0.65rem;
+    font-family: 'EB Garamond', serif;
+    font-size: 0.95rem;
+    font-style: italic;
+    color: #5A534A;
+    line-height: 1.4;
+  }
+
   .manifesto-journey {
     margin: 1.5rem 0 2.5rem;
     color: #1C1A17;
@@ -536,8 +586,8 @@ const formatDate = (date: Date) =>
     }
 
     .construction-style-logo {
-      width: 150px;       /* scales nicely on small screens */
-      height: 150px;
+      width: 170px;       /* scales nicely on small screens */
+      height: 170px;
       margin-bottom: 1rem;
     }
 
