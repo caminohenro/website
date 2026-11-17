@@ -8,12 +8,22 @@ import TurndownService from 'turndown';
 // CONFIGURATION
 // ============================================================================
 const CONFIG = {
-  SUBSTACK_FEED_URL: 'https://caminohenro.substack.com/feed',
-
-  // Optional: If GitHub Actions still gets 403 Forbidden from Substack,
-  // put a Cloudflare Worker proxy URL here (e.g. 'https://rss-proxy.yourname.workers.dev').
-  // Leave empty ('') to fetch directly from Substack.
-  PROXY_FEED_URL: 'https://substack-proxy.caminohenro.workers.dev',
+  // Tried in order until one returns valid RSS XML:
+  FEED_SOURCES: [
+    {
+      name: 'Direct Substack',
+      url: 'https://caminohenro.substack.com/feed',
+    },
+    {
+      name: 'Cloudflare Worker Proxy',
+      url: 'https://substack-proxy.caminohenro.workers.dev',
+    },
+    {
+      name: 'Google Apps Script Proxy',
+      // Replace with your deployed Google Apps Script Web App URL (ends in /exec)
+      url: 'https://script.google.com/macros/s/AKfycbxkfGlZ5FuwwQq3ESOEgjbECvvEp5kcfEEur_2bkONskw2w4MipujBIvi-3tXhfXhIu/exec',
+    },
+  ],
 
   ESSAYS_DIR: 'src/content/essays',
   STATE_FILE: 'src/data/substack-synced.json',
@@ -23,6 +33,7 @@ const CONFIG = {
   KANJI_BREAK_CHAR: '道',
 
   DRY_RUN: false,
+  FETCH_TIMEOUT_MS: 15000,
 };
 
 const KANJI_BREAK_HTML = `\n\n<div class="page-break">\n  <div class="line"></div>\n  <div class="kanji">${CONFIG.KANJI_BREAK_CHAR}</div>\n  <div class="line"></div>\n</div>\n\n`;
@@ -108,7 +119,7 @@ function cleanSubstackHtml(rawHtml) {
     ].join(', ')
   ).remove();
 
-  // Unwrap Substack's header-anchor-parent wrappers so <h2>/<h3> remain clean
+  // Unwrap Substack's header-anchor-parent wrappers so <h2>/<h3>/<h4> remain clean
   $('.header-anchor-parent').each((_, el) => {
     const $el = $(el);
     $el.replaceWith($el.html() || '');
@@ -155,33 +166,66 @@ function buildTurndown() {
   return td;
 }
 
+async function fetchRssWithFallbacks() {
+  const activeSources = CONFIG.FEED_SOURCES.filter(
+    (s) => s.url && !s.url.includes('YOUR_GOOGLE_SCRIPT_ID')
+  );
+
+  const errors = [];
+
+  for (const source of activeSources) {
+    console.log(`Trying [${source.name}]: ${source.url}`);
+    try {
+      const response = await fetch(source.url, {
+        redirect: 'follow',
+        signal: AbortSignal.timeout(CONFIG.FETCH_TIMEOUT_MS),
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+          Accept: 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
+        },
+      });
+
+      if (!response.ok) {
+        const retryAfter = response.headers.get('retry-after');
+        const msg = `${source.name}: HTTP ${response.status} ${response.statusText}${
+          retryAfter ? ` (Retry-After: ${retryAfter}s)` : ''
+        }`;
+        console.warn(`⚠️ ${msg}`);
+        errors.push(msg);
+        continue;
+      }
+
+      const text = await response.text();
+
+      // Verify the body is real RSS XML (catches Apps Script error text or Cloudflare HTML challenge pages)
+      if (!text.includes('<rss') && !text.includes('<channel>')) {
+        const preview = text.trim().slice(0, 120).replace(/\s+/g, ' ');
+        const msg = `${source.name}: HTTP 200 but did not return valid RSS XML ("${preview}")`;
+        console.warn(`⚠️ ${msg}`);
+        errors.push(msg);
+        continue;
+      }
+
+      console.log(`✅ Fetched valid RSS XML via [${source.name}]`);
+      return text;
+    } catch (err) {
+      const msg = `${source.name}: ${err.message}`;
+      console.warn(`⚠️ ${msg}`);
+      errors.push(msg);
+    }
+  }
+
+  throw new Error(`All RSS sources failed:\n  - ${errors.join('\n  - ')}`);
+}
+
 // ============================================================================
 // MAIN SYNC PIPELINE
 // ============================================================================
 async function syncSubstack() {
-  const targetUrl = CONFIG.PROXY_FEED_URL || CONFIG.SUBSTACK_FEED_URL;
-  console.log(`Fetching Substack RSS: ${targetUrl}`);
+  const xml = await fetchRssWithFallbacks();
 
-  const response = await fetch(targetUrl, {
-    headers: {
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-      Accept: 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8',
-      'Accept-Language': 'en-US,en;q=0.9',
-    },
-  });
-
-  if (!response.ok) {
-    if (response.status === 403) {
-      console.error(
-        '⚠️ Substack/Cloudflare blocked this runner IP with 403 Forbidden. ' +
-          'Run `node scripts/sync-substack.mjs` locally or configure CONFIG.PROXY_FEED_URL with a Cloudflare Worker.'
-      );
-    }
-    throw new Error(`Failed to fetch RSS feed (${response.status} ${response.statusText})`);
-  }
-
-  const xml = await response.text();
   const parser = new XMLParser({
     ignoreAttributes: false,
     cdataPropName: '__cdata',

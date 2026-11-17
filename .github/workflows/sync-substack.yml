@@ -2,7 +2,7 @@ name: Sync Substack Essays
 
 on:
   schedule:
-    # Checks Substack every 2 hours
+    # Checks Substack every day at 2am
     - cron: '0 2 * * *'
   workflow_dispatch: # Adds a manual "Run workflow" button in GitHub Actions
 
@@ -21,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
