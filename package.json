@@ -10,8 +10,13 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "astro": "^4.15.0",
     "@astrojs/tailwind": "^5.1.0",
+    "astro": "^4.15.0",
     "tailwindcss": "^3.4.10"
+  },
+  "devDependencies": {
+    "cheerio": "^1.2.0",
+    "fast-xml-parser": "^5.12.1",
+    "turndown": "^7.2.5"
   }
 }
