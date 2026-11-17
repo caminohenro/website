@@ -1335,3 +1335,41 @@ h1.page-heading {
     animation: none !important;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   ESSAY MARKDOWN HEADINGS (H1–H6, Substack & PagesCMS)
+   ══════════════════════════════════════════════════════════════════ */
+.washi-scroll :where(h1, h2, h3, h4, h5, h6):not([class]) {
+  font-family: 'Cormorant Garamond', 'Shippori Mincho', serif;
+  color: var(--accent-crimson, #6E2B25);
+  font-weight: 700;
+  line-height: 1.3;
+  margin-top: 2rem;
+  margin-bottom: 0.85rem;
+}
+
+.washi-scroll :where(h1):not([class]) {
+  font-size: 2.25rem;
+}
+
+.washi-scroll :where(h2):not([class]) {
+  font-size: 1.9rem;
+}
+
+.washi-scroll :where(h3):not([class]) {
+  font-size: 1.65rem;
+}
+
+.washi-scroll :where(h4):not([class]) {
+  font-size: 1.45rem;
+}
+
+.washi-scroll :where(h5):not([class]) {
+  font-size: 1.3rem;
+}
+
+.washi-scroll :where(h6):not([class]) {
+  font-size: 1.2rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

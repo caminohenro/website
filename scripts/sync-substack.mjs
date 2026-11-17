@@ -13,7 +13,7 @@ const CONFIG = {
   // Optional: If GitHub Actions still gets 403 Forbidden from Substack,
   // put a Cloudflare Worker proxy URL here (e.g. 'https://rss-proxy.yourname.workers.dev').
   // Leave empty ('') to fetch directly from Substack.
-  PROXY_FEED_URL: '',
+  PROXY_FEED_URL: 'https://substack-proxy.caminohenro.workers.dev',
 
   ESSAYS_DIR: 'src/content/essays',
   STATE_FILE: 'src/data/substack-synced.json',
