@@ -5,23 +5,23 @@ import * as cheerio from 'cheerio';
 import TurndownService from 'turndown';
 
 // ============================================================================
-// CONFIGURATION — Edit these values to match your Substack & Astro setup
+// CONFIGURATION
 // ============================================================================
 const CONFIG = {
-  // Replace with your actual Substack feed URL (always ends in /feed)
   SUBSTACK_FEED_URL: 'https://caminohenro.substack.com/feed',
 
-  // Where your English Astro essay .md files live
-  ESSAYS_DIR: 'src/content/essays',
+  // Optional: If GitHub Actions still gets 403 Forbidden from Substack,
+  // put a Cloudflare Worker proxy URL here (e.g. 'https://rss-proxy.yourname.workers.dev').
+  // Leave empty ('') to fetch directly from Substack.
+  PROXY_FEED_URL: '',
 
-  // Tracks already-imported Substack GUIDs so manual edits are never overwritten
+  ESSAYS_DIR: 'src/content/essays',
   STATE_FILE: 'src/data/substack-synced.json',
 
   // Toggle: Convert Substack horizontal dividers (---) into Camino Henro Kanji breaks
   ENABLE_KANJI_BREAKS: false,
   KANJI_BREAK_CHAR: '道',
 
-  // Set to true during local testing to preview without writing files
   DRY_RUN: false,
 };
 
@@ -40,9 +40,41 @@ function slugify(text) {
     .slice(0, 80);
 }
 
+// Pure-JS HTML entity decoder (fixes &#8220;, &#8217;, &quot;, &mdash;, etc.)
+function decodeHtmlEntities(input) {
+  if (input == null) return '';
+  const named = {
+    amp: '&',
+    lt: '<',
+    gt: '>',
+    quot: '"',
+    apos: "'",
+    nbsp: ' ',
+    mdash: '—',
+    ndash: '–',
+    hellip: '…',
+    lsquo: '‘',
+    rsquo: '’',
+    ldquo: '“',
+    rdquo: '”',
+  };
+
+  return String(input)
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
+      const code = parseInt(hex, 16);
+      return Number.isFinite(code) ? String.fromCodePoint(code) : _;
+    })
+    .replace(/&#(\d+);/g, (_, dec) => {
+      const code = parseInt(dec, 10);
+      return Number.isFinite(code) ? String.fromCodePoint(code) : _;
+    })
+    .replace(/&([a-zA-Z]+);/g, (match, name) => named[name] ?? match);
+}
+
 function escapeYaml(str) {
-  return String(str || '')
+  return decodeHtmlEntities(str)
     .replace(/\r?\n/g, ' ')
+    .replace(/\\/g, '\\\\')
     .replace(/"/g, '\\"')
     .trim();
 }
@@ -60,7 +92,7 @@ function loadSyncedState(statePath) {
 function cleanSubstackHtml(rawHtml) {
   const $ = cheerio.load(rawHtml || '', null, false);
 
-  // Strip Substack-specific UI widgets that clutter the Washi scroll
+  // Strip Substack UI clutter and heading anchor buttons
   $(
     [
       '.subscription-widget-wrap',
@@ -68,11 +100,19 @@ function cleanSubstackHtml(rawHtml) {
       '.button-wrapper',
       '.share-dialog',
       '.pencraft',
+      '.header-anchor-post',
+      '.header-anchor-widget',
       'script',
       'style',
       'iframe[src*="substack.com/embed"]',
     ].join(', ')
   ).remove();
+
+  // Unwrap Substack's header-anchor-parent wrappers so <h2>/<h3> remain clean
+  $('.header-anchor-parent').each((_, el) => {
+    const $el = $(el);
+    $el.replaceWith($el.html() || '');
+  });
 
   // Unwrap Substack's clickable image links so Turndown outputs clean ![alt](src)
   $('a.image-link').each((_, el) => {
@@ -107,15 +147,9 @@ function buildTurndown() {
     codeBlockStyle: 'fenced',
   });
 
-  // Optional Kanji page-break conversion (controlled by CONFIG.ENABLE_KANJI_BREAKS)
   td.addRule('horizontalRule', {
     filter: 'hr',
-    replacement: () => {
-      if (CONFIG.ENABLE_KANJI_BREAKS) {
-        return KANJI_BREAK_HTML;
-      }
-      return '\n\n---\n\n';
-    },
+    replacement: () => (CONFIG.ENABLE_KANJI_BREAKS ? KANJI_BREAK_HTML : '\n\n---\n\n'),
   });
 
   return td;
@@ -125,17 +159,25 @@ function buildTurndown() {
 // MAIN SYNC PIPELINE
 // ============================================================================
 async function syncSubstack() {
-  if (CONFIG.SUBSTACK_FEED_URL.includes('YOUR_SUBSTACK_NAME')) {
-    console.error('❌ Please set CONFIG.SUBSTACK_FEED_URL in scripts/sync-substack.mjs first.');
-    process.exit(1);
-  }
+  const targetUrl = CONFIG.PROXY_FEED_URL || CONFIG.SUBSTACK_FEED_URL;
+  console.log(`Fetching Substack RSS: ${targetUrl}`);
 
-  console.log(`Fetching Substack RSS: ${CONFIG.SUBSTACK_FEED_URL}`);
-  const response = await fetch(CONFIG.SUBSTACK_FEED_URL, {
-    headers: { 'User-Agent': 'CaminoHenro-SubstackSync/1.0' },
+  const response = await fetch(targetUrl, {
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+      Accept: 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.9',
+    },
   });
 
   if (!response.ok) {
+    if (response.status === 403) {
+      console.error(
+        '⚠️ Substack/Cloudflare blocked this runner IP with 403 Forbidden. ' +
+          'Run `node scripts/sync-substack.mjs` locally or configure CONFIG.PROXY_FEED_URL with a Cloudflare Worker.'
+      );
+    }
     throw new Error(`Failed to fetch RSS feed (${response.status} ${response.statusText})`);
   }
 
@@ -175,17 +217,26 @@ async function syncSubstack() {
       continue;
     }
 
-    const title = item.title?.__cdata ?? item.title ?? 'Untitled Essay';
-    const description = item.description?.__cdata ?? item.description ?? '';
-    const rawHtml = item['content:encoded']?.__cdata ?? item['content:encoded'] ?? description;
+    const rawTitle = item.title?.__cdata ?? item.title ?? 'Untitled Essay';
+    const rawDesc = item.description?.__cdata ?? item.description ?? '';
+    const rawHtml = item['content:encoded']?.__cdata ?? item['content:encoded'] ?? rawDesc;
+
     const pubDate = item.pubDate ? new Date(item.pubDate) : new Date();
     const isoDate = Number.isNaN(pubDate.getTime())
       ? new Date().toISOString().slice(0, 10)
       : pubDate.toISOString().slice(0, 10);
 
-    // Derive slug from Substack URL (e.g., .../p/my-essay-slug) or fallback to title
+    let tagsArray = [];
+    if (item.category) {
+      const cats = Array.isArray(item.category) ? item.category : [item.category];
+      tagsArray = cats
+        .map((c) => (typeof c === 'object' ? c.__cdata || c['#text'] : c))
+        .filter(Boolean)
+        .map((c) => `"${escapeYaml(String(c))}"`);
+    }
+
     const urlSlugMatch = link.match(/\/p\/([^/?#]+)/i);
-    const slug = slugify(urlSlugMatch ? urlSlugMatch[1] : title);
+    const slug = slugify(urlSlugMatch ? urlSlugMatch[1] : decodeHtmlEntities(rawTitle));
     const filename = `${slug}.md`;
     const outputPath = path.join(essaysDir, filename);
 
@@ -194,9 +245,10 @@ async function syncSubstack() {
 
     const frontmatter = [
       '---',
-      `title: "${escapeYaml(title)}"`,
+      `title: "${escapeYaml(rawTitle)}"`,
       `date: ${isoDate}`,
-      `excerpt: "${escapeYaml(description)}"`,
+      `excerpt: "${escapeYaml(rawDesc)}"`,
+      `tags: [${tagsArray.join(', ')}]`,
       `substackUrl: "${escapeYaml(link)}"`,
       `source: "substack"`,
       '---',
@@ -206,7 +258,7 @@ async function syncSubstack() {
     const fullContent = `${frontmatter}\n${markdownBody}\n`;
 
     if (CONFIG.DRY_RUN) {
-      console.log(`[DRY RUN] Would create: ${outputPath} (${title})`);
+      console.log(`[DRY RUN] Would create: ${outputPath}`);
     } else {
       fs.writeFileSync(outputPath, fullContent, 'utf8');
       syncedIds.add(uniqueId);
