@@ -29,20 +29,40 @@ const formattedDate = entry.data.date.toLocaleDateString('en-US', {
   day: 'numeric',
 });
 
+const substackUrl =
+  typeof entry.data.substackUrl === 'string' ? entry.data.substackUrl.trim() : '';
+const substackCommentsUrl = substackUrl
+  ? `${substackUrl.replace(/\/+$/, '')}/comments`
+  : '';
+const tags = Array.isArray(entry.data.tags)
+  ? entry.data.tags.map((t: string) => t.trim()).filter(Boolean)
+  : [];
+
 const showGiscusDrawer =
   siteConfig.features?.enableForum === true &&
   Boolean(siteConfig.giscus?.repoId && siteConfig.giscus.repoId.trim() !== '');
 ---
 
 <BaseLayout title={entry.data.title} description={entry.data.excerpt}>
-  <!-- a) Minimal Top Breadcrumb -->
-  <nav class="mb-6" aria-label="Breadcrumb">
+  <!-- a) Minimal Top Breadcrumb & Substack Link -->
+  <nav class="mb-6 flex flex-wrap items-center justify-between gap-3" aria-label="Breadcrumb">
     <a
       href="/blog"
       class="font-mono text-xs uppercase tracking-widest text-[#524D46] hover:text-[#6E2B25] transition-colors"
     >
       ← Back to All Dispatches
     </a>
+
+    {substackUrl && (
+      <a
+        href={substackUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center gap-1.5 rounded-full bg-[#6E2B25] hover:bg-[#8C3B33] text-[#E6DFCF] font-mono text-[11px] uppercase tracking-widest px-4 py-1.5 shadow-xs transition-colors"
+      >
+        Read on Substack ↗
+      </a>
+    )}
   </nav>
 
   <!-- b) Essay Header with Stamped Metadata -->
@@ -51,8 +71,12 @@ const showGiscusDrawer =
       <time datetime={entry.data.date.toISOString()} class="text-[#1C1A17] font-medium">
         {formattedDate}
       </time>
-      <span aria-hidden="true">·</span>
-      <span>{entry.data.location}</span>
+      {entry.data.location && (
+        <>
+          <span aria-hidden="true">·</span>
+          <span>{entry.data.location}</span>
+        </>
+      )}
       {typeof entry.data.kilometersWalked === 'number' && (
         <>
           <span aria-hidden="true">·</span>
@@ -78,6 +102,19 @@ const showGiscusDrawer =
         {entry.data.subtitle}
       </p>
     )}
+
+    {tags.length > 0 && (
+      <div class="flex flex-wrap items-center gap-1.5 mt-4" aria-label="Essay tags">
+        {tags.map((tag: string) => (
+          <a
+            href={`/blog?tag=${encodeURIComponent(tag)}`}
+            class="rounded-full border border-[#6E2B25]/35 bg-[#D8CEB8]/35 hover:bg-[#6E2B25] hover:text-[#E6DFCF] hover:border-[#6E2B25] text-[#524D46] font-mono text-[11px] px-2.5 py-0.5 transition-colors"
+          >
+            {tag}
+          </a>
+        ))}
+      </div>
+    )}
   </header>
 
   <!-- c) Distraction-Free Essay Body -->
@@ -85,10 +122,11 @@ const showGiscusDrawer =
     <Content />
   </article>
 
-  <!-- d) Share & Osettai Bar at Essay End -->
+  <!-- d) Unified Share, Discussion & Osettai Card at Essay End -->
   <section class="mt-12 pt-8 border-t border-[#6E2B25]">
-    <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-6 sm:p-8">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-[#1C1A17]/15">
+    <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-6 sm:p-8 divide-y divide-[#1C1A17]/15">
+      <!-- 1. Share This Essay -->
+      <div class="flex flex-col gap-4 pb-6">
         <div>
           <span class="font-mono text-[11px] uppercase tracking-widest text-[#6E2B25] block mb-1">
             Pass the Scroll
@@ -144,19 +182,64 @@ const showGiscusDrawer =
           >
             Email
           </a>
+
+          {substackUrl && (
+            <button
+              id="share-substack-btn"
+              type="button"
+              data-substack-url={substackUrl}
+              title="Copies the Substack link to your clipboard and opens Substack Notes"
+              class="border border-[#1C1A17]/25 hover:border-[#6E2B25] text-[#524D46] hover:text-[#6E2B25] px-2.5 py-2 uppercase tracking-wider transition-colors cursor-pointer"
+            >
+              Substack [?]
+            </button>
+          )}
         </div>
       </div>
 
-      <!-- Offer Osettai Callout -->
+      <!-- 2. Comments & Discussion (Substack) -->
+      {substackCommentsUrl && (
+        <div class="py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <span class="font-mono text-[11px] uppercase tracking-widest text-[#6E2B25] block mb-1">
+              Roadside Reflections
+            </span>
+            <h2 class="font-heading text-xl sm:text-2xl font-semibold text-[#1C1A17] mb-1">
+              Comments &amp; Discussion
+            </h2>
+            <p class="font-body text-sm sm:text-base text-[#524D46] max-w-md">
+              Comments for this essay live on Substack. Share your thoughts or read what other travellers are saying.
+            </p>
+          </div>
+          <a
+            href={substackCommentsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-block text-center bg-[#6E2B25] hover:bg-[#8C3B33] text-[#E6DFCF] font-mono text-xs uppercase tracking-widest px-4 py-3 transition-colors shrink-0"
+          >
+            Join the Discussion ↗
+          </a>
+        </div>
+      )}
+
+      <!-- 3. Offer Osettai Callout -->
       <div class="pt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <p class="font-body text-sm sm:text-base text-[#1C1A17]/85 max-w-md">
-          These essays are a gift from Henro to the community. To show appreciation with a gift of your own, click 'Osettai'.
-        </p>
+        <div>
+            <span class="font-mono text-[11px] uppercase tracking-widest text-[#6E2B25] block mb-1">
+              Offer Osettai
+            </span>
+            <h2 class="font-heading text-xl sm:text-2xl font-semibold text-[#1C1A17] mb-1">
+              Contribute
+            </h2>
+            <p class="font-body text-sm sm:text-base text-[#524D46] max-w-md">
+              These essays are a gift from Henro to the community. To show appreciation with a gift of your own, click 'Osettai'.
+            </p>
+          </div>
         <a
           href="/donate"
           class="inline-block text-center bg-[#6E2B25] hover:bg-[#8C3B33] text-[#E6DFCF] font-mono text-xs uppercase tracking-widest px-4 py-3 transition-colors shrink-0"
         >
-          Osettai お接待 (Contribute)
+          Osettai (Contribute)
         </a>
       </div>
     </div>
@@ -238,7 +321,7 @@ const showGiscusDrawer =
       </details>
     )}
   </section>
-
+  
   <script is:inline>
     (function () {
       const pageUrl = window.location.href;
@@ -249,6 +332,7 @@ const showGiscusDrawer =
       const xLink = document.getElementById('share-x-link');
       const redditLink = document.getElementById('share-reddit-link');
       const emailLink = document.getElementById('share-email-link');
+      const substackShareBtn = document.getElementById('share-substack-btn');
 
       // Populate social share hrefs
       if (xLink) {
@@ -279,6 +363,32 @@ const showGiscusDrawer =
             '&body=' +
             encodeURIComponent('Read this dispatch from Camino Henro: ' + pageUrl)
         );
+      }
+
+      if (substackShareBtn) {
+        substackShareBtn.addEventListener('click', async function () {
+          const targetUrl =
+            substackShareBtn.getAttribute('data-substack-url') || pageUrl;
+          const originalLabel = 'Substack [?]';
+
+          try {
+            await navigator.clipboard.writeText(targetUrl);
+          } catch (_err) {
+            const tempInput = document.createElement('input');
+            tempInput.value = targetUrl;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+          }
+
+          substackShareBtn.textContent = '✓ Link Copied — Paste in Notes';
+          window.open('https://substack.com/notes', '_blank', 'noopener,noreferrer');
+
+          setTimeout(function () {
+            substackShareBtn.textContent = originalLabel;
+          }, 3500);
+        });
       }
 
       // Copy Direct Link handler

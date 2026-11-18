@@ -63,7 +63,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           Payment options
         </h2>
         <p class="text-xs sm:text-sm text-neutral-500 font-sans mt-1">
-          Select a payment method below to view transfer details or open direct links.
+          Select a payment method below to for a one-time donation...
         </p>
       </div>
 
@@ -232,7 +232,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                 <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 overflow-hidden p-1.5">
                   <img 
                     src="/assets/bitcoin.webp" 
-                    alt="MB WAY" 
+                    alt="Bitcoin" 
                     class="w-full h-full object-contain"
                     width="32"
                     height="32"
@@ -303,6 +303,56 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           </div>
         </div>
 
+      </div>
+
+      <!-- Divider -->
+      <div class="my-8 border-t border-neutral-300/80" role="separator"></div>
+
+      <!-- Substack Recurring Subscription Section (Substack Aesthetic) -->
+      <div class="font-sans">
+        <div class="mb-5">
+          <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 font-sans">
+            ...or subscribe via Substack
+          </h2>
+          <p class="text-xs sm:text-sm text-neutral-500 font-sans mt-1">
+            Prefer recurring support? Become a paid subscriber on Substack to view monthly, annual, and founding member options.
+          </p>
+        </div>
+
+        <div class="font-sans bg-white border border-neutral-300 rounded-xl p-5 sm:p-6 shadow-xs">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-start sm:items-center gap-3.5">
+              <!-- Substack Bookmark Icon -->
+              <div class="w-10 h-10 rounded-lg bg-[#FF6719]/10 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-[#FF6719]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M22.539 8.242H1.46V5.406h21.08v2.836zM1.46 10.812V24L12 18.11 22.54 24V10.812H1.46zM22.54 0H1.46v2.836h21.08V0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-base font-semibold text-neutral-900">
+                  Recurring Support on Substack
+                </h3>
+                <p class="text-xs sm:text-sm text-neutral-500 mt-0.5">
+                  Choose a monthly, annual, or founding patron tier directly on Substack.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
+              <a
+                href="https://caminohenro.substack.com/subscribe"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex justify-center items-center gap-2 px-5 py-2.5 bg-[#FF6719] hover:bg-[#E55A14] text-white text-sm font-semibold rounded-lg shadow-xs transition-colors"
+              >
+                Become a Paid Subscriber
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Financial Ledger Sub-link -->

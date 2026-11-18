@@ -8,8 +8,11 @@ const essays = defineCollection({
     date: z.coerce.date(),
     location: z.string().optional(),
     kilometersWalked: z.number().optional(),
-    readingTime: z.string().optional(),
     excerpt: z.string(),
+    substackUrl: z.string().url().optional(), 
+    source: z.enum(['native', 'substack']).optional(), 
+    tags: z.array(z.string()).optional(), 
+    readingTime: z.string().optional(),
     draft: z.boolean().default(false),
   }),
 });

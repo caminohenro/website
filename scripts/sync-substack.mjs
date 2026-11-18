@@ -32,6 +32,7 @@ const CONFIG = {
   ENABLE_KANJI_BREAKS: false,
   KANJI_BREAK_CHAR: '道',
 
+  WORDS_PER_MINUTE: 200,
   DRY_RUN: false,
   FETCH_TIMEOUT_MS: 15000,
 };
@@ -88,6 +89,21 @@ function escapeYaml(str) {
     .replace(/\\/g, '\\\\')
     .replace(/"/g, '\\"')
     .trim();
+}
+
+function calculateReadingTime(markdownText) {
+  const plainText = String(markdownText || '')
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`[^`]*`/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/[#>*_~\-]+/g, ' ')
+    .trim();
+
+  const wordCount = plainText ? plainText.split(/\s+/).filter(Boolean).length : 0;
+  const minutes = Math.max(1, Math.ceil(wordCount / CONFIG.WORDS_PER_MINUTE));
+  return `${minutes} min read`;
 }
 
 function loadSyncedState(statePath) {
@@ -286,11 +302,13 @@ async function syncSubstack() {
 
     const cleanedHtml = cleanSubstackHtml(rawHtml);
     const markdownBody = turndown.turndown(cleanedHtml).trim();
+    const readingTime = calculateReadingTime(markdownBody);
 
     const frontmatter = [
       '---',
       `title: "${escapeYaml(rawTitle)}"`,
       `date: ${isoDate}`,
+      `readingTime: "${readingTime}"`,
       `excerpt: "${escapeYaml(rawDesc)}"`,
       `tags: [${tagsArray.join(', ')}]`,
       `substackUrl: "${escapeYaml(link)}"`,
@@ -302,12 +320,12 @@ async function syncSubstack() {
     const fullContent = `${frontmatter}\n${markdownBody}\n`;
 
     if (CONFIG.DRY_RUN) {
-      console.log(`[DRY RUN] Would create: ${outputPath}`);
+      console.log(`[DRY RUN] Would create: ${outputPath} (${readingTime})`);
     } else {
       fs.writeFileSync(outputPath, fullContent, 'utf8');
       syncedIds.add(uniqueId);
       importedCount += 1;
-      console.log(`✅ Imported: ${filename}`);
+      console.log(`✅ Imported: ${filename} (${readingTime})`);
     }
   }
 

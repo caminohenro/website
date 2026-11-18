@@ -13,6 +13,16 @@ const totalKilometersLogged = sortedEssays.reduce((maxKm, essay) => {
   return km > maxKm ? km : maxKm;
 }, 0);
 
+const allTags = Array.from(
+  new Set(
+    sortedEssays.flatMap((essay) =>
+      Array.isArray(essay.data.tags)
+        ? essay.data.tags.map((t: string) => t.trim()).filter(Boolean)
+        : []
+    )
+  )
+).sort((a, b) => a.localeCompare(b));
+
 const formatDate = (date: Date) =>
   date.toLocaleDateString('en-US', {
     year: 'numeric',
@@ -40,62 +50,443 @@ const formatDate = (date: Date) =>
 </div>
 <!-- STANDARDIZED_SCROLL_HEADER_END -->
 
-  <!-- Chronological Stream of Essays -->
-  <section class="divide-y divide-[#1C1A17]/15">
-    {sortedEssays.map((essay, index) => (
-      <article class="py-8">
-        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-[#524D46] mb-2">
-          <span class="text-[#6E2B25] font-medium">
-            #{String(totalDispatches - index).padStart(2, '0')}
-          </span>
-          <span aria-hidden="true">·</span>
-          <time datetime={essay.data.date.toISOString()}>
-            {formatDate(essay.data.date)}
-          </time>
-          <span aria-hidden="true">·</span>
-          <span>{essay.data.location}</span>
-          {typeof essay.data.kilometersWalked === 'number' && (
-            <>
-              <span aria-hidden="true">·</span>
-              <span class="text-[#6E2B25] font-medium">
-                KM {essay.data.kilometersWalked}
-              </span>
-            </>
-          )}
-          {essay.data.readingTime && (
-            <>
-              <span aria-hidden="true">·</span>
-              <span>{essay.data.readingTime}</span>
-            </>
-          )}
+  <!-- Substack Dispatch Box & Compact Tag Filter Widget -->
+  <div class="mb-6 flex flex-col sm:flex-row items-stretch justify-between gap-3">
+    <!-- Left Box: Substack Info & Browse CTA -->
+    <div class="flex-1 border border-[#1C1A17]/20 bg-[#D8CEB8]/35 px-4 py-2.5 flex flex-col justify-between gap-2.5">
+      <div>
+        <div class="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-[#1C1A17] font-medium mb-1">
+          <svg
+            class="w-3.5 h-3.5 text-[#6E2B25] shrink-0"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span>Subscribe to new essays</span>
+        </div>
+        <p class="font-body text-xs sm:text-sm text-[#524D46] leading-snug">
+          Subscribe via Substack to receive email alerts when a new essay is published.
+        </p>
+      </div>
+      <div>
+        <a
+          href="https://caminohenro.substack.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1.5 rounded-full bg-[#6E2B25] hover:bg-[#8C3B33] text-[#E6DFCF] font-mono text-[10px] uppercase tracking-widest px-3 py-1 transition-colors"
+        >
+          Browse on Substack ↗
+        </a>
+      </div>
+    </div>
+
+    <!-- Right Box: Compact Tag Filter Widget -->
+    {allTags.length > 0 && (
+      <aside
+        id="tag-filter-bar"
+        class="w-full sm:w-auto sm:min-w-[235px] sm:max-w-[265px] shrink-0 border border-[#1C1A17]/20 bg-[#D8CEB8]/35 px-3 py-2.5 flex flex-col justify-between"
+        aria-label="Filter essays by tag"
+      >
+        <div>
+          <!-- Title Row with Symbol + Clear '✕' Button -->
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <div class="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-[#1C1A17] font-medium">
+              <svg
+                class="w-3.5 h-3.5 text-[#6E2B25] shrink-0"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+              </svg>
+              <span>Filter by tags</span>
+            </div>
+
+            <button
+              id="clear-filters-btn"
+              type="button"
+              title="Clear all tag filters"
+              aria-label="Clear all tag filters"
+              class="hidden items-center justify-center w-5 h-5 rounded-full border border-[#6E2B25]/60 text-[#6E2B25] hover:bg-[#6E2B25] hover:text-[#E6DFCF] font-mono text-[10px] leading-none transition-colors cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+
+          <!-- Oval Include / Exclude Mode Toggle Pills -->
+          <div
+            class="flex items-center gap-1.5 mb-2 font-mono text-[10px] uppercase tracking-wider"
+            role="group"
+            aria-label="Tag filter mode"
+          >
+            <button
+              id="mode-include-btn"
+              type="button"
+              data-filter-mode="include"
+              aria-pressed="true"
+              class="rounded-full px-2.5 py-0.5 bg-[#6E2B25] text-[#E6DFCF] border border-[#6E2B25] transition-colors cursor-pointer"
+            >
+              + Include
+            </button>
+            <button
+              id="mode-exclude-btn"
+              type="button"
+              data-filter-mode="exclude"
+              aria-pressed="false"
+              class="rounded-full px-2.5 py-0.5 bg-[#E6DFCF]/80 text-[#524D46] border border-[#1C1A17]/25 hover:border-[#6E2B25] hover:text-[#1C1A17] transition-colors cursor-pointer"
+            >
+              − Exclude
+            </button>
+          </div>
+
+          <!-- Tag Dropdown -->
+          <select
+            id="tag-filter-select"
+            aria-label="Select a tag to filter"
+            class="w-full border border-[#1C1A17]/25 bg-[#E6DFCF] text-[#1C1A17] font-mono text-[11px] px-2 py-1 focus:outline-none focus:border-[#6E2B25] cursor-pointer"
+          >
+            <option value="">Select tag to include...</option>
+            {allTags.map((tag) => (
+              <option value={tag}>{tag}</option>
+            ))}
+          </select>
         </div>
 
-        <h2 class="font-heading text-2xl sm:text-3xl font-semibold text-[#1C1A17] mb-1 leading-snug">
+        <!-- Active Filter Chips & Match Counter -->
+        <div
+          id="active-filters-row"
+          class="hidden mt-2 pt-2 border-t border-[#1C1A17]/15 flex-col gap-1.5"
+        >
+          <div id="active-filter-chips" class="flex flex-wrap items-center gap-1"></div>
+          <span id="filter-match-count" class="font-mono text-[10px] text-[#524D46]"></span>
+        </div>
+      </aside>
+    )}
+  </div>
+
+  <!-- Chronological Stream of Essays -->
+  <section id="essays-stream" class="divide-y divide-[#1C1A17]/15">
+    {sortedEssays.map((essay, index) => {
+      const essayTags = Array.isArray(essay.data.tags)
+        ? essay.data.tags.map((t: string) => t.trim()).filter(Boolean)
+        : [];
+
+      return (
+        <article
+          class="py-8 essay-card"
+          data-tags={JSON.stringify(essayTags)}
+        >
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-[#524D46] mb-2">
+            <span class="text-[#6E2B25] font-medium">
+              #{String(totalDispatches - index).padStart(2, '0')}
+            </span>
+            <span aria-hidden="true">·</span>
+            <time datetime={essay.data.date.toISOString()}>
+              {formatDate(essay.data.date)}
+            </time>
+            {essay.data.location && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>{essay.data.location}</span>
+              </>
+            )}
+            {typeof essay.data.kilometersWalked === 'number' && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span class="text-[#6E2B25] font-medium">
+                  KM {essay.data.kilometersWalked}
+                </span>
+              </>
+            )}
+            {essay.data.readingTime && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>{essay.data.readingTime}</span>
+              </>
+            )}
+          </div>
+
+          {essayTags.length > 0 && (
+            <div class="flex flex-wrap items-center gap-1.5 mb-2.5" aria-label="Essay tags">
+              {essayTags.map((tag: string) => (
+                <button
+                  type="button"
+                  data-tag-pill={tag}
+                  class="essay-tag-pill rounded-full border border-[#6E2B25]/35 bg-[#D8CEB8]/35 hover:bg-[#6E2B25] hover:text-[#E6DFCF] hover:border-[#6E2B25] text-[#524D46] font-mono text-[11px] px-2.5 py-0.5 transition-colors cursor-pointer"
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <h2 class="font-heading text-2xl sm:text-3xl font-semibold text-[#1C1A17] mb-1 leading-snug">
+            <a
+              href={`/blog/${essay.slug}`}
+              class="hover:text-[#6E2B25] transition-colors"
+            >
+              {essay.data.title}
+            </a>
+          </h2>
+
+          {essay.data.subtitle && (
+            <p class="font-body italic text-base sm:text-lg text-[#524D46] mb-3">
+              {essay.data.subtitle}
+            </p>
+          )}
+
+          <p class="font-body text-[#1C1A17]/90 leading-relaxed mb-4">
+            {essay.data.excerpt}
+          </p>
+
           <a
             href={`/blog/${essay.slug}`}
-            class="hover:text-[#6E2B25] transition-colors"
+            class="inline-block font-mono text-xs uppercase tracking-widest text-[#6E2B25] hover:text-[#8C3B33] font-medium transition-colors"
           >
-            {essay.data.title}
+            Read Full Essay →
           </a>
-        </h2>
-
-        {essay.data.subtitle && (
-          <p class="font-body italic text-base sm:text-lg text-[#524D46] mb-3">
-            {essay.data.subtitle}
-          </p>
-        )}
-
-        <p class="font-body text-[#1C1A17]/90 leading-relaxed mb-4">
-          {essay.data.excerpt}
-        </p>
-
-        <a
-          href={`/blog/${essay.slug}`}
-          class="inline-block font-mono text-xs uppercase tracking-widest text-[#6E2B25] hover:text-[#8C3B33] font-medium transition-colors"
-        >
-          Read Full Essay →
-        </a>
-      </article>
-    ))}
+        </article>
+      );
+    })}
   </section>
+
+  <!-- Empty State when no essays match active filters -->
+  <div id="no-matching-essays" class="hidden py-12 text-center border-t border-[#1C1A17]/15">
+    <p class="font-body italic text-lg text-[#524D46] mb-4">
+      No dispatches match your current tag filters.
+    </p>
+    <button
+      id="empty-clear-filters-btn"
+      type="button"
+      class="border border-[#6E2B25] text-[#6E2B25] hover:bg-[#6E2B25] hover:text-[#E6DFCF] font-mono text-xs uppercase tracking-widest px-4 py-2 transition-colors cursor-pointer"
+    >
+      ✕ Clear All Filters
+    </button>
+  </div>
+
+  <script is:inline>
+    (function () {
+      const modeIncludeBtn = document.getElementById('mode-include-btn');
+      const modeExcludeBtn = document.getElementById('mode-exclude-btn');
+      const tagSelect = document.getElementById('tag-filter-select');
+      const clearBtn = document.getElementById('clear-filters-btn');
+      const emptyClearBtn = document.getElementById('empty-clear-filters-btn');
+      const activeRow = document.getElementById('active-filters-row');
+      const activeChips = document.getElementById('active-filter-chips');
+      const matchCountEl = document.getElementById('filter-match-count');
+      const emptyStateEl = document.getElementById('no-matching-essays');
+      const cards = Array.from(document.querySelectorAll('.essay-card'));
+      const cardPills = Array.from(document.querySelectorAll('.essay-tag-pill'));
+
+      if (cards.length === 0) return;
+
+      let currentMode = 'include';
+      const includedTags = new Set();
+      const excludedTags = new Set();
+
+      function setMode(mode) {
+        currentMode = mode === 'exclude' ? 'exclude' : 'include';
+        if (modeIncludeBtn && modeExcludeBtn) {
+          const isInclude = currentMode === 'include';
+          modeIncludeBtn.setAttribute('aria-pressed', String(isInclude));
+          modeExcludeBtn.setAttribute('aria-pressed', String(!isInclude));
+
+          modeIncludeBtn.className = isInclude
+            ? 'rounded-full px-2.5 py-0.5 bg-[#6E2B25] text-[#E6DFCF] border border-[#6E2B25] transition-colors cursor-pointer'
+            : 'rounded-full px-2.5 py-0.5 bg-[#E6DFCF]/80 text-[#524D46] border border-[#1C1A17]/25 hover:border-[#6E2B25] hover:text-[#1C1A17] transition-colors cursor-pointer';
+
+          modeExcludeBtn.className = !isInclude
+            ? 'rounded-full px-2.5 py-0.5 bg-[#1C1A17] text-[#E6DFCF] border border-[#1C1A17] transition-colors cursor-pointer'
+            : 'rounded-full px-2.5 py-0.5 bg-[#E6DFCF]/80 text-[#524D46] border border-[#1C1A17]/25 hover:border-[#1C1A17] hover:text-[#1C1A17] transition-colors cursor-pointer';
+        }
+
+        if (tagSelect && tagSelect.options.length > 0) {
+          tagSelect.options[0].textContent =
+            currentMode === 'include'
+              ? 'Select tag to include...'
+              : 'Select tag to exclude...';
+        }
+      }
+
+      function renderActiveChips() {
+        if (!activeChips) return;
+        activeChips.innerHTML = '';
+
+        includedTags.forEach(function (tag) {
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className =
+            'inline-flex items-center gap-1 rounded-full bg-[#6E2B25] text-[#E6DFCF] font-mono text-[10px] px-2 py-0.5 hover:bg-[#8C3B33] transition-colors cursor-pointer';
+          chip.setAttribute('aria-label', 'Remove included tag ' + tag);
+          chip.textContent = '+ ' + tag + ' ×';
+          chip.addEventListener('click', function () {
+            includedTags.delete(tag);
+            applyFilters();
+          });
+          activeChips.appendChild(chip);
+        });
+
+        excludedTags.forEach(function (tag) {
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className =
+            'inline-flex items-center gap-1 rounded-full bg-[#1C1A17] text-[#E6DFCF] font-mono text-[10px] px-2 py-0.5 hover:bg-[#524D46] transition-colors cursor-pointer';
+          chip.setAttribute('aria-label', 'Remove excluded tag ' + tag);
+          chip.textContent = '− ' + tag + ' ×';
+          chip.addEventListener('click', function () {
+            excludedTags.delete(tag);
+            applyFilters();
+          });
+          activeChips.appendChild(chip);
+        });
+      }
+
+      function applyFilters() {
+        const hasFilters = includedTags.size > 0 || excludedTags.size > 0;
+        let visibleCount = 0;
+
+        cards.forEach(function (card) {
+          let tags = [];
+          try {
+            tags = JSON.parse(card.getAttribute('data-tags') || '[]');
+          } catch (_err) {
+            tags = [];
+          }
+
+          let matchesInclude = true;
+          if (includedTags.size > 0) {
+            for (const reqTag of includedTags) {
+              if (!tags.includes(reqTag)) {
+                matchesInclude = false;
+                break;
+              }
+            }
+          }
+
+          let matchesExclude = true;
+          if (excludedTags.size > 0) {
+            for (const excTag of excludedTags) {
+              if (tags.includes(excTag)) {
+                matchesExclude = false;
+                break;
+              }
+            }
+          }
+
+          const visible = matchesInclude && matchesExclude;
+          card.classList.toggle('hidden', !visible);
+          if (visible) visibleCount += 1;
+        });
+
+        // Highlight active tag pills on essay cards
+        cardPills.forEach(function (pill) {
+          const tag = pill.getAttribute('data-tag-pill') || '';
+          const isIncluded = includedTags.has(tag);
+          pill.classList.toggle('bg-[#6E2B25]', isIncluded);
+          pill.classList.toggle('text-[#E6DFCF]', isIncluded);
+          pill.classList.toggle('border-[#6E2B25]', isIncluded);
+          pill.classList.toggle('bg-[#D8CEB8]/35', !isIncluded);
+          pill.classList.toggle('text-[#524D46]', !isIncluded);
+        });
+
+        if (clearBtn) {
+          clearBtn.classList.toggle('hidden', !hasFilters);
+          clearBtn.classList.toggle('inline-flex', hasFilters);
+        }
+
+        if (activeRow) {
+          activeRow.classList.toggle('hidden', !hasFilters);
+          activeRow.classList.toggle('flex', hasFilters);
+        }
+
+        if (matchCountEl) {
+          matchCountEl.textContent =
+            'Showing ' + visibleCount + ' of ' + cards.length + ' dispatches';
+        }
+
+        if (emptyStateEl) {
+          emptyStateEl.classList.toggle('hidden', visibleCount > 0);
+        }
+
+        renderActiveChips();
+      }
+
+      function clearAllFilters() {
+        includedTags.clear();
+        excludedTags.clear();
+        if (window.location.search.includes('tag=')) {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('tag');
+          window.history.replaceState({}, '', url.pathname + url.search);
+        }
+        applyFilters();
+      }
+
+      if (modeIncludeBtn) {
+        modeIncludeBtn.addEventListener('click', function () {
+          setMode('include');
+        });
+      }
+
+      if (modeExcludeBtn) {
+        modeExcludeBtn.addEventListener('click', function () {
+          setMode('exclude');
+        });
+      }
+
+      if (tagSelect) {
+        tagSelect.addEventListener('change', function () {
+          const selected = tagSelect.value;
+          if (!selected) return;
+
+          if (currentMode === 'include') {
+            excludedTags.delete(selected);
+            includedTags.add(selected);
+          } else {
+            includedTags.delete(selected);
+            excludedTags.add(selected);
+          }
+
+          tagSelect.value = '';
+          applyFilters();
+        });
+      }
+
+      if (clearBtn) clearBtn.addEventListener('click', clearAllFilters);
+      if (emptyClearBtn) emptyClearBtn.addEventListener('click', clearAllFilters);
+
+      // Clicking any oval tag button on a post preview filters to include ONLY that tag
+      cardPills.forEach(function (pill) {
+        pill.addEventListener('click', function () {
+          const tag = pill.getAttribute('data-tag-pill');
+          if (!tag) return;
+          includedTags.clear();
+          excludedTags.clear();
+          includedTags.add(tag);
+          setMode('include');
+          applyFilters();
+        });
+      });
+
+      // Apply initial ?tag= query parameter if navigated from an essay page
+      const initialTag = new URLSearchParams(window.location.search).get('tag');
+      if (initialTag) {
+        includedTags.add(initialTag);
+        setMode('include');
+        applyFilters();
+      }
+    })();
+  </script>
 </BaseLayout>

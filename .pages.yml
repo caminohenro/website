@@ -1,4 +1,4 @@
-# Preserve settings not represented in a CMS form when saving.
+# Preserve settings not represented in a CMS form when saving (e.g., substackUrl, source).
 settings:
   content:
     merge: true
@@ -17,7 +17,7 @@ content:
     filename: "{year}-{month}-{day}-{primary}.md"
     view:
       primary: title
-      fields: [title, location, date, draft]
+      fields: [title, tags, date, draft]
       sort: [date]
       order: desc
     fields:
@@ -32,12 +32,18 @@ content:
         label: Date
         type: date
         required: true
-      - name: location
-        label: Current Trail Location
+      - name: tags
+        label: Tags (Press Enter after each tag)
         type: string
-        required: true
+        list: true
+      - name: readingTime
+        label: Reading Time (e.g. "5 min read")
+        type: string
+      - name: location
+        label: Current Trail Location (Optional)
+        type: string
       - name: kilometersWalked
-        label: Total Kilometers Walked
+        label: Total Kilometers Walked (Optional)
         type: number
       - name: excerpt
         label: Short Summary / Excerpt
@@ -263,29 +269,31 @@ content:
       - name: tagline
         label: Website Tagline
         type: text
+      - name: pilgrimAlias
+        label: Pilgrim Alias
+        type: string
       - name: crestImage
         label: Crest Image
+        type: image
+      - name: backgroundImage
+        label: Background Image
         type: image
       - name: routeSummary
         label: Route Summary
         type: string
-      - name: supabase
-        label: Forum Supabase Settings
-        type: object
-        fields:
-          - name: url
-            label: Supabase Project URL
-            type: string
-          - name: anonKey
-            label: Supabase Public Anonymous Key
-            description: Use only the public anon key, never a service role or secret key.
-            type: string
       - name: currentLocation
         label: Current Trail Location Banner
         type: string
       - name: stripeDonationUrl
         label: Stripe Osettai Payment Link
         type: string
+      - name: mailerlite
+        label: MailerLite Newsletter Settings
+        type: object
+        fields:
+          - name: formActionUrl
+            label: MailerLite Form Action URL
+            type: string
       - name: features
         label: Edition 2 Module Toggles
         type: object
@@ -299,6 +307,48 @@ content:
           - name: enableForum
             label: Show Forum Page
             type: boolean
+          - name: enableForumSpotlight
+            label: Show Forum Spotlight on Home Page
+            type: boolean
           - name: enableGallery
             label: Show Gallery Page
             type: boolean
+      - name: navigation
+        label: Header Navigation Tabs
+        type: object
+        list: true
+        fields:
+          - name: label
+            label: Tab Label
+            type: string
+          - name: href
+            label: Link Path (Leave empty if dropdown group)
+            type: string
+          - name: featureFlag
+            label: Feature Flag Key (Optional)
+            type: string
+          - name: children
+            label: Dropdown Sub-Links (Optional)
+            type: object
+            list: true
+            fields:
+              - name: label
+                label: Sub-Link Label
+                type: string
+              - name: href
+                label: Link Path
+                type: string
+              - name: featureFlag
+                label: Feature Flag Key (Optional)
+                type: string
+      - name: supabase
+        label: Forum Supabase Settings
+        type: object
+        fields:
+          - name: url
+            label: Supabase Project URL
+            type: string
+          - name: anonKey
+            label: Supabase Public Anonymous Key
+            description: Use only the public anon key, never a service role or secret key.
+            type: string

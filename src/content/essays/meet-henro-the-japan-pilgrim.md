@@ -1,8 +1,9 @@
 ---
 title: "Meet Henro, the “Japan pilgrim”"
 date: 2026-11-17
+readingTime: "3 min read"
 excerpt: "Crossing Eurasia on foot, from Finisterra to the Shikoku island"
-tags: []
+tags: [welcome]
 substackUrl: "https://caminohenro.substack.com/p/meet-henro-the-japan-pilgrim"
 source: "substack"
 ---
