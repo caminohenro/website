@@ -32,7 +32,6 @@ const CONFIG = {
   ENABLE_KANJI_BREAKS: false,
   KANJI_BREAK_CHAR: '道',
 
-  WORDS_PER_MINUTE: 200,
   DRY_RUN: false,
   FETCH_TIMEOUT_MS: 15000,
 };
@@ -91,19 +90,35 @@ function escapeYaml(str) {
     .trim();
 }
 
-function calculateReadingTime(markdownText) {
-  const plainText = String(markdownText || '')
-    .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/`[^`]*`/g, ' ')
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/[#>*_~\-]+/g, ' ')
-    .trim();
+function escapeHtmlAttr(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
 
-  const wordCount = plainText ? plainText.split(/\s+/).filter(Boolean).length : 0;
-  const minutes = Math.max(1, Math.ceil(wordCount / CONFIG.WORDS_PER_MINUTE));
-  return `${minutes} min read`;
+function escapeHtmlText(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function normalizeButtonHref(rawHref) {
+  const href = String(rawHref || '').trim();
+  const subscribeFallback = `${CONFIG.SUBSTACK_BASE_URL}/subscribe`;
+
+  if (!href || href.includes('%%checkout_url%%') || href.includes('%%subscribe_url%%')) {
+    return subscribeFallback;
+  }
+  if (href.startsWith('/subscribe')) {
+    return `${CONFIG.SUBSTACK_BASE_URL}${href}`;
+  }
+  if (href.startsWith('/')) {
+    return `${CONFIG.SUBSTACK_BASE_URL}${href}`;
+  }
+  return href;
 }
 
 function loadSyncedState(statePath) {
@@ -119,12 +134,53 @@ function loadSyncedState(statePath) {
 function cleanSubstackHtml(rawHtml) {
   const $ = cheerio.load(rawHtml || '', null, false);
 
-  // Strip Substack UI clutter and heading anchor buttons
+  // 1. Convert Substack buttons (.button-wrapper, a.button) into styled site CTA buttons
+  //    BEFORE stripping .pencraft / widget wrappers
+  $('.button-wrapper, a.button').each((_, el) => {
+    const $el = $(el);
+    const $link = $el.is('a') ? $el : $el.find('a').first();
+    if (!$link.length) {
+      $el.remove();
+      return;
+    }
+
+    let rawHref = $link.attr('href') || '';
+    let label = $link.text().replace(/\s+/g, ' ').trim();
+
+    // Check Substack's data-attrs JSON if href/text was tokenized
+    const rawAttrs = $el.attr('data-attrs') || $link.attr('data-attrs');
+    if (rawAttrs) {
+      try {
+        const parsed = JSON.parse(rawAttrs);
+        if (!rawHref && parsed.url) rawHref = parsed.url;
+        if (!label && parsed.text) label = String(parsed.text).trim();
+      } catch {
+        // Ignore malformed data-attrs
+      }
+    }
+
+    if (!label) label = 'Subscribe on Substack';
+    const finalHref = normalizeButtonHref(rawHref);
+    const isExternal = /^https?:\/\//i.test(finalHref) && !finalHref.includes('caminohenro.world');
+    const displayLabel = isExternal && !label.endsWith('↗') ? `${label} ↗` : label;
+
+    const buttonHtml =
+      `<div class="substack-imported-btn-wrap" style="text-align: center; margin: 24px 0;">` +
+      `<a href="${escapeHtmlAttr(finalHref)}"` +
+      (isExternal ? ` target="_blank" rel="noopener noreferrer"` : '') +
+      ` class="ink-action-btn" style="background: var(--accent-crimson); color: #F4F1EA; border-color: var(--accent-crimson);">` +
+      `${escapeHtmlText(displayLabel)}` +
+      `</a>` +
+      `</div>`;
+
+    $el.replaceWith(buttonHtml);
+  });
+
+  // 2. Strip non-button Substack UI clutter and heading anchor buttons
   $(
     [
       '.subscription-widget-wrap',
       '.subscribe-widget',
-      '.button-wrapper',
       '.share-dialog',
       '.pencraft',
       '.header-anchor-post',
@@ -135,19 +191,19 @@ function cleanSubstackHtml(rawHtml) {
     ].join(', ')
   ).remove();
 
-  // Unwrap Substack's header-anchor-parent wrappers so <h2>/<h3>/<h4> remain clean
+  // 3. Unwrap Substack's header-anchor-parent wrappers so <h2>/<h3>/<h4> remain clean
   $('.header-anchor-parent').each((_, el) => {
     const $el = $(el);
     $el.replaceWith($el.html() || '');
   });
 
-  // Unwrap Substack's clickable image links so Turndown outputs clean ![alt](src)
+  // 4. Unwrap Substack's clickable image links so Turndown outputs clean ![alt](src)
   $('a.image-link').each((_, el) => {
     const $el = $(el);
     $el.replaceWith($el.html() || '');
   });
 
-  // Convert <figure> captions into clean italicized text below the image
+  // 5. Convert <figure> captions into clean italicized text below the image
   $('figure').each((_, el) => {
     const $fig = $(el);
     const img = $fig.find('img').first();
@@ -155,9 +211,9 @@ function cleanSubstackHtml(rawHtml) {
     if (img.length) {
       const alt = img.attr('alt') || caption || '';
       const src = img.attr('src') || '';
-      let replacement = `<img src="${src}" alt="${alt.replace(/"/g, '&quot;')}" />`;
+      let replacement = `<img src="${escapeHtmlAttr(src)}" alt="${escapeHtmlAttr(alt)}" />`;
       if (caption) {
-        replacement += `<p><em>${caption}</em></p>`;
+        replacement += `<p><em>${escapeHtmlText(caption)}</em></p>`;
       }
       $fig.replaceWith(replacement);
     }
@@ -172,6 +228,14 @@ function buildTurndown() {
     hr: '---',
     bulletListMarker: '-',
     codeBlockStyle: 'fenced',
+  });
+
+  // Preserve our converted Substack CTA buttons as raw HTML inside Markdown
+  td.addRule('substackImportedButton', {
+    filter: (node) =>
+      node.nodeName === 'DIV' &&
+      node.getAttribute('class')?.includes('substack-imported-btn-wrap'),
+    replacement: (_, node) => `\n\n${node.outerHTML}\n\n`,
   });
 
   td.addRule('horizontalRule', {
@@ -215,7 +279,6 @@ async function fetchRssWithFallbacks() {
 
       const text = await response.text();
 
-      // Verify the body is real RSS XML (catches Apps Script error text or Cloudflare HTML challenge pages)
       if (!text.includes('<rss') && !text.includes('<channel>')) {
         const preview = text.trim().slice(0, 120).replace(/\s+/g, ' ');
         const msg = `${source.name}: HTTP 200 but did not return valid RSS XML ("${preview}")`;
@@ -302,13 +365,11 @@ async function syncSubstack() {
 
     const cleanedHtml = cleanSubstackHtml(rawHtml);
     const markdownBody = turndown.turndown(cleanedHtml).trim();
-    const readingTime = calculateReadingTime(markdownBody);
 
     const frontmatter = [
       '---',
       `title: "${escapeYaml(rawTitle)}"`,
       `date: ${isoDate}`,
-      `readingTime: "${readingTime}"`,
       `excerpt: "${escapeYaml(rawDesc)}"`,
       `tags: [${tagsArray.join(', ')}]`,
       `substackUrl: "${escapeYaml(link)}"`,
@@ -320,12 +381,12 @@ async function syncSubstack() {
     const fullContent = `${frontmatter}\n${markdownBody}\n`;
 
     if (CONFIG.DRY_RUN) {
-      console.log(`[DRY RUN] Would create: ${outputPath} (${readingTime})`);
+      console.log(`[DRY RUN] Would create: ${outputPath}`);
     } else {
       fs.writeFileSync(outputPath, fullContent, 'utf8');
       syncedIds.add(uniqueId);
       importedCount += 1;
-      console.log(`✅ Imported: ${filename} (${readingTime})`);
+      console.log(`✅ Imported: ${filename}`);
     }
   }
 
