@@ -12,7 +12,7 @@ const CONFIG = {
   FEED_SOURCES: [
     {
       name: 'Direct Substack',
-      url: 'https://caminohenro.substack.com/feed',
+      url: 'https://caminohenro.substack.com/feed?sectionId=508224',
     },
     {
       name: 'Cloudflare Worker Proxy',
