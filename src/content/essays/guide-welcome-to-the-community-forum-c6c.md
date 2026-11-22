@@ -1,7 +1,6 @@
 ---
 title: "[Guide] Welcome to the Community Forum!"
 date: 2026-11-20
-readingTime: "3 min read"
 excerpt: "This guide explains how you can post a thread and start a discussion on this forum."
 tags: []
 substackUrl: "https://caminohenro.substack.com/p/guide-welcome-to-the-community-forum-c6c"
@@ -22,11 +21,15 @@ When you first enter the forum, you can reply to other people’s posts, but you
 
 To submit a post request, you **fill in the following Google Forms** with the post details.
 
+<div class="substack-imported-btn-wrap" style="text-align: center; margin: 24px 0;"><a href="https://forms.gle/nufxtfzGTezEdZmG8" target="_blank" rel="noopener noreferrer" class="ink-action-btn" style="background: var(--accent-crimson); color: #F4F1EA; border-color: var(--accent-crimson);">Submit post for approval ↗</a></div>
+
 This form asks for your name or substack @handle. This lets admins add your name as **guest author** to the post, provided you accept an invitation that will be sent to you by email.
 
 ## For trusted members
 
 If you’re getting serious about participating in this Forum, the first thing you might want to do is subscribe.
+
+<div class="substack-imported-btn-wrap" style="text-align: center; margin: 24px 0;"><a href="https://caminohenro.substack.com/subscribe?" target="_blank" rel="noopener noreferrer" class="ink-action-btn" style="background: var(--accent-crimson); color: #F4F1EA; border-color: var(--accent-crimson);">Subscribe now ↗</a></div>
 
 Once you’ve been part of the community for a while, and show your trustworthiness, I may add you as a collaborator. That will allow you to post your own threads as well as other people’s requests.
 
@@ -48,6 +51,8 @@ Being a collaborator allows you to post under other people’s name, so it’s v
 ---
 
 We’re discovering this as we go. I’ll update this guide as we find better ways to do things. Feel free to comment right here with some ideas!
+
+<div class="substack-imported-btn-wrap" style="text-align: center; margin: 24px 0;"><a href="https://caminohenro.substack.com/p/guide-welcome-to-the-community-forum-c6c/comments" target="_blank" rel="noopener noreferrer" class="ink-action-btn" style="background: var(--accent-crimson); color: #F4F1EA; border-color: var(--accent-crimson);">Leave a comment ↗</a></div>
 
 ---
 

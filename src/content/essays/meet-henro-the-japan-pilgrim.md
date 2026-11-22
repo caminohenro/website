@@ -17,6 +17,8 @@ Welcome to my blog and website. I am **Henro, a pilgrim** on a quest to cross th
 
 <div class="substack-imported-btn-wrap" style="text-align: center; margin: 24px 0;"><a href="https://caminohenro.substack.com/p/kasa-the-strawhat?r=9g30s7" target="_blank" rel="noopener noreferrer" class="ink-action-btn" style="background: var(--accent-crimson); color: #F4F1EA; border-color: var(--accent-crimson);">Read more about Kasa's story ↗</a></div>
 
+---
+
 Camino Henro also has its own **website** with a lot more information. Be sure to visit and explore.
 
 <div class="substack-imported-btn-wrap" style="text-align: center; margin: 24px 0;"><a href="https://caminohenro.world" class="ink-action-btn" style="background: var(--accent-crimson); color: #F4F1EA; border-color: var(--accent-crimson);">Visit the website</a></div>
