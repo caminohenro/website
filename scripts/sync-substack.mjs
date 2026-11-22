@@ -179,8 +179,6 @@ function cleanSubstackHtml(rawHtml) {
   // 2. Strip non-button Substack UI clutter and heading anchor buttons
   $(
     [
-      '.subscription-widget-wrap',
-      '.subscribe-widget',
       '.share-dialog',
       '.pencraft',
       '.header-anchor-post',
