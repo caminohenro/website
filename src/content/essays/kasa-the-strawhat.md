@@ -1,9 +1,8 @@
 ---
 title: "Kasa, the strawhat 👒"
 date: 2026-11-17
-readingTime: "4 min read"
 excerpt: "The story of how Henro was “born”."
-tags: [welcome, kasa]
+tags: []
 substackUrl: "https://caminohenro.substack.com/p/kasa-the-strawhat"
 source: "substack"
 ---

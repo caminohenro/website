@@ -1,7 +1,6 @@
 ---
 title: "Why am I doing this?"
 date: 2026-11-18
-readingTime: "4 min read"
 excerpt: "The longer answer to a frequently asked question."
 tags: []
 substackUrl: "https://caminohenro.substack.com/p/why-am-i-doing-this"

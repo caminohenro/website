@@ -1,7 +1,6 @@
 ---
 title: "On What Sustains Us and Where to Find It"
 date: 2026-11-21
-readingTime: "5 min read"
 excerpt: "The renewability of goods."
 tags: []
 substackUrl: "https://caminohenro.substack.com/p/on-what-sustains-us-and-where-to"

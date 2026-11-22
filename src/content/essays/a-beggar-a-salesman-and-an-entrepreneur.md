@@ -1,7 +1,6 @@
 ---
 title: "A Beggar, a Salesman and an Entrepreneur"
 date: 2026-11-19
-readingTime: "13 min read"
 excerpt: "walk into a trail... and discover they are exactly the same person."
 tags: []
 substackUrl: "https://caminohenro.substack.com/p/a-beggar-a-salesman-and-an-entrepreneur"
