@@ -74,6 +74,28 @@ const {
       <div class="scroll-roller-bottom"></div>
     </div>
 
+    {enableScrollPhysics && (
+      <script is:inline>
+        (function restoreScrollSessionState() {
+          try {
+            var stage = document.querySelector('body > .scroll-stage');
+            if (!stage) return;
+            var pathKey = window.location.pathname.replace(/\/+$/, '') || '/';
+            var saved = window.sessionStorage.getItem('scrollState:' + pathKey);
+            if (saved === 'open') {
+              stage.removeAttribute('data-desktop-click-unfurl');
+              stage.setAttribute('data-scroll-initial-wait', 'true');
+              stage.setAttribute('data-mobile-start-closed', 'false');
+            } else if (saved === 'closed') {
+              stage.setAttribute('data-desktop-click-unfurl', 'true');
+              stage.removeAttribute('data-scroll-initial-wait');
+              stage.setAttribute('data-mobile-start-closed', 'true');
+            }
+          } catch (_e) {}
+        })();
+      </script>
+    )}
+
     <!-- THE SURPRISE REVEAL AT THE BOTTOM OF EVERY PAGE -->
     <div class="apple-reveal-stage">
       <div class="spacer-for-apple"></div>

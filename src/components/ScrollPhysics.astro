@@ -64,6 +64,26 @@
 
   let cleanupCurrent = null;
 
+  function getScrollStorageKey() {
+    const pathKey = window.location.pathname.replace(/\/+$/, '') || '/';
+    return 'scrollState:' + pathKey;
+  }
+
+  function readSavedScrollState() {
+    try {
+      const value = window.sessionStorage.getItem(getScrollStorageKey());
+      return value === 'open' || value === 'closed' ? value : null;
+    } catch (_e) {
+      return null;
+    }
+  }
+
+  function saveScrollState(state) {
+    try {
+      window.sessionStorage.setItem(getScrollStorageKey(), state);
+    } catch (_e) {}
+  }
+
   function isMobile() {
     return mobileQuery.matches || window.innerWidth <= 680;
   }
@@ -111,6 +131,16 @@
     const bottomRoller = stage.querySelector(':scope > .scroll-roller-bottom');
     const topRoller = stage.querySelector(':scope > .scroll-roller-top');
     if (!paper || !bottomRoller || !topRoller) return;
+
+    const savedState = readSavedScrollState();
+    if (savedState === 'open') {
+      stage.removeAttribute('data-desktop-click-unfurl');
+      stage.setAttribute('data-mobile-start-closed', 'false');
+    } else if (savedState === 'closed') {
+      stage.setAttribute('data-desktop-click-unfurl', 'true');
+      stage.removeAttribute('data-scroll-initial-wait');
+      stage.setAttribute('data-mobile-start-closed', 'true');
+    }
 
     const startsClosed =
       stage.dataset.mobileStartClosed === 'true' ||
@@ -220,6 +250,14 @@
     // Mobile initial header hide state
     let initialHeaderHidden = startsClosed && isMobile();
     let headerScrollAnchor = window.scrollY;
+
+    function persistSettledDragState() {
+      if (revealed <= 0.5) {
+        saveScrollState('closed');
+      } else if (fullyOpen || revealed >= FAILSAFE_MIN_DRAG_PX) {
+        saveScrollState('open');
+      }
+    }
 
     // ========================================================================
     // SNEAK PEEK ("YO-YO" BOUNCE)
@@ -445,8 +483,9 @@
         hitbox.style.height = hitboxHeight.toFixed(2) + 'px';
       } else {
         const hitboxTop = rollerBottomY - bottomHeight;
+        const hitboxHeight = bottomHeight;
         hitbox.style.top = hitboxTop.toFixed(2) + 'px';
-        hitbox.style.height = bottomHeight.toFixed(2) + 'px';
+        hitbox.style.height = hitboxHeight.toFixed(2) + 'px';
       }
 
       const actionLabel = isClosed ? 'Open the scroll' : 'Close the scroll';
@@ -554,8 +593,9 @@
       }
     }
 
-    function openSmoothly(delayMs) {
+    function openSmoothly(delayMs, skipSave) {
       if (disposed) return;
+      if (!skipSave) saveScrollState('open');
 
       // Capture current visual height (including any mid-peek offset) so opening
       // starts seamlessly from the exact visible position without snapping back to 0.
@@ -603,6 +643,7 @@
 
     function closeSmoothly() {
       if (disposed) return;
+      saveScrollState('closed');
 
       const startFrom = clamp(revealed + peekOffset, 0, height);
       stopSneakPeek(false);
@@ -687,6 +728,8 @@
       const duration = computeOpenDuration(remaining, settings);
       const initialSpeed = Math.min(releaseSpeed, settings.releaseCap);
       const firstY = clamp(((initialSpeed * duration) / remaining) * 0.33, 0, 1);
+
+      saveScrollState('open');
 
       activeAnim = {
         type: 'open',
@@ -789,6 +832,7 @@
       if (Math.abs(velocity) < 0.012) {
         velocity = 0;
         setAnimatingAttr(false);
+        persistSettledDragState();
         updateHints();
         return;
       }
@@ -818,6 +862,7 @@
       } else {
         velocity = 0;
         setAnimatingAttr(false);
+        persistSettledDragState();
         updateHints();
       }
     }
@@ -972,6 +1017,7 @@
         beginFrame();
       } else {
         setAnimatingAttr(false);
+        persistSettledDragState();
         updateHints();
       }
     }
@@ -1048,6 +1094,7 @@
       dismissHints();
       revealed = clamp(next, 0, height);
       render();
+      persistSettledDragState();
     }
 
     topRoller.setAttribute('role', 'button');
@@ -1167,7 +1214,7 @@
       stage.removeAttribute('data-scroll-initial-wait');
 
       if (!startsClosed) {
-        openSmoothly(450);
+        openSmoothly(450, true);
       } else {
         updateHints();
       }
