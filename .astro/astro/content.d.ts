@@ -141,33 +141,33 @@ declare module 'astro:content' {
 
 	type ContentEntryMap = {
 		"essays": {
+"a-beggar-a-salesman-and-an-entrepreneur.md": {
+	id: "a-beggar-a-salesman-and-an-entrepreneur.md";
+  slug: "a-beggar-a-salesman-and-an-entrepreneur";
+  body: string;
+  collection: "essays";
+  data: any
+} & { render(): Render[".md"] };
 "kasa-the-strawhat.md": {
 	id: "kasa-the-strawhat.md";
   slug: "kasa-the-strawhat";
   body: string;
   collection: "essays";
-  data: InferEntrySchema<"essays">
+  data: any
 } & { render(): Render[".md"] };
-"meet-henro-the-japan-pilgrim.md": {
-	id: "meet-henro-the-japan-pilgrim.md";
-  slug: "meet-henro-the-japan-pilgrim";
+"on-what-sustains-us-and-where-to.md": {
+	id: "on-what-sustains-us-and-where-to.md";
+  slug: "on-what-sustains-us-and-where-to";
   body: string;
   collection: "essays";
-  data: InferEntrySchema<"essays">
-} & { render(): Render[".md"] };
-"on-what-sustains-us-and-where-to-find-it.md": {
-	id: "on-what-sustains-us-and-where-to-find-it.md";
-  slug: "on-what-sustains-us-and-where-to-find-it";
-  body: string;
-  collection: "essays";
-  data: InferEntrySchema<"essays">
+  data: any
 } & { render(): Render[".md"] };
 "why-am-i-doing-this.md": {
 	id: "why-am-i-doing-this.md";
   slug: "why-am-i-doing-this";
   body: string;
   collection: "essays";
-  data: InferEntrySchema<"essays">
+  data: any
 } & { render(): Render[".md"] };
 };
 
@@ -179,5 +179,5 @@ declare module 'astro:content' {
 
 	type AnyEntryMap = ContentEntryMap & DataEntryMap;
 
-	export type ContentConfig = typeof import("./../../src/content/config.js");
+	export type ContentConfig = never;
 }
