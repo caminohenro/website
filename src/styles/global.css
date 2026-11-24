@@ -1212,7 +1212,7 @@ h1.page-heading {
   max-width: 480px;
   margin: 0 auto 40px;
   padding: 32px;
-  background: rgba(216, 206, 184, 0.7);
+  background: #e3dfd1;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   border: 1px solid rgba(28, 26, 23, 0.2);

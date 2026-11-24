@@ -22,11 +22,6 @@
     "url": "https://ojeztracxcevamopdveb.supabase.co",
     "anonKey": "sb_publishable_xnp4AuAecUicaDt4sz43pg_zK-HwRij"
   },
-  "mailerlite": {
-    "formActionUrl": "https://assets.mailerlite.com/jsonp/2695563/forms/202582490539361874/subscribe",
-    "apiKey": "YOUR_MAILERLITE_API_KEY_OPTIONAL",
-    "groupId": "202582509810092026"
-  },
   "navigation": [
     {
       "label": "Home",
@@ -35,6 +30,10 @@
     {
       "label": "Blog",
       "href": "/blog"
+    },
+    {
+      "label": "Forum",
+      "href": "https://caminohenroforum.substack.com?hide_intro_popup=true"
     },
     {
       "label": "FAQ",

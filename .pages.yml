@@ -287,13 +287,6 @@ content:
       - name: stripeDonationUrl
         label: Stripe Osettai Payment Link
         type: string
-      - name: mailerlite
-        label: MailerLite Newsletter Settings
-        type: object
-        fields:
-          - name: formActionUrl
-            label: MailerLite Form Action URL
-            type: string
       - name: features
         label: Edition 2 Module Toggles
         type: object
