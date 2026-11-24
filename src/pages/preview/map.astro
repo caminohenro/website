@@ -4,7 +4,7 @@ import routeData from '../../data/route.json';
 import newsletterLogData from '../../data/newsletter-log.json';
 
 const stats = routeData.stats || {
-  totalPlannedKm: 17500,
+  totalPlannedKm: 19200,
   completedKm: 1341,
   daysOnTrail: 55,
   countriesCrossed: 3,
@@ -53,7 +53,7 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
 
 <BaseLayout
   title="Eurasia Route Map | CAMINO HENRO"
-  description="Interactive overland cartography tracing Henro's continuous footpath from Coimbra through Santiago, Muxía, Finisterra, and Saint-Jean-Pied-de-Port across Eurasia to Shikoku, Japan."
+  description="Interactive overland cartography tracing Henro's continuous footpath from Coimbra through Iberia, the Jerusalem Way & Sufi Trail across Turkey, the Caspian Sea, Northern India, China's Sacred Mountains, and South Korea to Shikoku, Japan."
   startClosed={false}
   enablePhysics={true}
 >
@@ -67,7 +67,6 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
 
   <!-- ====================================================================== -->
   <!-- MODE 1: HORIZONTAL FULL-SCREEN EMAKIMONO MAP SCROLL (pre-scroll slot)  -->
-  <!-- Zero extra bars above the scroll; toggle lives inside the top bar.     -->
   <!-- ====================================================================== -->
   <div slot="pre-scroll">
     <!-- Pre-paint orientation check -->
@@ -81,6 +80,20 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
         );
       })();
     </script>
+
+    <!-- Right-side Switch Button (shown only when whichever active scroll is closed) -->
+    <button
+      type="button"
+      id="closed-scroll-switch-btn"
+      class="closed-scroll-switch-btn"
+      aria-label="Switch scroll mode and open"
+    >
+      <span class="switch-btn-icon" id="closed-switch-icon" aria-hidden="true">↕</span>
+      <span class="switch-btn-copy">
+        <span class="switch-btn-eyebrow">Switch Scroll</span>
+        <span class="switch-btn-label" id="closed-switch-label">Vertical Info</span>
+      </span>
+    </button>
 
     <section
       id="horizontal-scroll-view"
@@ -176,7 +189,7 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
               </span>
               <span class="inline-flex items-center gap-1.5">
                 <span class="inline-block w-4 border-t-2 border-dashed border-[#524D46]"></span>
-                <span>Planned (North Caspian → N. India → S. Korea → Shikoku)</span>
+                <span>Planned (Turkey → Caspian → N. India → China → S. Korea → Shikoku)</span>
               </span>
               <span class="inline-flex items-center gap-1.5">
                 <span class="ink-seal-dot" aria-hidden="true"></span>
@@ -240,6 +253,18 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
   <!-- MODE 2: VERTICAL SCROLL CONTENT (Native BaseLayout & ScrollPhysics)    -->
   <!-- ====================================================================== -->
 
+  <!-- Mark desktop vertical scroll to start closed when page loads in horizontal mode -->
+  <script is:inline>
+    (function prepareInitialVerticalState() {
+      if (document.documentElement.getAttribute('data-map-view') === 'horizontal' && window.innerWidth > 680) {
+        var vStage = document.querySelector('body > .scroll-stage');
+        if (vStage) {
+          vStage.setAttribute('data-desktop-click-unfurl', 'true');
+        }
+      }
+    })();
+  </script>
+
   <!-- Mobile Portrait Orientation Tooltip (inside top of vertical scroll) -->
   <div
     id="mobile-rotate-tooltip"
@@ -277,16 +302,16 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
       data-switch-mode="horizontal"
       class="mode-toggle-btn"
     >
-      ⟷ Unfurl Full-Screen Horizontal Map Scroll
+      ⟷ Full Screen Map Scroll
     </button>
   </div>
 
   <!-- STANDARDIZED_SCROLL_HEADER_START -->
   <div class="scroll-title-block">
-    <div class="scroll-eyebrow">行程図 • Coimbra → Shikoku Overland Corridor</div>
+    <div class="scroll-eyebrow">行程図 • Coimbra → Turkey → N. India → China → S. Korea → Shikoku</div>
     <h1 class="page-heading">Eurasia Route Map</h1>
     <div class="page-subtitle">
-      Tracing the continuous footpath from Coimbra through Santiago, Muxía, Finisterra, and Saint-Jean-Pied-de-Port — north of the Caspian Sea, through Northern India and South Korea to Shikoku
+      Tracing the continuous footpath from Coimbra through Santiago, Muxía, Finisterra, and Saint-Jean-Pied-de-Port — across Turkey, the Caspian Sea, Northern India, China, and South Korea to Shikoku
     </div>
   </div>
 
@@ -376,7 +401,7 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
         data-switch-mode="horizontal"
         class="text-[#6E2B25] hover:text-[#8C3B33] underline underline-offset-4 uppercase tracking-wider cursor-pointer bg-transparent border-0"
       >
-        Expand Full-Screen Map ⟷
+        Full Screen Map ⟷
       </button>
     </div>
 
@@ -437,17 +462,17 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
       <article class="border border-dashed border-[#524D46]/60 bg-[#E6DFCF]/70 p-4 sm:p-5">
         <div class="flex flex-wrap items-baseline justify-between gap-2 mb-1">
           <h3 class="font-heading text-xl font-semibold text-[#1C1A17]">
-            Ahead • Planned Eurasia Overland Corridor
+            Ahead • Trans-Eurasian Pilgrimage Corridor
           </h3>
           <span class="font-mono text-xs text-[#524D46]">
             Dotted Line • ~{remainingKm.toLocaleString('en-US')} km Remaining
           </span>
         </div>
         <div class="font-mono text-[11px] uppercase tracking-wider text-[#524D46] mb-2">
-          France → Italy → Balkans → Black Sea → North Caspian → Central Asia → Northern India → China → South Korea → Shikoku
+          Via Tolosana &amp; Jerusalem Way → Sufi Trail (Turkey) → Caucasus &amp; Caspian Ferry → Silk Road → Northern India → China's Sacred Mountains → Korea's Three Jewel Temples → Shikoku
         </div>
         <p class="font-body text-base text-[#1C1A17]/85 leading-relaxed m-0">
-          Continuing eastward from Saint-Jean-Pied-de-Port across southern Europe and around the north shore of the Caspian Sea (Astrakhan &amp; Atyrau), descending through Central Asia into Northern India (Amritsar, Rishikesh, Varanasi), crossing China to the Yellow Sea, walking South Korea from Incheon/Seoul to Busan, and crossing to Temple 1 (Ryōzen-ji) in Shikoku.
+          Bypassing Ukraine and Russia via the Balkans and Turkey—following the Jerusalem Way and Sufi Trail from Istanbul and İznik to Konya and Cappadocia—then crossing Georgia and the Caspian Sea (Alat to Kuryk/Aktau), Uzbekistan, the Karakoram into Northern India (Amritsar, Rishikesh, Varanasi, Kushinagar, Bodh Gaya), China's sacred pilgrimage mountains (Mount Emei, Mount Jiuhua, Mount Tai), and South Korea's Three Jewel Temples (Haeinsa, Tongdosa) to Temple 1 (Ryōzen-ji) in Shikoku.
         </p>
       </article>
     </div>
@@ -572,7 +597,7 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
   </section>
 
   <!-- ====================================================================== -->
-  <!-- STYLES: Dual Scroll Architecture, Ornate Rollers & Paper Cartography   -->
+  <!-- STYLES: Dual Scroll Architecture, Fade Transitions & Paper Cartography -->
   <!-- ====================================================================== -->
   <style is:global>
     /* Toggle visibility between Horizontal Map Scroll and native Vertical BaseLayout Scroll */
@@ -585,8 +610,104 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
       display: none !important;
     }
 
+    /* Hide click/drag hints cleanly while cross-fading between scroll modes */
+    html.is-map-transitioning .home-click-hint,
+    html.is-map-transitioning .step17-unfurl-tooltip {
+      opacity: 0 !important;
+      visibility: hidden !important;
+    }
+
+    /* Right-side Switch Button (visible ONLY when whichever active scroll is closed) */
+    .closed-scroll-switch-btn {
+      position: fixed;
+      right: clamp(16px, 4vw, 52px);
+      top: 50%;
+      transform: translate3d(8px, -50%, 0);
+      z-index: 48;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 16px;
+      background: rgba(20, 17, 14, 0.88);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(212, 175, 55, 0.55);
+      border-right: 3px solid #6E2B25;
+      color: #E6DFCF;
+      cursor: pointer;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65);
+      opacity: 0;
+      pointer-events: none;
+      transition:
+        opacity 0.28s ease,
+        transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 0.2s ease,
+        border-color 0.2s ease;
+    }
+
+    .closed-scroll-switch-btn.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate3d(0, -50%, 0);
+    }
+
+    .closed-scroll-switch-btn:hover {
+      background: #6E2B25;
+      border-color: #FDF0A6;
+    }
+
+    .switch-btn-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 9999px;
+      border: 1px solid rgba(212, 175, 55, 0.65);
+      color: #FDF0A6;
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    .switch-btn-copy {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1.25;
+    }
+
+    .switch-btn-eyebrow {
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #D4AF37;
+    }
+
+    .switch-btn-label {
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #E6DFCF;
+    }
+
+    @media (max-width: 680px) {
+      .closed-scroll-switch-btn {
+        right: 12px;
+        top: calc(50% + 76px);
+        padding: 9px 12px;
+        gap: 8px;
+      }
+      .switch-btn-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 14px;
+      }
+    }
+
     /* ====================================================================== */
-    /* HORIZONTAL EMAKIMONO SCROLL (FULL-SCREEN, CENTERED -> LEFT -> UNFURL)  */
+    /* HORIZONTAL EMAKIMONO SCROLL (FULL-SCREEN, LEFT -> RIGHT)               */
     /* ====================================================================== */
     .emakimono-shell {
       position: relative;
@@ -598,7 +719,7 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      overflow-x: hidden;
+      overflow: hidden;
       box-sizing: border-box;
     }
 
@@ -611,6 +732,7 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
       height: calc(100dvh - 106px);
       min-height: 460px;
       will-change: transform;
+      backface-visibility: hidden;
     }
 
     /* Ornate Vertical Wooden Rollers (Left & Right) */
@@ -627,6 +749,7 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
       user-select: none;
       filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.7));
       will-change: transform;
+      backface-visibility: hidden;
       transition: filter 0.2s ease;
     }
 
@@ -749,7 +872,7 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
       cursor: pointer;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.35s ease, background-color 0.2s ease;
+      transition: opacity 0.3s ease, background-color 0.2s ease;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
     }
 
@@ -845,7 +968,7 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
       z-index: 1;
     }
 
-    /* Mobile Portrait Rotate Tooltip (inside vertical scroll) */
+    /* Mobile Portrait Rotate Tooltip */
     .mobile-rotate-tooltip {
       display: none;
       align-items: flex-start;
@@ -1126,7 +1249,7 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
     crossorigin=""
   ></script>
 
-  <!-- Map Engine + Centered-to-Left Horizontal Scroll Physics + Mode Toggle -->
+  <!-- Map Engine + Smooth Horizontal Scroll Physics + Clean Fade Transitions -->
   <script
     is:inline
     define:vars={{
@@ -1140,11 +1263,15 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
       const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
       const html = document.documentElement;
 
+      const hShell = document.getElementById('horizontal-scroll-view');
       const hStage = document.getElementById('emakimono-stage');
       const hPaper = document.getElementById('emakimono-paper');
       const hRollerLeft = document.getElementById('h-roller-left');
       const hRollerRight = document.getElementById('h-roller-right');
       const hClosedHint = document.getElementById('h-closed-hint');
+      const closedSwitchBtn = document.getElementById('closed-scroll-switch-btn');
+      const closedSwitchLabel = document.getElementById('closed-switch-label');
+      const closedSwitchIcon = document.getElementById('closed-switch-icon');
       const horizontalSlot = document.getElementById('horizontal-map-slot');
       const verticalSlot = document.getElementById('vertical-map-slot');
       const mapEl = document.getElementById('henro-map');
@@ -1157,18 +1284,23 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
       let milestoneMarkers = [];
       let activeCamera = 'corridor';
       let userLockedMode = false;
+      let isTransitioning = false;
 
       // ------------------------------------------------------------------
-      // 1. CENTERED <-> LEFT DRAMATIC HORIZONTAL SCROLL ENGINE
+      // 1. SMOOTH HORIZONTAL SCROLL ENGINE (GPU COMPOSITED, CACHED WIDTH)
       // ------------------------------------------------------------------
-      // hProgress: 0 = rolled closed, 1 = fully unrolled left->right
-      // hShiftFrac: 1 = closed bundle centered on screen, 0 = anchored left
-      let hProgress = 0;
-      let hShiftFrac = 1;
+      let hProgress = 0;  // 0 = closed, 1 = fully unrolled left->right
+      let hShiftFrac = 1; // 1 = centered on screen, 0 = left edge
       let hIsOpen = false;
+      let hIsAnimating = false;
       let hAnimFrame = 0;
       let hDelayTimer = 0;
       let hAnimEpoch = 0;
+      let cachedPaperWidth = 0;
+
+      function measureHorizontalGeometry() {
+        if (hPaper) cachedPaperWidth = hPaper.offsetWidth || cachedPaperWidth;
+      }
 
       function cubicBezierY(t, p1x, p1y, p2x, p2y) {
         if (t <= 0) return 0;
@@ -1194,37 +1326,43 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
         );
       }
 
+      function smootherstep(t) {
+        const x = Math.max(0, Math.min(1, t));
+        return x * x * x * (x * (x * 6 - 15) + 10);
+      }
+
       function renderHorizontalFrame(progress, shiftFrac) {
         if (!hStage || !hPaper || !hRollerRight) return;
 
         hProgress = Math.max(0, Math.min(1, progress));
         hShiftFrac = Math.max(0, Math.min(1, shiftFrac));
 
-        const paperWidth = hPaper.offsetWidth || 0;
+        const paperWidth = cachedPaperWidth || hPaper.offsetWidth || 0;
         const hiddenRight = paperWidth * (1 - hProgress);
         const centerOffsetX = (paperWidth / 2) * hShiftFrac;
 
         hStage.style.transform =
           centerOffsetX > 0.05
-            ? 'translateX(' + centerOffsetX.toFixed(2) + 'px)'
-            : 'translateX(0px)';
+            ? 'translate3d(' + centerOffsetX.toFixed(2) + 'px, 0px, 0px)'
+            : 'translate3d(0px, 0px, 0px)';
 
         if (hProgress >= 0.999) {
           hPaper.style.clipPath = 'none';
           hPaper.style.webkitClipPath = 'none';
           hPaper.style.pointerEvents = '';
-          hRollerRight.style.transform = 'translateX(0px)';
+          hRollerRight.style.transform = 'translate3d(0px, 0px, 0px)';
         } else {
           const clip = 'inset(-40px ' + hiddenRight.toFixed(2) + 'px -40px 0px)';
           hPaper.style.clipPath = clip;
           hPaper.style.webkitClipPath = clip;
           hPaper.style.pointerEvents = hProgress < 0.05 ? 'none' : '';
-          hRollerRight.style.transform = 'translateX(' + (-hiddenRight).toFixed(2) + 'px)';
+          hRollerRight.style.transform = 'translate3d(' + (-hiddenRight).toFixed(2) + 'px, 0px, 0px)';
         }
       }
 
       function stopHorizontalAnim() {
         hAnimEpoch += 1;
+        hIsAnimating = false;
         window.cancelAnimationFrame(hAnimFrame);
         window.clearTimeout(hDelayTimer);
         hAnimFrame = 0;
@@ -1236,8 +1374,56 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
         hClosedHint.classList.toggle('is-visible', Boolean(show));
       }
 
+      function getVerticalElements() {
+        const stage = document.querySelector('body > .scroll-stage');
+        const paper = stage?.querySelector(':scope > main.washi-scroll');
+        const top = stage?.querySelector(':scope > .scroll-roller-top');
+        const bottom = stage?.querySelector(':scope > .scroll-roller-bottom');
+        return { stage, paper, top, bottom };
+      }
+
+      function isVerticalScrollClosed() {
+        const { stage, paper, top, bottom } = getVerticalElements();
+        if (!stage || !paper || !top || !bottom) return false;
+
+        if (window.innerWidth > 680) {
+          if (stage.dataset.homeUnfurl === 'waiting') return true;
+          const expanded = top.getAttribute('aria-expanded');
+          const paperH = paper.getBoundingClientRect().height;
+          return expanded === 'false' && paperH < 24;
+        } else {
+          if (stage.dataset.step17Open === 'true') return false;
+          const gap = bottom.getBoundingClientRect().top - top.getBoundingClientRect().bottom;
+          return gap <= 48;
+        }
+      }
+
+      function updateClosedSwitchButton() {
+        if (!closedSwitchBtn || !closedSwitchLabel || !closedSwitchIcon) return;
+        const mode = html.getAttribute('data-map-view') || 'horizontal';
+
+        if (isTransitioning) {
+          closedSwitchBtn.classList.remove('is-visible');
+          return;
+        }
+
+        if (mode === 'horizontal') {
+          const show = !hIsOpen && !hIsAnimating && hProgress <= 0.01 && hShiftFrac >= 0.99;
+          closedSwitchIcon.textContent = '↕';
+          closedSwitchLabel.textContent = 'Vertical Info';
+          closedSwitchBtn.setAttribute('aria-label', 'Switch to Vertical Trail Ledger and open');
+          closedSwitchBtn.classList.toggle('is-visible', show);
+        } else {
+          const show = isVerticalScrollClosed();
+          closedSwitchIcon.textContent = '↔';
+          closedSwitchLabel.textContent = 'Full Screen Map';
+          closedSwitchBtn.setAttribute('aria-label', 'Switch to Full-Screen Horizontal Map and open');
+          closedSwitchBtn.classList.toggle('is-visible', show);
+        }
+      }
+
       function runPhase(epoch, duration, onUpdate, onDone) {
-        if (duration <= 0) {
+        if (duration <= 0 || reducedMotion.matches) {
           onUpdate(1);
           if (onDone) onDone();
           return;
@@ -1257,14 +1443,55 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
         hAnimFrame = window.requestAnimationFrame(step);
       }
 
-      // Open: Centered -> Glide Left -> Pause -> Slow Dramatic Unfurl Left->Right
-      function openHorizontalScroll(withInitialPause) {
+      function waitMs(ms) {
+        return new Promise(function (resolve) {
+          setTimeout(resolve, ms);
+        });
+      }
+
+      function fadeElement(el, fromOpacity, toOpacity, duration) {
+        if (!el) return Promise.resolve();
+        if (reducedMotion.matches || duration <= 0) {
+          el.style.opacity = String(toOpacity);
+          return Promise.resolve();
+        }
+        return new Promise(function (resolve) {
+          const anim = el.animate(
+            [{ opacity: fromOpacity }, { opacity: toOpacity }],
+            {
+              duration: duration,
+              easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+              fill: 'forwards',
+            }
+          );
+          anim.finished
+            .catch(function () {})
+            .then(function () {
+              el.style.opacity = String(toOpacity);
+              anim.cancel();
+              resolve();
+            });
+        });
+      }
+
+      // Open Horizontal:
+      // - Initial load / manual roller open: starts centered, glides smoothly left, then unfurls dramatically
+      // - Mode transition: already poised at left edge after fade-in, unfurls smoothly right away
+      function openHorizontalScroll(options) {
+        const opts = options || {};
+        const withInitialPause = Boolean(opts.withInitialPause);
+        const unfurlMs = typeof opts.unfurlDuration === 'number' ? opts.unfurlDuration : 2200;
+
         stopHorizontalAnim();
+        measureHorizontalGeometry();
         const epoch = hAnimEpoch;
         hIsOpen = true;
+        hIsAnimating = true;
         setClosedHintVisible(false);
+        updateClosedSwitchButton();
 
         if (reducedMotion.matches) {
+          hIsAnimating = false;
           renderHorizontalFrame(1, 0);
           if (mapInstance) setTimeout(function () { mapInstance.invalidateSize({ animate: false }); }, 60);
           return;
@@ -1272,9 +1499,9 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
 
         const startShift = hShiftFrac;
         const startProgress = hProgress;
-        const pauseBeforeMove = withInitialPause ? 300 : 0;
-        const moveDuration = startShift > 0.01 ? Math.round(880 * startShift) : 0;
-        const unfurlDuration = Math.max(700, Math.round(3200 * (1 - startProgress)));
+        const pauseBeforeMove = withInitialPause ? 220 : 0;
+        const moveDuration = startShift > 0.01 ? Math.round(700 * startShift) : 0;
+        const unfurlDuration = Math.max(550, Math.round(unfurlMs * (1 - startProgress)));
 
         function beginUnfurl() {
           if (epoch !== hAnimEpoch) return;
@@ -1286,7 +1513,9 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
               renderHorizontalFrame(startProgress + (1 - startProgress) * eased, 0);
             },
             function () {
+              hIsAnimating = false;
               renderHorizontalFrame(1, 0);
+              updateClosedSwitchButton();
               if (mapInstance) {
                 mapInstance.invalidateSize({ animate: false });
               }
@@ -1304,11 +1533,11 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
             epoch,
             moveDuration,
             function (t) {
-              const eased = 1 - Math.pow(1 - t, 3);
+              const eased = smootherstep(t);
               renderHorizontalFrame(startProgress, startShift * (1 - eased));
             },
             function () {
-              hDelayTimer = window.setTimeout(beginUnfurl, 140);
+              hDelayTimer = window.setTimeout(beginUnfurl, 80);
             }
           );
         }
@@ -1320,58 +1549,88 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
         }
       }
 
-      // Close: Furl Right->Left -> Glide Back to Center
-      function closeHorizontalScroll() {
-        stopHorizontalAnim();
-        const epoch = hAnimEpoch;
-        hIsOpen = false;
-        setClosedHintVisible(false);
+      // Close Horizontal:
+      // - Manual close (centerAfter: true): furls right->left, glides smoothly to center, reveals switch button
+      // - Mode transition (centerAfter: false): furls smoothly right->left, then hands straight off to fade-out
+      function closeHorizontalScroll(options) {
+        const opts = options || {};
+        const centerAfter = opts.centerAfter !== false;
+        const furlMs = typeof opts.furlDuration === 'number' ? opts.furlDuration : 720;
 
-        if (reducedMotion.matches) {
-          renderHorizontalFrame(0, 1);
-          setClosedHintVisible(true);
-          return;
-        }
+        return new Promise(function (resolve) {
+          stopHorizontalAnim();
+          measureHorizontalGeometry();
+          const epoch = hAnimEpoch;
+          hIsOpen = false;
+          hIsAnimating = true;
+          setClosedHintVisible(false);
+          updateClosedSwitchButton();
 
-        const startProgress = hProgress;
-        const startShift = hShiftFrac;
-        const furlDuration = startProgress > 0.01 ? Math.max(320, Math.round(1050 * startProgress)) : 0;
-        const centerDuration = Math.max(300, Math.round(860 * (1 - startShift)));
-
-        function beginGlideCenter() {
-          if (epoch !== hAnimEpoch) return;
-          runPhase(
-            epoch,
-            centerDuration,
-            function (t) {
-              const eased = 1 - Math.pow(1 - t, 3);
-              renderHorizontalFrame(0, startShift + (1 - startShift) * eased);
-            },
-            function () {
-              renderHorizontalFrame(0, 1);
+          if (reducedMotion.matches) {
+            hIsAnimating = false;
+            renderHorizontalFrame(0, centerAfter ? 1 : hShiftFrac);
+            if (centerAfter) {
               setClosedHintVisible(true);
+              updateClosedSwitchButton();
             }
-          );
-        }
+            resolve();
+            return;
+          }
 
-        if (furlDuration > 0) {
-          runPhase(
-            epoch,
-            furlDuration,
-            function (t) {
-              const eased = t * t * (3 - 2 * t);
-              renderHorizontalFrame(startProgress * (1 - eased), startShift);
-            },
-            function () {
-              hDelayTimer = window.setTimeout(beginGlideCenter, 90);
+          const startProgress = hProgress;
+          const startShift = hShiftFrac;
+          const furlDuration = startProgress > 0.01 ? Math.max(260, Math.round(furlMs * startProgress)) : 0;
+
+          function finishClose() {
+            if (!centerAfter) {
+              hIsAnimating = false;
+              renderHorizontalFrame(0, startShift);
+              resolve();
+              return;
             }
-          );
-        } else {
-          beginGlideCenter();
-        }
+
+            const centerDuration = Math.max(260, Math.round(680 * (1 - startShift)));
+            runPhase(
+              epoch,
+              centerDuration,
+              function (t) {
+                const eased = smootherstep(t);
+                renderHorizontalFrame(0, startShift + (1 - startShift) * eased);
+              },
+              function () {
+                hIsAnimating = false;
+                renderHorizontalFrame(0, 1);
+                setClosedHintVisible(true);
+                updateClosedSwitchButton();
+                resolve();
+              }
+            );
+          }
+
+          if (furlDuration > 0) {
+            runPhase(
+              epoch,
+              furlDuration,
+              function (t) {
+                const eased = smootherstep(t);
+                renderHorizontalFrame(startProgress * (1 - eased), startShift);
+              },
+              function () {
+                if (centerAfter) {
+                  hDelayTimer = window.setTimeout(finishClose, 60);
+                } else {
+                  finishClose();
+                }
+              }
+            );
+          } else {
+            finishClose();
+          }
+        });
       }
 
       function toggleHorizontalRoller(event) {
+        if (isTransitioning) return;
         if (
           event.type === 'keydown' &&
           event.key !== 'Enter' &&
@@ -1381,9 +1640,9 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
         }
         event.preventDefault();
         if (hIsOpen) {
-          closeHorizontalScroll();
+          void closeHorizontalScroll({ centerAfter: true });
         } else {
-          openHorizontalScroll(false);
+          openHorizontalScroll({ withInitialPause: false, unfurlDuration: 2000 });
         }
       }
 
@@ -1395,12 +1654,14 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
 
       if (hClosedHint) {
         hClosedHint.addEventListener('click', function () {
-          openHorizontalScroll(false);
+          if (!isTransitioning) {
+            openHorizontalScroll({ withInitialPause: false, unfurlDuration: 2000 });
+          }
         });
       }
 
       // ------------------------------------------------------------------
-      // 2. VIEW MODE SWITCHING & SINGLE-MAP REPARENTING
+      // 2. CLEAN TRANSITIONS: CLOSE -> FADE OUT -> FADE IN -> OPEN
       // ------------------------------------------------------------------
       function mountMapForCurrentView() {
         const mode = html.getAttribute('data-map-view') || 'horizontal';
@@ -1420,48 +1681,151 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
           setTimeout(function () {
             mapInstance.invalidateSize({ animate: false });
             applyCamera(activeCamera, false);
-          }, 90);
+          }, 80);
         }
       }
 
-      function setMapView(mode, isManual) {
+      // Vertical -> Horizontal:
+      // 1) If vertical is open, smoothly close it (900ms native) and fade out right as rollers touch
+      // 2) If already closed, fade out immediately
+      // 3) Fade in horizontal poised at left edge, then smoothly unfurl immediately
+      async function switchToHorizontal(isManual) {
+        if (isTransitioning) return;
         if (isManual) userLockedMode = true;
-        const previous = html.getAttribute('data-map-view');
-        html.setAttribute('data-map-view', mode);
-        mountMapForCurrentView();
+        isTransitioning = true;
+        html.classList.add('is-map-transitioning');
+        updateClosedSwitchButton();
 
-        if (mode === 'horizontal') {
-          if (previous !== 'horizontal' || !hIsOpen) {
-            renderHorizontalFrame(0, 1);
-            openHorizontalScroll(true);
-          }
-        } else {
-          stopHorizontalAnim();
-          setClosedHintVisible(false);
+        const { stage: vStage, top: vTop } = getVerticalElements();
 
-          const vPaper = document.querySelector('body > .scroll-stage > main.washi-scroll');
-          if (
-            window.innerWidth > 680 &&
-            vPaper &&
-            typeof window.prepareScrollUnfurl === 'function'
-          ) {
-            vPaper.style.animation = 'none';
-            void vPaper.offsetHeight;
-            window.prepareScrollUnfurl(vPaper);
-            vPaper.style.animation = '';
+        try {
+          if (vStage) {
+            if (!isVerticalScrollClosed() && vTop) {
+              vTop.click();
+              if (!reducedMotion.matches) {
+                // Let the 900ms vertical roll-up nearly finish, then dissolve seamlessly as rollers touch
+                await waitMs(640);
+                await fadeElement(vStage, 1, 0, 260);
+              }
+            } else {
+              await fadeElement(vStage, 1, 0, 240);
+            }
           }
 
-          window.dispatchEvent(new Event('resize'));
+          // Swap cleanly to Horizontal
+          if (hShell) hShell.style.opacity = '0';
+          html.setAttribute('data-map-view', 'horizontal');
+          if (vStage) vStage.style.opacity = '';
+
+          mountMapForCurrentView();
+          measureHorizontalGeometry();
+          // Start closed & already aligned at the left edge for a crisp, unhurried unfurl
+          renderHorizontalFrame(0, 0);
+          window.scrollTo({ top: 0, behavior: 'instant' });
+
+          await fadeElement(hShell, 0, 1, 260);
+          if (hShell) hShell.style.opacity = '';
+
+          isTransitioning = false;
+          html.classList.remove('is-map-transitioning');
+
+          openHorizontalScroll({ withInitialPause: false, unfurlDuration: 1450 });
+        } finally {
+          isTransitioning = false;
+          html.classList.remove('is-map-transitioning');
+          if (vStage) vStage.style.opacity = '';
+          if (hShell) hShell.style.opacity = '';
+          updateClosedSwitchButton();
         }
       }
 
+      // Horizontal -> Vertical:
+      // 1) If horizontal is open, smoothly furl right->left (650ms)
+      // 2) Fade out (260ms)
+      // 3) Swap to vertical at top, fade in (260ms), and open immediately without dead move delay
+      async function switchToVertical(isManual) {
+        if (isTransitioning) return;
+        if (isManual) userLockedMode = true;
+        isTransitioning = true;
+        html.classList.add('is-map-transitioning');
+        setClosedHintVisible(false);
+        updateClosedSwitchButton();
+
+        const { stage: vStage, top: vTop, bottom: vBottom } = getVerticalElements();
+
+        try {
+          if (hIsOpen || hProgress > 0.01) {
+            await closeHorizontalScroll({ centerAfter: false, furlDuration: 650 });
+          }
+
+          await fadeElement(hShell, 1, 0, 260);
+
+          // Prepare vertical scroll at top edge with 0ms move duration so it opens immediately
+          if (vStage) {
+            vStage.style.opacity = '0';
+            vStage.style.translate = '0px 0px';
+            vStage.style.setProperty('--scroll-move-duration', '0ms');
+          }
+
+          html.setAttribute('data-map-view', 'vertical');
+          if (hShell) hShell.style.opacity = '';
+
+          mountMapForCurrentView();
+          window.scrollTo({ top: 0, behavior: 'instant' });
+          window.dispatchEvent(new Event('resize'));
+
+          if (vStage) {
+            await fadeElement(vStage, 0, 1, 260);
+            vStage.style.opacity = '';
+          }
+
+          // Trigger immediate vertical open via native ScrollPhysics controls
+          if (isVerticalScrollClosed()) {
+            if (window.innerWidth > 680 && vTop) {
+              vTop.click();
+            } else if (vBottom) {
+              vBottom.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true })
+              );
+            }
+          }
+
+          // Restore native vertical move duration right after the open starts
+          setTimeout(function () {
+            if (vStage) vStage.style.removeProperty('--scroll-move-duration');
+          }, 120);
+        } finally {
+          isTransitioning = false;
+          html.classList.remove('is-map-transitioning');
+          if (hShell) hShell.style.opacity = '';
+          if (vStage) vStage.style.opacity = '';
+          updateClosedSwitchButton();
+        }
+      }
+
+      // Wire up inline mode switch buttons inside both open scrolls
       document.querySelectorAll('[data-switch-mode]').forEach(function (btn) {
         btn.addEventListener('click', function () {
           const targetMode = btn.getAttribute('data-switch-mode') || 'horizontal';
-          setMapView(targetMode, true);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          if (targetMode === 'horizontal') {
+            void switchToHorizontal(true);
+          } else {
+            void switchToVertical(true);
+          }
         });
       });
+
+      // Wire up right-side Switch button (visible when closed -> fades & immediately opens target)
+      if (closedSwitchBtn) {
+        closedSwitchBtn.addEventListener('click', function () {
+          const currentMode = html.getAttribute('data-map-view') || 'horizontal';
+          if (currentMode === 'horizontal') {
+            void switchToVertical(true);
+          } else {
+            void switchToHorizontal(true);
+          }
+        });
+      }
 
       if (dismissTooltipBtn && rotateTooltip) {
         dismissTooltipBtn.addEventListener('click', function () {
@@ -1469,20 +1833,54 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
         });
       }
 
+      // Observe native vertical scroll open/close state to show/hide the right-side switch button
+      function attachVerticalStateObservers() {
+        const { stage, top } = getVerticalElements();
+        if (!stage) return;
+
+        let pollTimer = 0;
+        function scheduleVerticalCheck() {
+          updateClosedSwitchButton();
+          clearTimeout(pollTimer);
+          pollTimer = setTimeout(updateClosedSwitchButton, 980);
+        }
+
+        const obs = new MutationObserver(scheduleVerticalCheck);
+        obs.observe(stage, {
+          attributes: true,
+          attributeFilter: ['data-home-unfurl', 'data-step17-open', 'data-whole-scroll-control'],
+        });
+        if (top) {
+          obs.observe(top, {
+            attributes: true,
+            attributeFilter: ['aria-expanded'],
+          });
+        }
+      }
+
       function handleViewportOrientation() {
-        if (html.getAttribute('data-map-view') === 'horizontal' && !hAnimFrame) {
+        if (html.getAttribute('data-map-view') === 'horizontal' && !hAnimFrame && !isTransitioning) {
+          measureHorizontalGeometry();
           renderHorizontalFrame(hIsOpen ? 1 : 0, hIsOpen ? 0 : 1);
         }
         if (mapInstance) {
           mapInstance.invalidateSize({ animate: false });
         }
-        if (userLockedMode) return;
+        updateClosedSwitchButton();
+
+        if (userLockedMode || isTransitioning) return;
 
         const isPortraitMobile =
           window.innerWidth <= 680 && window.innerHeight > window.innerWidth;
         const recommended = isPortraitMobile ? 'vertical' : 'horizontal';
-        if (html.getAttribute('data-map-view') !== recommended) {
-          setMapView(recommended, false);
+        const current = html.getAttribute('data-map-view');
+
+        if (current !== recommended) {
+          if (recommended === 'horizontal') {
+            void switchToHorizontal(false);
+          } else {
+            void switchToVertical(false);
+          }
         }
       }
 
@@ -1539,6 +1937,7 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
         if (!mapEl) return;
 
         mountMapForCurrentView();
+        attachVerticalStateObservers();
 
         const initialMode = html.getAttribute('data-map-view') || 'horizontal';
         const L = window.L;
@@ -1553,7 +1952,7 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
           attribution: '&copy; OpenStreetMap contributors',
         }).addTo(mapInstance);
 
-        // 1. Planned Eurasia Corridor (Dashed ink line: SJPP -> North Caspian -> N. India -> S. Korea -> Shikoku)
+        // 1. Planned Eurasia Pilgrimage Corridor (Dashed ink line: SJPP -> Turkey -> Caspian -> N. India -> China -> S. Korea -> Shikoku)
         const plannedLatLngs = plannedWaypoints.map(function (wp) {
           return [wp[0], wp[1]];
         });
@@ -1643,14 +2042,14 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
           milestoneMarkers.push(marker);
         });
 
-        // Wire up camera buttons in both views
+        // Camera button listeners
         document.querySelectorAll('.cam-btn[data-camera]').forEach(function (btn) {
           btn.addEventListener('click', function () {
             applyCamera(btn.getAttribute('data-camera') || 'corridor', true);
           });
         });
 
-        // Wire up clickable milestone quick-jump chips in both views
+        // Clickable milestone chips
         document.querySelectorAll('[data-milestone-index]').forEach(function (chip) {
           chip.addEventListener('click', function () {
             const idx = Number(chip.getAttribute('data-milestone-index'));
@@ -1668,10 +2067,13 @@ function getChipLabel(ms: { shortLabel?: string; title: string }) {
         // Default camera: full Eurasia corridor
         applyCamera('corridor', false);
 
-        // Start centered & closed, glide left, then dramatically unfurl left-to-right
+        // Initial desktop load: start centered & closed, glide smoothly left, then unfurl
         if (initialMode === 'horizontal') {
+          measureHorizontalGeometry();
           renderHorizontalFrame(0, 1);
-          openHorizontalScroll(true);
+          openHorizontalScroll({ withInitialPause: true, unfurlDuration: 2200 });
+        } else {
+          updateClosedSwitchButton();
         }
       }
 
