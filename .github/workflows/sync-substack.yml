@@ -27,17 +27,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run Substack RSS sync script
-        run: node scripts/sync-substack.mjs
+      - name: Sync Substack Newsletter Log metadata
+        run: node scripts/sync-substack-newsletters.mjs
+        continue-on-error: true
 
-      - name: Commit and push new essays
+      - name: Commit and push new essays & newsletter log
         run: |
           git config user.name "Camino Henro Bot"
           git config user.email "actions@github.com"
-          git add src/content/essays src/data/substack-synced.json
+          git add src/content/essays src/data/substack-synced.json src/data/newsletter-log.json
           if ! git diff --staged --quiet; then
-            git commit -m "chore(essays): sync new Substack articles"
+            git commit -m "chore(substack): sync essays and monthly newsletter log"
             git push
           else
-            echo "No new Substack articles to commit."
+            echo "No new Substack updates to commit."
           fi
