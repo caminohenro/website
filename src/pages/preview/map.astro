@@ -13,7 +13,11 @@ const stats = routeData.stats || {
 };
 
 const walkedLegs = Array.isArray(routeData.walkedLegs) ? routeData.walkedLegs : [];
-const walkedPath = Array.isArray(routeData.walkedPath) ? routeData.walkedPath : [];
+const walkedPath = Array.isArray(routeData.walkedPath)
+  ? routeData.walkedPath
+  : Array.isArray(routeData.walkedTrack)
+    ? routeData.walkedTrack
+    : [];
 const milestones = Array.isArray(routeData.milestones) ? routeData.milestones : [];
 const plannedWaypoints = Array.isArray(routeData.plannedWaypoints)
   ? routeData.plannedWaypoints
@@ -32,12 +36,24 @@ const rawPct =
     ? (stats.completedKm / stats.totalPlannedKm) * 100
     : 0;
 const formattedPct = rawPct.toFixed(2);
-const visualBarPct = Math.max(rawPct, 2);
+const visualBarPct = Math.max(rawPct, 2.0);
+const remainingKm = Math.max(0, stats.totalPlannedKm - stats.completedKm);
+
+function getChipLabel(ms: { shortLabel?: string; title: string }) {
+  if (ms.shortLabel) return ms.shortLabel;
+  return ms.title
+    .replace(/\s*\([^)]*\)/g, '')
+    .split(',')[0]
+    .replace('Saint-Jean-Pied-de-Port', 'SJPP')
+    .replace('Santiago de Compostela', 'Santiago')
+    .replace('Cape Finisterra', 'Finisterra')
+    .trim();
+}
 ---
 
 <BaseLayout
   title="Eurasia Route Map | CAMINO HENRO"
-  description="Interactive overland cartography tracing the footpath from Coimbra across Iberia, north over the Caspian Sea, through Northern India and South Korea to Shikoku, Japan."
+  description="Interactive overland cartography tracing Henro's continuous footpath from Coimbra through Santiago, Muxía, Finisterra, and Saint-Jean-Pied-de-Port across Eurasia to Shikoku, Japan."
   startClosed={false}
   enablePhysics={true}
 >
@@ -50,123 +66,100 @@ const visualBarPct = Math.max(rawPct, 2);
   />
 
   <!-- ====================================================================== -->
-  <!-- PRE-SCROLL SLOT: Mode Toggle, Mobile Landscape Tooltip & Horizontal    -->
-  <!-- Full-Screen Emakimono Map Scroll (Leaves Vertical Physics Untouched)   -->
+  <!-- MODE 1: HORIZONTAL FULL-SCREEN EMAKIMONO MAP SCROLL (pre-scroll slot)  -->
+  <!-- Zero extra bars above the scroll; toggle lives inside the top bar.     -->
   <!-- ====================================================================== -->
-  <div slot="pre-scroll" class="map-pre-scroll-root">
-    <!-- Pre-paint view mode detection (Desktop & Landscape -> Horizontal; Mobile Portrait -> Vertical) -->
+  <div slot="pre-scroll">
+    <!-- Pre-paint orientation check -->
     <script is:inline>
       (function setInitialMapView() {
-        var isDesktop = window.innerWidth > 680;
-        var isLandscape = window.innerWidth > window.innerHeight;
-        var mode = isDesktop || isLandscape ? 'horizontal' : 'vertical';
-        document.documentElement.setAttribute('data-map-view', mode);
+        var isPortraitMobile =
+          window.innerWidth <= 680 && window.innerHeight > window.innerWidth;
+        document.documentElement.setAttribute(
+          'data-map-view',
+          isPortraitMobile ? 'vertical' : 'horizontal'
+        );
       })();
     </script>
 
-    <!-- View Mode Switcher Bar (Floating neatly above both scroll modes) -->
-    <div class="map-mode-bar" role="region" aria-label="Scroll Orientation Controls">
-      <div class="map-mode-toggle" role="tablist" aria-label="Choose scroll orientation">
-        <button
-          type="button"
-          id="btn-mode-horizontal"
-          class="mode-toggle-btn"
-          role="tab"
-          aria-selected="true"
-        >
-          <span class="mode-icon" aria-hidden="true">↔</span>
-          <span>Horizontal Map Scroll</span>
-        </button>
-        <button
-          type="button"
-          id="btn-mode-vertical"
-          class="mode-toggle-btn"
-          role="tab"
-          aria-selected="false"
-        >
-          <span class="mode-icon" aria-hidden="true">↕</span>
-          <span>Vertical Trail Ledger</span>
-        </button>
-      </div>
-
-      <!-- Mobile Portrait Tooltip recommending Landscape mode -->
-      <div
-        id="mobile-landscape-tooltip"
-        class="landscape-tooltip"
-        role="status"
-        aria-live="polite"
-      >
-        <span class="rotate-phone-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8">
-            <rect x="6" y="3" width="12" height="18" rx="2"></rect>
-            <line x1="11" y1="18" x2="13" y2="18"></line>
-          </svg>
-        </span>
-        <span class="landscape-tooltip-text">
-          Best viewed sideways — rotate your phone to landscape to unroll the full-screen map scroll.
-        </span>
-        <button
-          type="button"
-          id="btn-dismiss-landscape-tip"
-          class="landscape-tooltip-close"
-          aria-label="Dismiss tip"
-        >
-          ×
-        </button>
-      </div>
-    </div>
-
-    <!-- HORIZONTAL FULL-SCREEN EMAKIMONO SCROLL (Map-Focused View) -->
     <section
-      id="horizontal-map-stage"
-      class="horizontal-map-stage"
-      aria-label="Full-Screen Horizontal Map Scroll"
+      id="horizontal-scroll-view"
+      class="emakimono-shell"
+      aria-label="Full-Screen Horizontal Eurasia Map Scroll"
     >
-      <div class="h-scroll-assembly" id="h-scroll-assembly">
-        <!-- Left Vertical Wooden Roller -->
+      <div class="emakimono-stage" id="emakimono-stage">
+        <!-- Left Ornate Vertical Wooden Roller -->
         <div
-          class="h-scroll-roller h-scroll-roller-left"
+          class="emakimono-roller emakimono-roller-left"
           id="h-roller-left"
           role="button"
           tabindex="0"
-          aria-label="Toggle horizontal map scroll"
-          title="Click to furl or unfurl the map scroll"
+          aria-label="Furl or unfurl horizontal map scroll"
+          title="Click to roll up or unfurl the map scroll"
         >
-          <span class="h-roller-knob h-roller-knob-top"></span>
-          <span class="h-roller-shaft"></span>
-          <span class="h-roller-knob h-roller-knob-bottom"></span>
+          <span class="roller-finial roller-finial-top"></span>
+          <span class="roller-cap roller-cap-top"></span>
+          <span class="roller-ferrule"></span>
+          <span class="roller-silk-band"></span>
+          <span class="roller-shaft"></span>
+          <span class="roller-silk-band"></span>
+          <span class="roller-ferrule"></span>
+          <span class="roller-cap roller-cap-bottom"></span>
+          <span class="roller-finial roller-finial-bottom"></span>
         </div>
 
-        <!-- Wide Washi Parchment Canvas -->
-        <div class="h-scroll-paper" id="h-scroll-paper">
-          <!-- Compact Cartographic Header Ribbon -->
-          <div class="h-map-ribbon">
-            <div class="h-ribbon-title">
-              <span class="h-ribbon-eyebrow">行程図 • EURASIA FOOTPATH</span>
-              <div class="h-ribbon-location">
-                <span class="pulse-dot" aria-hidden="true"></span>
-                <span>Now at <strong>{stats.currentLocation}</strong></span>
-                <span class="h-ribbon-sep">·</span>
-                <span class="h-ribbon-stat">{stats.completedKm.toLocaleString('en-US')} / {stats.totalPlannedKm.toLocaleString('en-US')} km ({formattedPct}%)</span>
-              </div>
+        <!-- Unfurling Horizontal Washi Paper Canvas -->
+        <div class="emakimono-paper" id="emakimono-paper">
+          <!-- Compact Top Cartographic Header & Inline Mode Toggle -->
+          <div class="emakimono-topbar">
+            <div class="emakimono-brand">
+              <span class="font-jp text-xs text-[#6E2B25] tracking-widest">行程図</span>
+              <h1 class="font-heading text-xl lg:text-2xl font-bold uppercase tracking-wider text-[#1C1A17] leading-none">
+                Eurasia Route Map
+              </h1>
+              <span class="hidden xl:inline-flex items-center gap-1.5 font-mono text-[11px] text-[#524D46] border-l border-[#1C1A17]/20 pl-3 ml-1">
+                <span class="ink-seal-dot" aria-hidden="true"></span>
+                <span>Now: <strong class="text-[#6E2B25]">{stats.currentLocation}</strong></span>
+                <span>·</span>
+                <span>{stats.completedKm.toLocaleString('en-US')} / {stats.totalPlannedKm.toLocaleString('en-US')} km</span>
+              </span>
             </div>
 
-            <div class="h-ribbon-controls">
-              <button type="button" class="map-cam-btn" data-cam="corridor">
+            <div class="emakimono-controls font-mono text-[11px]">
+              <button
+                type="button"
+                data-camera="corridor"
+                class="cam-btn is-active"
+              >
                 Full Eurasia
               </button>
-              <button type="button" class="map-cam-btn is-active" data-cam="walked">
-                Walked Iberia
+              <button
+                type="button"
+                data-camera="walked"
+                class="cam-btn"
+              >
+                Walked (Iberia)
               </button>
-              <button type="button" class="map-cam-btn" data-cam="current">
-                Current Position
+              <button
+                type="button"
+                data-camera="current"
+                class="cam-btn"
+              >
+                Current Spot
+              </button>
+              <button
+                type="button"
+                data-switch-mode="vertical"
+                class="mode-toggle-btn"
+                title="Switch to Vertical Scroll for route details and monthly newsletter log"
+              >
+                ↕ Vertical Info &amp; Log
               </button>
             </div>
           </div>
 
-          <!-- Full-Screen Map Mount Target -->
-          <div class="h-map-slot" id="h-map-slot">
-            <!-- Single shared #henro-map node lives here in Horizontal mode -->
+          <!-- Full-Canvas Map Mount Slot -->
+          <div id="horizontal-map-slot" class="emakimono-map-slot">
             <div
               id="henro-map"
               class="henro-map-canvas"
@@ -174,60 +167,126 @@ const visualBarPct = Math.max(rawPct, 2);
             ></div>
           </div>
 
-          <!-- Compact Bottom Legend & Quick Switch -->
-          <div class="h-map-footer-bar">
-            <div class="map-legend-inline">
-              <span class="legend-item">
-                <span class="legend-line-walked"></span>
+          <!-- Slim Bottom Legend + Quick-Jump Milestone Bar -->
+          <div class="emakimono-bottombar font-mono text-[11px]">
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[#524D46]">
+              <span class="inline-flex items-center gap-1.5">
+                <span class="inline-block w-4 h-[3px] bg-[#6E2B25]"></span>
                 <span>Walked ({stats.completedKm.toLocaleString('en-US')} km)</span>
               </span>
-              <span class="legend-item">
-                <span class="legend-line-planned"></span>
-                <span>Planned Corridor (N. Caspian → N. India → S. Korea → Shikoku)</span>
+              <span class="inline-flex items-center gap-1.5">
+                <span class="inline-block w-4 border-t-2 border-dashed border-[#524D46]"></span>
+                <span>Planned (North Caspian → N. India → S. Korea → Shikoku)</span>
               </span>
-              <span class="legend-item">
-                <span class="legend-dot-stamp"></span>
-                <span>Trail Milestone</span>
-              </span>
-              <span class="legend-item">
-                <span class="legend-dot-current"></span>
-                <span>Henro Now</span>
+              <span class="inline-flex items-center gap-1.5">
+                <span class="ink-seal-dot" aria-hidden="true"></span>
+                <span>Current Position</span>
               </span>
             </div>
 
-            <button type="button" class="h-to-vertical-link" id="btn-inline-vertical">
-              Open Trail Ledger &amp; Monthly Log ↕
-            </button>
+            <div class="milestone-chips" aria-label="Jump to walked milestone">
+              {milestones.map((ms, idx) => (
+                <button
+                  type="button"
+                  data-milestone-index={idx}
+                  class:list={[
+                    'milestone-chip',
+                    ms.isCurrent && 'milestone-chip-current',
+                  ]}
+                  title={`${ms.title} (KM ${ms.kmMarker})`}
+                >
+                  {getChipLabel(ms)}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        <!-- Right Vertical Wooden Roller (Glides Left -> Right during unfurl) -->
+        <!-- Right Ornate Vertical Wooden Roller -->
         <div
-          class="h-scroll-roller h-scroll-roller-right"
+          class="emakimono-roller emakimono-roller-right"
           id="h-roller-right"
           role="button"
           tabindex="0"
           aria-label="Furl or unfurl horizontal map scroll"
-          title="Click to furl or unfurl the map scroll"
+          title="Click to roll up or unfurl the map scroll"
         >
-          <span class="h-roller-knob h-roller-knob-top"></span>
-          <span class="h-roller-shaft"></span>
-          <span class="h-roller-knob h-roller-knob-bottom"></span>
+          <span class="roller-finial roller-finial-top"></span>
+          <span class="roller-cap roller-cap-top"></span>
+          <span class="roller-ferrule"></span>
+          <span class="roller-silk-band"></span>
+          <span class="roller-shaft"></span>
+          <span class="roller-silk-band"></span>
+          <span class="roller-ferrule"></span>
+          <span class="roller-cap roller-cap-bottom"></span>
+          <span class="roller-finial roller-finial-bottom"></span>
         </div>
       </div>
+
+      <!-- Quiet centered prompt shown only when the horizontal scroll is rolled closed -->
+      <button
+        type="button"
+        id="h-closed-hint"
+        class="h-closed-hint"
+        aria-label="Unfurl the horizontal map scroll"
+      >
+        <span class="font-jp text-[#D4AF37]">巻</span>
+        <span>Click rollers to unfurl map</span>
+      </button>
     </section>
   </div>
 
   <!-- ====================================================================== -->
-  <!-- STANDARD VERTICAL SCROLL CONTENT (Info & Log Focused View)             -->
-  <!-- Preserves native BaseLayout rollers & ScrollPhysics.astro 100%         -->
+  <!-- MODE 2: VERTICAL SCROLL CONTENT (Native BaseLayout & ScrollPhysics)    -->
   <!-- ====================================================================== -->
+
+  <!-- Mobile Portrait Orientation Tooltip (inside top of vertical scroll) -->
+  <div
+    id="mobile-rotate-tooltip"
+    class="mobile-rotate-tooltip"
+    role="status"
+  >
+    <div class="flex items-start gap-2.5">
+      <span class="rotate-icon" aria-hidden="true">↻</span>
+      <div>
+        <strong class="block font-mono text-[11px] uppercase tracking-wider text-[#6E2B25]">
+          Best Viewed Sideways
+        </strong>
+        <p class="font-body text-sm text-[#1C1A17] leading-snug mt-0.5 mb-0">
+          Rotate your phone horizontally to unfurl the full-screen Eurasia Map Scroll left to right.
+        </p>
+      </div>
+    </div>
+    <button
+      type="button"
+      id="dismiss-rotate-tooltip"
+      class="shrink-0 font-mono text-xs text-[#524D46] hover:text-[#6E2B25] px-1.5 py-0.5 cursor-pointer bg-transparent border-0"
+      aria-label="Dismiss orientation tip"
+    >
+      ✕
+    </button>
+  </div>
+
+  <!-- Inline Top Mode Switch Banner -->
+  <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-2 border-b border-[#1C1A17]/15 font-mono text-[11px]">
+    <span class="uppercase tracking-widest text-[#524D46]">
+      ↕ Route Info &amp; Newsletter Log
+    </span>
+    <button
+      type="button"
+      data-switch-mode="horizontal"
+      class="mode-toggle-btn"
+    >
+      ⟷ Unfurl Full-Screen Horizontal Map Scroll
+    </button>
+  </div>
+
   <!-- STANDARDIZED_SCROLL_HEADER_START -->
   <div class="scroll-title-block">
-    <div class="scroll-eyebrow">行程図 • Coimbra → Caspian → N. India → S. Korea → Shikoku</div>
+    <div class="scroll-eyebrow">行程図 • Coimbra → Shikoku Overland Corridor</div>
     <h1 class="page-heading">Eurasia Route Map</h1>
     <div class="page-subtitle">
-      Currently at {stats.currentLocation} — tracing the continuous footpath from Portugal to Temple 1 in Shikoku, Japan
+      Tracing the continuous footpath from Coimbra through Santiago, Muxía, Finisterra, and Saint-Jean-Pied-de-Port — north of the Caspian Sea, through Northern India and South Korea to Shikoku
     </div>
   </div>
 
@@ -239,49 +298,51 @@ const visualBarPct = Math.max(rawPct, 2);
   <!-- STANDARDIZED_SCROLL_HEADER_END -->
 
   <!-- 4-Column Expedition Telemetry + Progress Bar -->
-  <section class="py-5 border-b border-[#1C1A17]/15">
+  <section class="py-6 border-b border-[#1C1A17]/15">
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
-      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-3.5">
+      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-4">
         <span class="block text-[10px] uppercase tracking-widest text-[#524D46] mb-1">
-          Walked Distance
+          Distance Walked
         </span>
         <span class="text-xl sm:text-2xl font-medium text-[#6E2B25]">
           {stats.completedKm.toLocaleString('en-US')} km
         </span>
       </div>
 
-      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-3.5">
+      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-4">
         <span class="block text-[10px] uppercase tracking-widest text-[#524D46] mb-1">
           Planned Corridor
         </span>
         <span class="text-xl sm:text-2xl font-medium text-[#1C1A17]">
-          {stats.totalPlannedKm.toLocaleString('en-US')} km
+          ~{stats.totalPlannedKm.toLocaleString('en-US')} km
         </span>
       </div>
 
-      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-3.5">
-        <span class="block text-[10px] uppercase tracking-widest text-[#524D46] mb-1">
-          Current Stage
-        </span>
-        <span class="text-sm sm:text-base font-medium text-[#1C1A17] leading-snug block">
-          Saint-Jean-Pied-de-Port
-        </span>
-      </div>
-
-      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-3.5">
+      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-4">
         <span class="block text-[10px] uppercase tracking-widest text-[#524D46] mb-1">
           Countries Crossed
         </span>
         <span class="text-xl sm:text-2xl font-medium text-[#1C1A17]">
-          {stats.countriesCrossed} <span class="text-[11px] text-[#524D46]">(PT·ES·FR)</span>
+          {stats.countriesCrossed}
+        </span>
+        <span class="block text-[10px] text-[#524D46] mt-0.5">PT · ES · FR</span>
+      </div>
+
+      <div class="border border-[#6E2B25]/45 bg-[#6E2B25]/8 p-4">
+        <span class="block text-[10px] uppercase tracking-widest text-[#6E2B25] mb-1">
+          Current Position
+        </span>
+        <span class="text-sm sm:text-base font-medium text-[#1C1A17] leading-tight block">
+          {stats.currentLocation}
         </span>
       </div>
     </div>
 
+    <!-- Progress Percentage Bar -->
     <div class="mt-5">
       <div class="flex flex-wrap items-center justify-between gap-1 font-mono text-xs text-[#524D46] mb-1.5">
         <span class="uppercase tracking-widest">
-          Continental Progress (Coimbra → Shikoku)
+          Overland Progress (Coimbra → Shikoku)
         </span>
         <span class="text-[#6E2B25] font-medium">
           {formattedPct}% ({stats.completedKm.toLocaleString('en-US')} / {stats.totalPlannedKm.toLocaleString('en-US')} km)
@@ -296,108 +357,139 @@ const visualBarPct = Math.max(rawPct, 2);
     </div>
   </section>
 
-  <!-- Compact Synced Map Viewport inside Vertical Ledger -->
-  <section class="py-6 border-b border-[#1C1A17]/15">
-    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-      <div class="flex flex-wrap items-center gap-1.5 font-mono text-[11px]">
-        <button type="button" class="map-cam-btn" data-cam="corridor">
+  <!-- Compact Inset Map Preview -->
+  <section class="py-7 border-b border-[#1C1A17]/15">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-3 font-mono text-[11px]">
+      <div class="flex flex-wrap items-center gap-1.5">
+        <button type="button" data-camera="corridor" class="cam-btn is-active">
           Full Eurasia
         </button>
-        <button type="button" class="map-cam-btn is-active" data-cam="walked">
-          Walked Iberia
+        <button type="button" data-camera="walked" class="cam-btn">
+          Walked Trail
         </button>
-        <button type="button" class="map-cam-btn" data-cam="current">
-          Current Position
+        <button type="button" data-camera="current" class="cam-btn">
+          Current Spot
         </button>
       </div>
-
       <button
         type="button"
-        id="btn-expand-horizontal"
-        class="font-mono text-[11px] uppercase tracking-wider text-[#6E2B25] hover:text-[#8C3B33] underline underline-offset-4"
+        data-switch-mode="horizontal"
+        class="text-[#6E2B25] hover:text-[#8C3B33] underline underline-offset-4 uppercase tracking-wider cursor-pointer bg-transparent border-0"
       >
-        Open Full-Screen Horizontal Scroll ↔
+        Expand Full-Screen Map ⟷
       </button>
     </div>
 
-    <!-- Vertical Map Mount Target (receives #henro-map in Vertical mode) -->
-    <div id="v-map-slot" class="v-map-slot"></div>
+    <div id="vertical-map-slot" class="vertical-map-slot"></div>
 
-    <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 font-mono text-[11px] text-[#524D46]">
-      <span class="inline-flex items-center gap-1.5">
-        <span class="legend-line-walked"></span>
-        <span>Walked Trail</span>
-      </span>
-      <span class="inline-flex items-center gap-1.5">
-        <span class="legend-line-planned"></span>
-        <span>Planned Corridor (N. Caspian → N. India → S. Korea → Shikoku)</span>
-      </span>
-      <span class="inline-flex items-center gap-1.5">
-        <span class="legend-dot-current"></span>
-        <span>Current: Saint-Jean-Pied-de-Port</span>
-      </span>
+    <!-- Clickable Milestone Chips -->
+    <div class="mt-3 flex flex-wrap items-center gap-1.5 font-mono" aria-label="Jump to walked milestone">
+      {milestones.map((ms, idx) => (
+        <button
+          type="button"
+          data-milestone-index={idx}
+          class:list={[
+            'milestone-chip',
+            ms.isCurrent && 'milestone-chip-current',
+          ]}
+          title={`${ms.title} (KM ${ms.kmMarker})`}
+        >
+          {getChipLabel(ms)}
+        </button>
+      ))}
     </div>
   </section>
 
-  <!-- Walked Iberian Route Breakdown -->
-  <section class="py-7 border-b border-[#6E2B25]/40">
+  <!-- Detailed Walked Legs & Planned Corridor Breakdown -->
+  <section class="py-8 border-b border-[#6E2B25]">
     <div class="mb-5">
       <span class="font-jp text-xs text-[#6E2B25] tracking-widest block mb-1">
-        踏破行程 • COMPLETED LEGS
+        踏破区間 • ROUTE LOG
       </span>
       <h2 class="font-heading text-2xl sm:text-3xl font-semibold tracking-wider uppercase text-[#1C1A17]">
-        The Road Walked So Far
+        Route Completed &amp; Corridor Ahead
       </h2>
     </div>
 
-    <div class="space-y-3">
+    <div class="space-y-3.5">
       {walkedLegs.map((leg) => (
-        <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/35 p-4">
+        <article class="border border-[#1C1A17]/20 bg-[#D8CEB8]/35 p-4 sm:p-5">
           <div class="flex flex-wrap items-baseline justify-between gap-2 mb-1">
-            <h3 class="font-heading text-lg sm:text-xl font-semibold text-[#1C1A17]">
-              <span class="font-mono text-xs text-[#6E2B25] mr-2">LEG {leg.legNumber}</span>
+            <h3 class="font-heading text-xl font-semibold text-[#1C1A17]">
+              {leg.legNumber && (
+                <span class="font-mono text-xs text-[#6E2B25] mr-2">LEG {leg.legNumber}</span>
+              )}
               {leg.name}
             </h3>
             <span class="font-mono text-xs text-[#6E2B25] font-medium">
               ~{leg.distanceKm} km
             </span>
           </div>
-          <p class="font-mono text-[11px] text-[#524D46] tracking-wide mb-2">
-            {leg.route}
-          </p>
-          <p class="font-body text-sm sm:text-base text-[#1C1A17]/90 leading-relaxed m-0">
+          <div class="font-mono text-[11px] uppercase tracking-wider text-[#524D46] mb-2">
+            {leg.route || leg.span}
+          </div>
+          <p class="font-body text-base text-[#1C1A17]/90 leading-relaxed m-0">
             {leg.summary}
           </p>
-        </div>
+        </article>
       ))}
+
+      <article class="border border-dashed border-[#524D46]/60 bg-[#E6DFCF]/70 p-4 sm:p-5">
+        <div class="flex flex-wrap items-baseline justify-between gap-2 mb-1">
+          <h3 class="font-heading text-xl font-semibold text-[#1C1A17]">
+            Ahead • Planned Eurasia Overland Corridor
+          </h3>
+          <span class="font-mono text-xs text-[#524D46]">
+            Dotted Line • ~{remainingKm.toLocaleString('en-US')} km Remaining
+          </span>
+        </div>
+        <div class="font-mono text-[11px] uppercase tracking-wider text-[#524D46] mb-2">
+          France → Italy → Balkans → Black Sea → North Caspian → Central Asia → Northern India → China → South Korea → Shikoku
+        </div>
+        <p class="font-body text-base text-[#1C1A17]/85 leading-relaxed m-0">
+          Continuing eastward from Saint-Jean-Pied-de-Port across southern Europe and around the north shore of the Caspian Sea (Astrakhan &amp; Atyrau), descending through Central Asia into Northern India (Amritsar, Rishikesh, Varanasi), crossing China to the Yellow Sea, walking South Korea from Incheon/Seoul to Busan, and crossing to Temple 1 (Ryōzen-ji) in Shikoku.
+        </p>
+      </article>
     </div>
   </section>
 
-  <!-- Monthly Substack Newsletter Log (Replaces Outdated Checkpoints) -->
+  <!-- Monthly Substack Newsletter Log -->
   <section class="pt-8 pb-4">
     <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
       <div>
         <span class="font-jp text-xs text-[#6E2B25] tracking-widest block mb-1">
-          月刊書簡 • MONTHLY DISPATCH LOG
+          月報 • SUBSTACK NEWSLETTER LOG
         </span>
         <h2 class="font-heading text-2xl sm:text-3xl font-semibold tracking-wider uppercase text-[#1C1A17]">
           Monthly Newsletter Archive
         </h2>
       </div>
-
-      <a
-        href={subscribeUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="font-mono text-xs uppercase tracking-wider border border-[#6E2B25] bg-[#6E2B25] text-[#E6DFCF] hover:bg-[#8C3B33] px-3.5 py-2 transition-colors no-underline"
-      >
-        Subscribe on Substack ↗
-      </a>
+      <div class="flex items-center gap-2 font-mono text-[11px]">
+        <span class="text-[#524D46]">
+          {newsletterEntries.length} {newsletterEntries.length === 1 ? 'Issue' : 'Issues'} Logged
+        </span>
+        <a
+          href={subscribeUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="bg-[#6E2B25] hover:bg-[#8C3B33] text-[#E6DFCF] px-3 py-1.5 uppercase tracking-wider transition-colors no-underline"
+        >
+          Subscribe on Substack ↗
+        </a>
+      </div>
     </div>
 
-    <p class="font-body text-sm sm:text-base text-[#524D46] leading-relaxed mb-5">
-      Each month on the road is chronicled in a dedicated newsletter dispatch on Substack. Current issues go directly to subscribers, while past monthly editions remain archived for paid supporters.
-    </p>
+    <div class="mb-5 border-l-2 border-[#6E2B25] bg-[#D8CEB8]/40 px-4 py-3 font-body text-sm sm:text-base text-[#524D46]">
+      Monthly updates are published on Substack. Past issues are available for paid subscribers.{' '}
+      <a
+        href={substackHomeUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="text-[#6E2B25] hover:text-[#8C3B33] underline underline-offset-4 font-medium"
+      >
+        Open Substack ↗
+      </a>
+    </div>
 
     {newsletterEntries.length > 0 ? (
       <div class="overflow-x-auto border border-[#1C1A17]/20">
@@ -406,7 +498,7 @@ const visualBarPct = Math.max(rawPct, 2);
             <tr class="border-b border-[#1C1A17]/20 bg-[#D8CEB8]/60 font-mono text-[11px] uppercase tracking-widest text-[#524D46]">
               <th class="py-3 px-4">Date</th>
               <th class="py-3 px-4">Issue</th>
-              <th class="py-3 px-4">Newsletter Dispatch</th>
+              <th class="py-3 px-4">Monthly Newsletter</th>
               <th class="py-3 px-4 text-right">Substack</th>
             </tr>
           </thead>
@@ -429,7 +521,7 @@ const visualBarPct = Math.max(rawPct, 2);
                     href={entry.substackUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="font-heading text-lg font-semibold text-[#1C1A17] hover:text-[#6E2B25] transition-colors block no-underline"
+                    class="font-heading text-lg font-semibold text-[#1C1A17] hover:text-[#6E2B25] transition-colors block leading-snug no-underline"
                   >
                     {entry.title}
                   </a>
@@ -439,7 +531,7 @@ const visualBarPct = Math.max(rawPct, 2);
                     </span>
                   )}
                   {entry.subtitle && (
-                    <p class="font-body text-sm text-[#1C1A17]/85 leading-relaxed mt-1 mb-0 max-w-md">
+                    <p class="font-body text-sm text-[#524D46] leading-relaxed mt-1 mb-0">
                       {entry.subtitle}
                     </p>
                   )}
@@ -449,19 +541,13 @@ const visualBarPct = Math.max(rawPct, 2);
                     href={entry.substackUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="text-[#6E2B25] hover:text-[#8C3B33] underline underline-offset-4 font-medium inline-block"
+                    class="inline-block text-[#6E2B25] hover:text-[#8C3B33] underline underline-offset-4 font-medium"
                   >
-                    Read on Substack ↗
+                    Read Issue ↗
                   </a>
-                  {entry.isArchivedPaid ? (
-                    <span class="block text-[10px] uppercase tracking-wider text-[#524D46] mt-1">
-                      Paid Archive
-                    </span>
-                  ) : (
-                    <span class="block text-[10px] uppercase tracking-wider text-[#6E2B25] mt-1">
-                      Latest Edition
-                    </span>
-                  )}
+                  <span class="block text-[10px] text-[#524D46]/80 mt-0.5">
+                    {entry.isArchivedPaid ? 'Paid Archive' : 'Latest Issue'}
+                  </span>
                 </td>
               </tr>
             ))}
@@ -469,471 +555,478 @@ const visualBarPct = Math.max(rawPct, 2);
         </table>
       </div>
     ) : (
-      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/35 p-6 text-center">
-        <p class="font-heading text-xl text-[#1C1A17] mb-2">
-          Monthly Trail Ledger Awaiting First Sync
-        </p>
-        <p class="font-body text-sm text-[#524D46] max-w-md mx-auto mb-4">
-          Monthly newsletters from the road are automatically indexed here from Substack as each edition is published.
+      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/30 p-6 text-center">
+        <p class="font-body italic text-base text-[#524D46] mb-3">
+          Monthly newsletter issues will appear here automatically once synced from Substack.
         </p>
         <a
-          href={substackHomeUrl}
+          href={subscribeUrl}
           target="_blank"
           rel="noopener noreferrer"
-          class="font-mono text-xs uppercase tracking-wider text-[#6E2B25] underline underline-offset-4"
+          class="inline-block bg-[#6E2B25] hover:bg-[#8C3B33] text-[#E6DFCF] font-mono text-xs uppercase tracking-widest px-4 py-2 transition-colors no-underline"
         >
-          Visit Camino Henro on Substack ↗
+          Follow on Substack ↗
         </a>
       </div>
     )}
   </section>
 
   <!-- ====================================================================== -->
-  <!-- STYLES: Dual Scroll Architecture, Horizontal Wooden Rollers & Map      -->
+  <!-- STYLES: Dual Scroll Architecture, Ornate Rollers & Paper Cartography   -->
   <!-- ====================================================================== -->
   <style is:global>
-    /* Toggle visibility between Horizontal Map Scroll and native Vertical Scroll */
-    html[data-map-view="horizontal"] body > .scroll-stage {
+    /* Toggle visibility between Horizontal Map Scroll and native Vertical BaseLayout Scroll */
+    html[data-map-view="horizontal"] body > .scroll-stage,
+    html[data-map-view="horizontal"] body > .apple-reveal-stage {
       display: none !important;
     }
 
-    html[data-map-view="vertical"] #horizontal-map-stage {
+    html[data-map-view="vertical"] #horizontal-scroll-view {
       display: none !important;
     }
 
-    /* Pre-scroll container & floating Mode Toggle Bar */
-    .map-pre-scroll-root {
+    /* ====================================================================== */
+    /* HORIZONTAL EMAKIMONO SCROLL (FULL-SCREEN, CENTERED -> LEFT -> UNFURL)  */
+    /* ====================================================================== */
+    .emakimono-shell {
       position: relative;
-      z-index: 15;
+      z-index: 20;
       width: 100%;
-    }
-
-    .map-mode-bar {
+      min-height: calc(100dvh - 76px);
+      padding: 14px 16px 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
-      padding: 14px 16px 6px;
+      justify-content: center;
+      overflow-x: hidden;
+      box-sizing: border-box;
+    }
+
+    .emakimono-stage {
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
       width: 100%;
+      max-width: 1840px;
+      height: calc(100dvh - 106px);
+      min-height: 460px;
+      will-change: transform;
     }
 
-    .map-mode-toggle {
-      display: inline-flex;
+    /* Ornate Vertical Wooden Rollers (Left & Right) */
+    .emakimono-roller {
+      position: relative;
+      z-index: 30;
+      flex: 0 0 28px;
+      width: 28px;
+      display: flex;
+      flex-direction: column;
       align-items: center;
-      background: rgba(20, 18, 15, 0.78);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(230, 223, 207, 0.25);
-      padding: 3px;
-      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+      margin: -16px 0;
+      cursor: pointer;
+      user-select: none;
+      filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.7));
+      will-change: transform;
+      transition: filter 0.2s ease;
     }
 
-    .mode-toggle-btn {
+    .emakimono-roller:hover {
+      filter: drop-shadow(0 12px 26px rgba(0, 0, 0, 0.85)) brightness(1.08);
+    }
+
+    .roller-finial {
+      width: 16px;
+      height: 6px;
+      flex: 0 0 6px;
+      background: linear-gradient(
+        90deg,
+        #5e4620 0%,
+        #d4af37 35%,
+        #fdf0a6 52%,
+        #8c6d3b 75%,
+        #36260c 100%
+      );
+      border-left: 1px solid rgba(253, 240, 166, 0.65);
+      border-right: 1px solid rgba(30, 18, 8, 0.85);
+    }
+
+    .roller-finial-top {
+      border-radius: 5px 5px 1px 1px;
+    }
+
+    .roller-finial-bottom {
+      border-radius: 1px 1px 5px 5px;
+    }
+
+    .roller-cap {
+      width: 32px;
+      height: 14px;
+      flex: 0 0 14px;
+      background: linear-gradient(
+        90deg,
+        #22130a 0%,
+        #5c381e 30%,
+        #784c2c 50%,
+        #382112 76%,
+        #120904 100%
+      );
+      border: 1px solid rgba(255, 224, 185, 0.16);
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.14);
+    }
+
+    .roller-cap-top {
+      border-radius: 5px 5px 0 0;
+    }
+
+    .roller-cap-bottom {
+      border-radius: 0 0 5px 5px;
+    }
+
+    .roller-ferrule {
+      width: 27px;
+      height: 9px;
+      flex: 0 0 9px;
+      background: linear-gradient(
+        90deg,
+        #4d3816 0%,
+        #d4af37 28%,
+        #fdf0a6 48%,
+        #8c6d3b 72%,
+        #36260c 100%
+      );
+      border-top: 1px solid rgba(253, 240, 166, 0.7);
+      border-bottom: 1px solid rgba(38, 22, 12, 0.85);
+    }
+
+    .roller-silk-band {
+      width: 25px;
+      height: 5px;
+      flex: 0 0 5px;
+      background: linear-gradient(
+        90deg,
+        #3d1512 0%,
+        #6E2B25 32%,
+        #9c3f37 50%,
+        #521d18 78%,
+        #2b0e0c 100%
+      );
+      border-top: 1px solid rgba(212, 175, 55, 0.42);
+      border-bottom: 1px solid rgba(212, 175, 55, 0.35);
+    }
+
+    .roller-shaft {
+      flex: 1 1 auto;
+      width: 24px;
+      background: linear-gradient(
+        90deg,
+        #5b3720 0%,
+        #3a2213 28%,
+        #1d0f07 72%,
+        #3d2415 100%
+      );
+      border-left: 1px solid #75492b;
+      border-right: 1px solid #0e0603;
+    }
+
+    /* Centered click prompt when rolled up */
+    .h-closed-hint {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 35;
       display: inline-flex;
       align-items: center;
-      gap: 7px;
-      padding: 7px 14px;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(20, 18, 15, 0.86);
+      border: 1px solid rgba(212, 175, 55, 0.45);
+      color: #E6DFCF;
       font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: rgba(230, 223, 207, 0.78);
-      background: transparent;
-      border: 1px solid transparent;
       cursor: pointer;
-      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease, background-color 0.2s ease;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
     }
 
-    .mode-toggle-btn:hover {
-      color: #E6DFCF;
+    .h-closed-hint.is-visible {
+      opacity: 1;
+      pointer-events: auto;
     }
 
-    html[data-map-view="horizontal"] #btn-mode-horizontal,
-    html[data-map-view="vertical"] #btn-mode-vertical {
+    .h-closed-hint:hover {
       background: #6E2B25;
-      color: #E6DFCF;
-      border-color: rgba(230, 223, 207, 0.28);
+      border-color: #E6DFCF;
     }
 
-    /* Mobile Portrait Landscape Tooltip */
-    .landscape-tooltip {
-      display: none;
-      align-items: center;
-      gap: 10px;
-      max-width: 92vw;
-      padding: 9px 12px;
-      background: rgba(230, 223, 207, 0.95);
-      color: #1C1A17;
-      border: 1px solid #6E2B25;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      line-height: 1.4;
-    }
-
-    @media (max-width: 680px) and (orientation: portrait) {
-      .landscape-tooltip:not(.is-dismissed) {
-        display: flex;
-      }
-    }
-
-    .rotate-phone-icon {
-      flex-shrink: 0;
-      color: #6E2B25;
-      display: inline-flex;
-      animation: rotatePhoneHint 2.6s ease-in-out infinite;
-    }
-
-    @keyframes rotatePhoneHint {
-      0%, 15% { transform: rotate(0deg); }
-      45%, 70% { transform: rotate(-90deg); }
-      95%, 100% { transform: rotate(0deg); }
-    }
-
-    .landscape-tooltip-close {
-      margin-left: auto;
-      background: transparent;
-      border: 0;
-      color: #524D46;
-      font-size: 16px;
-      line-height: 1;
-      padding: 2px 4px;
-      cursor: pointer;
-    }
-
-    /* ====================================================================== */
-    /* HORIZONTAL FULL-SCREEN EMAKIMONO SCROLL                                */
-    /* ====================================================================== */
-    .horizontal-map-stage {
-      display: flex;
-      justify-content: center;
-      align-items: stretch;
-      width: 100%;
-      padding: 12px 2vw 28px;
-      min-height: calc(100svh - 135px);
-    }
-
-    .h-scroll-assembly {
-      position: relative;
-      display: flex;
-      align-items: stretch;
-      width: 96vw;
-      max-width: 1720px;
-      height: calc(100svh - 165px);
-      min-height: 460px;
-    }
-
-    /* Vertical Wooden Rollers (Left & Right caps of the horizontal scroll) */
-    .h-scroll-roller {
-      position: relative;
-      z-index: 25;
-      width: 24px;
-      flex: 0 0 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      cursor: pointer;
-      user-select: none;
-      will-change: transform;
-    }
-
-    .h-roller-shaft {
-      flex: 1 1 auto;
-      width: 22px;
-      background: linear-gradient(
-        90deg,
-        #1e130c 0%,
-        #4a3020 26%,
-        #684630 48%,
-        #3a2417 78%,
-        #180e08 100%
-      );
-      box-shadow:
-        0 14px 36px rgba(0, 0, 0, 0.72),
-        inset 1px 0 0 rgba(255, 228, 196, 0.16),
-        inset -1px 0 0 rgba(0, 0, 0, 0.65);
-      border-radius: 3px;
-    }
-
-    .h-roller-knob {
-      width: 28px;
-      height: 18px;
-      flex: 0 0 18px;
-      background: linear-gradient(
-        90deg,
-        #140c07 0%,
-        #3c2619 35%,
-        #543725 55%,
-        #22140c 100%
-      );
-      border: 1px solid rgba(255, 224, 185, 0.14);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.65);
-    }
-
-    .h-roller-knob-top {
-      margin-top: -12px;
-      border-radius: 5px 5px 2px 2px;
-    }
-
-    .h-roller-knob-bottom {
-      margin-bottom: -12px;
-      border-radius: 2px 2px 5px 5px;
-    }
-
-    /* Wide Washi Paper Canvas between Left & Right Rollers */
-    .h-scroll-paper {
+    /* Washi Paper Canvas */
+    .emakimono-paper {
       position: relative;
       z-index: 10;
       flex: 1 1 auto;
       min-width: 0;
       display: flex;
       flex-direction: column;
-      background-color: #E6DFCF;
+      height: 100%;
+      background-color: #e6dfcf;
       background-image:
+        radial-gradient(rgba(110, 43, 37, 0.03) 1px, transparent 0),
         linear-gradient(
-          180deg,
-          rgba(160, 145, 118, 0.24) 0%,
-          transparent 5%,
-          transparent 95%,
-          rgba(160, 145, 118, 0.24) 100%
-        ),
-        repeating-linear-gradient(
           90deg,
-          rgba(28, 26, 23, 0.015) 0px,
-          rgba(28, 26, 23, 0.015) 1px,
-          transparent 1px,
-          transparent 3px
+          rgba(28, 26, 23, 0.08) 0%,
+          transparent 2.5%,
+          transparent 97.5%,
+          rgba(28, 26, 23, 0.08) 100%
         );
-      box-shadow:
-        0 24px 70px rgba(0, 0, 0, 0.85),
-        inset 14px 0 18px -12px rgba(28, 26, 23, 0.35),
-        inset -14px 0 18px -12px rgba(28, 26, 23, 0.35);
-      padding: 12px 18px;
+      background-size: 24px 24px, 100% 100%;
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.65);
+      border-top: 1px solid #c8bea7;
+      border-bottom: 1px solid #c8bea7;
       overflow: hidden;
       will-change: clip-path;
     }
 
-    .h-map-ribbon {
+    .emakimono-topbar {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
+      gap: 8px 14px;
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(28, 26, 23, 0.2);
+      background: rgba(216, 206, 184, 0.55);
+    }
+
+    .emakimono-brand {
+      display: flex;
+      align-items: center;
       gap: 10px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid rgba(28, 26, 23, 0.18);
-    }
-
-    .h-ribbon-eyebrow {
-      display: block;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 0.14em;
-      color: #6E2B25;
-      text-transform: uppercase;
-    }
-
-    .h-ribbon-location {
-      display: flex;
       flex-wrap: wrap;
-      align-items: center;
-      gap: 6px;
-      font-family: 'EB Garamond', Georgia, serif;
-      font-size: 16px;
-      color: #1C1A17;
     }
 
-    .h-ribbon-sep {
-      color: #524D46;
-    }
-
-    .h-ribbon-stat {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: #524D46;
-    }
-
-    .h-ribbon-controls {
+    .emakimono-controls {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       gap: 6px;
     }
 
-    .map-cam-btn {
-      border: 1px solid #1C1A17;
-      background: #E6DFCF;
-      color: #1C1A17;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      padding: 6px 11px;
-      cursor: pointer;
-      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-    }
-
-    .map-cam-btn:hover {
-      border-color: #6E2B25;
-      color: #6E2B25;
-    }
-
-    .map-cam-btn.is-active {
-      border-color: #6E2B25;
-      background: #6E2B25;
-      color: #E6DFCF;
-    }
-
-    /* Map Slots (isolation: isolate traps Leaflet z-indexes cleanly) */
-    .h-map-slot {
-      position: relative;
+    .emakimono-map-slot {
       flex: 1 1 auto;
-      min-height: 280px;
-      margin: 10px 0;
-      border: 1px solid #1C1A17;
-      background: #D8CEB8;
-      isolation: isolate;
-      z-index: 1;
-    }
-
-    .v-map-slot {
+      min-height: 0;
       position: relative;
       width: 100%;
-      height: 360px;
-      border: 1px solid #1C1A17;
-      background: #D8CEB8;
       isolation: isolate;
       z-index: 1;
+    }
+
+    .emakimono-bottombar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px 14px;
+      padding: 8px 16px;
+      border-top: 1px solid rgba(28, 26, 23, 0.2);
+      background: rgba(216, 206, 184, 0.55);
+    }
+
+    .vertical-map-slot {
+      width: 100%;
+      height: 360px;
+      border: 1px solid #1c1a17;
+      background-color: #d8ceb8;
+      position: relative;
+      isolation: isolate;
+      z-index: 1;
+    }
+
+    /* Mobile Portrait Rotate Tooltip (inside vertical scroll) */
+    .mobile-rotate-tooltip {
+      display: none;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 16px;
+      padding: 10px 12px;
+      background: #dfd7c4;
+      border: 1px solid #6e2b25;
+      border-left: 4px solid #6e2b25;
+    }
+
+    .mobile-rotate-tooltip .rotate-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 9999px;
+      background: #6e2b25;
+      color: #e6dfcf;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 680px) and (orientation: portrait) {
+      .mobile-rotate-tooltip:not(.is-dismissed) {
+        display: flex;
+      }
+      .vertical-map-slot {
+        height: 300px;
+      }
+    }
+
+    /* Compact horizontal scroll on short mobile landscape screens */
+    @media (max-height: 520px) and (orientation: landscape) {
+      .emakimono-shell {
+        padding: 6px 8px 8px;
+        min-height: calc(100dvh - 54px);
+      }
+      .emakimono-stage {
+        height: calc(100dvh - 68px);
+        min-height: 260px;
+      }
+      .emakimono-topbar {
+        padding: 6px 10px;
+      }
+      .emakimono-bottombar {
+        display: none;
+      }
+      .emakimono-roller {
+        flex: 0 0 18px;
+        width: 18px;
+        margin: -8px 0;
+      }
+      .roller-finial {
+        width: 12px;
+        height: 4px;
+        flex: 0 0 4px;
+      }
+      .roller-cap {
+        width: 22px;
+        height: 10px;
+        flex: 0 0 10px;
+      }
+      .roller-ferrule {
+        width: 18px;
+        height: 6px;
+        flex: 0 0 6px;
+      }
+      .roller-silk-band {
+        width: 17px;
+        height: 3px;
+        flex: 0 0 3px;
+      }
+      .roller-shaft {
+        width: 16px;
+      }
+    }
+
+    /* ====================================================================== */
+    /* SHARED CONTROLS, CHIPS & PAPER-MAP LEAFLET STYLING (NO PULSING)        */
+    /* ====================================================================== */
+    .cam-btn {
+      border: 1px solid #1c1a17;
+      background: #e6dfcf;
+      color: #1c1a17;
+      padding: 5px 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .cam-btn:hover {
+      border-color: #6e2b25;
+      color: #6e2b25;
+    }
+
+    .cam-btn.is-active {
+      border-color: #6e2b25;
+      background: #6e2b25;
+      color: #e6dfcf;
+    }
+
+    .mode-toggle-btn {
+      border: 1px solid #6e2b25;
+      background: #1c1a17;
+      color: #e6dfcf;
+      padding: 5px 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
+
+    .mode-toggle-btn:hover {
+      background: #6e2b25;
+    }
+
+    .milestone-chips {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .milestone-chip {
+      border: 1px solid rgba(28, 26, 23, 0.25);
+      background: rgba(230, 223, 207, 0.85);
+      color: #1c1a17;
+      padding: 2px 7px;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .milestone-chip:hover {
+      border-color: #6e2b25;
+      color: #6e2b25;
+    }
+
+    .milestone-chip-current {
+      border-color: #6e2b25;
+      background: #6e2b25;
+      color: #e6dfcf;
+      font-weight: 600;
+    }
+
+    .milestone-chip-current:hover {
+      background: #8c3b33;
+      color: #e6dfcf;
+    }
+
+    /* Static inked seal dot (no pulsing) */
+    .ink-seal-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 9999px;
+      background: #6e2b25;
+      border: 1.5px solid #d4af37;
+      box-shadow: 0 0 0 1px #6e2b25;
     }
 
     .henro-map-canvas {
       width: 100%;
       height: 100%;
+      background-color: #d8ceb8;
+      z-index: 10;
     }
 
-    .h-map-footer-bar {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding-top: 6px;
-      border-top: 1px solid rgba(28, 26, 23, 0.16);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: #524D46;
-    }
-
-    .map-legend-inline {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .legend-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .legend-line-walked {
-      display: inline-block;
-      width: 18px;
-      height: 3px;
-      background: #6E2B25;
-    }
-
-    .legend-line-planned {
-      display: inline-block;
-      width: 18px;
-      border-top: 2px dashed #524D46;
-    }
-
-    .legend-dot-stamp {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      border-radius: 9999px;
-      background: #6E2B25;
-      border: 1.5px solid #E6DFCF;
-      box-shadow: 0 0 0 1px #6E2B25;
-    }
-
-    .legend-dot-current {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      border-radius: 9999px;
-      background: #B83A2D;
-      box-shadow: 0 0 0 3px rgba(184, 58, 45, 0.25);
-    }
-
-    .h-to-vertical-link {
-      background: transparent;
-      border: 0;
-      padding: 0;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #6E2B25;
-      text-decoration: underline;
-      text-underline-offset: 4px;
-      cursor: pointer;
-    }
-
-    /* Compact Landscape Phone Adjustments */
-    @media (max-height: 540px) and (orientation: landscape) {
-      .map-mode-bar {
-        padding: 6px 12px 4px;
-      }
-      .horizontal-map-stage {
-        padding: 4px 1.5vw 14px;
-        min-height: calc(100svh - 90px);
-      }
-      .h-scroll-assembly {
-        height: calc(100svh - 105px);
-        min-height: 290px;
-      }
-      .h-scroll-paper {
-        padding: 8px 12px;
-      }
-      .h-map-ribbon {
-        padding-bottom: 6px;
-      }
-      .h-ribbon-eyebrow {
-        display: none;
-      }
-      .h-map-footer-bar {
-        display: none;
-      }
-    }
-
-    /* Pulsing Current Location Indicator */
-    .pulse-dot {
-      display: inline-block;
-      width: 9px;
-      height: 9px;
-      border-radius: 9999px;
-      background: #B83A2D;
-      box-shadow: 0 0 0 0 rgba(184, 58, 45, 0.7);
-      animation: henroPulse 2s infinite;
-    }
-
-    @keyframes henroPulse {
-      0% { box-shadow: 0 0 0 0 rgba(184, 58, 45, 0.65); }
-      70% { box-shadow: 0 0 0 9px rgba(184, 58, 45, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(184, 58, 45, 0); }
-    }
-
-    /* Leaflet Sepia Washi Styling */
+    /* Sepia Washi Cartographic Filter */
     #henro-map .leaflet-tile-pane {
       filter: sepia(0.55) contrast(1.05) brightness(0.92) hue-rotate(-10deg);
     }
 
     #henro-map .leaflet-control-attribution {
       background: rgba(230, 223, 207, 0.88) !important;
-      color: #524D46 !important;
+      color: #524d46 !important;
       font-family: 'JetBrains Mono', monospace;
       font-size: 10px;
       border-top: 1px solid rgba(28, 26, 23, 0.2);
@@ -941,35 +1034,42 @@ const visualBarPct = Math.max(rawPct, 2);
     }
 
     #henro-map .leaflet-control-attribution a {
-      color: #6E2B25 !important;
+      color: #6e2b25 !important;
     }
 
     #henro-map .leaflet-control-zoom a {
-      background-color: #E6DFCF !important;
-      color: #1C1A17 !important;
+      background-color: #e6dfcf !important;
+      color: #1c1a17 !important;
       border-color: rgba(28, 26, 23, 0.3) !important;
       font-family: 'JetBrains Mono', monospace;
     }
 
     #henro-map .leaflet-control-zoom a:hover {
-      background-color: #D8CEB8 !important;
-      color: #6E2B25 !important;
+      background-color: #d8ceb8 !important;
+      color: #6e2b25 !important;
     }
 
     .henro-washi-popup .leaflet-popup-content-wrapper {
-      background-color: #E6DFCF;
-      color: #1C1A17;
-      border: 1px solid #6E2B25;
+      background-color: #e6dfcf;
+      color: #1c1a17;
+      border: 1px solid #6e2b25;
       border-radius: 0;
       box-shadow: 0 6px 20px rgba(28, 26, 23, 0.28);
       padding: 2px;
     }
 
     .henro-washi-popup .leaflet-popup-tip {
-      background-color: #E6DFCF;
-      border: 1px solid #6E2B25;
+      background-color: #e6dfcf;
+      border: 1px solid #6e2b25;
     }
 
+    .henro-washi-popup .leaflet-popup-close-button {
+      color: #524d46 !important;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 4px 6px 0 0 !important;
+    }
+
+    /* Static Paper-Map Ink Stamps (Zero Pulsing) */
     .henro-stamp-marker {
       display: flex;
       align-items: center;
@@ -977,20 +1077,20 @@ const visualBarPct = Math.max(rawPct, 2);
       width: 22px;
       height: 22px;
       border-radius: 9999px;
-      background-color: #6E2B25;
-      color: #E6DFCF;
-      border: 2px solid #E6DFCF;
-      box-shadow: 0 0 0 1px #6E2B25, 0 2px 6px rgba(28, 26, 23, 0.45);
+      background-color: #6e2b25;
+      color: #e6dfcf;
+      border: 2px solid #e6dfcf;
+      box-shadow: 0 0 0 1px #6e2b25, 0 2px 6px rgba(28, 26, 23, 0.45);
       font-family: 'Shippori Mincho', serif;
       font-size: 10px;
       line-height: 1;
       cursor: pointer;
-      transition: transform 0.15s ease;
+      transition: transform 0.15s ease, background-color 0.15s ease;
     }
 
     .henro-stamp-marker:hover {
       transform: scale(1.16);
-      background-color: #8C3B33;
+      background-color: #8c3b33;
     }
 
     .henro-current-marker {
@@ -1000,15 +1100,21 @@ const visualBarPct = Math.max(rawPct, 2);
       width: 28px;
       height: 28px;
       border-radius: 9999px;
-      background-color: #B83A2D;
-      color: #E6DFCF;
-      border: 2px solid #E6DFCF;
-      box-shadow: 0 0 0 2px #6E2B25;
+      background-color: #6e2b25;
+      color: #fdf0a6;
+      border: 2px solid #d4af37;
+      box-shadow: 0 0 0 2px #e6dfcf, 0 0 0 3.5px #6e2b25, 0 3px 8px rgba(28, 26, 23, 0.48);
       font-family: 'Shippori Mincho', serif;
       font-size: 12px;
       font-weight: 700;
+      line-height: 1;
       cursor: pointer;
-      animation: henroPulse 2s infinite;
+      transition: transform 0.15s ease, background-color 0.15s ease;
+    }
+
+    .henro-current-marker:hover {
+      transform: scale(1.12);
+      background-color: #8c3b33;
     }
   </style>
 
@@ -1020,7 +1126,7 @@ const visualBarPct = Math.max(rawPct, 2);
     crossorigin=""
   ></script>
 
-  <!-- Map Engine + Dramatic Horizontal Scroll Physics + Mode Toggle -->
+  <!-- Map Engine + Centered-to-Left Horizontal Scroll Physics + Mode Toggle -->
   <script
     is:inline
     define:vars={{
@@ -1034,33 +1140,35 @@ const visualBarPct = Math.max(rawPct, 2);
       const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
       const html = document.documentElement;
 
-      const hPaper = document.getElementById('h-scroll-paper');
+      const hStage = document.getElementById('emakimono-stage');
+      const hPaper = document.getElementById('emakimono-paper');
       const hRollerLeft = document.getElementById('h-roller-left');
       const hRollerRight = document.getElementById('h-roller-right');
-      const hMapSlot = document.getElementById('h-map-slot');
-      const vMapSlot = document.getElementById('v-map-slot');
+      const hClosedHint = document.getElementById('h-closed-hint');
+      const horizontalSlot = document.getElementById('horizontal-map-slot');
+      const verticalSlot = document.getElementById('vertical-map-slot');
       const mapEl = document.getElementById('henro-map');
-
-      const btnHorizontal = document.getElementById('btn-mode-horizontal');
-      const btnVertical = document.getElementById('btn-mode-vertical');
-      const btnExpandHorizontal = document.getElementById('btn-expand-horizontal');
-      const btnInlineVertical = document.getElementById('btn-inline-vertical');
-      const tooltipEl = document.getElementById('mobile-landscape-tooltip');
-      const btnDismissTip = document.getElementById('btn-dismiss-landscape-tip');
+      const rotateTooltip = document.getElementById('mobile-rotate-tooltip');
+      const dismissTooltipBtn = document.getElementById('dismiss-rotate-tooltip');
 
       let mapInstance = null;
       let plannedPolyline = null;
       let walkedPolyline = null;
-      let currentCamera = 'corridor';
+      let milestoneMarkers = [];
+      let activeCamera = 'corridor';
       let userLockedMode = false;
 
       // ------------------------------------------------------------------
-      // 1. DRAMATIC LEFT-TO-RIGHT HORIZONTAL SCROLL UNFURL ANIMATION
+      // 1. CENTERED <-> LEFT DRAMATIC HORIZONTAL SCROLL ENGINE
       // ------------------------------------------------------------------
-      let hProgress = 0; // 0 = closed, 1 = fully unrolled left->right
+      // hProgress: 0 = rolled closed, 1 = fully unrolled left->right
+      // hShiftFrac: 1 = closed bundle centered on screen, 0 = anchored left
+      let hProgress = 0;
+      let hShiftFrac = 1;
+      let hIsOpen = false;
       let hAnimFrame = 0;
       let hDelayTimer = 0;
-      let hIsOpen = false;
+      let hAnimEpoch = 0;
 
       function cubicBezierY(t, p1x, p1y, p2x, p2y) {
         if (t <= 0) return 0;
@@ -1086,80 +1194,180 @@ const visualBarPct = Math.max(rawPct, 2);
         );
       }
 
-      function renderHorizontalFrame(progress) {
-        if (!hPaper || !hRollerRight) return;
+      function renderHorizontalFrame(progress, shiftFrac) {
+        if (!hStage || !hPaper || !hRollerRight) return;
+
         hProgress = Math.max(0, Math.min(1, progress));
-        const width = hPaper.offsetWidth || 0;
-        const hiddenRight = width * (1 - hProgress);
+        hShiftFrac = Math.max(0, Math.min(1, shiftFrac));
+
+        const paperWidth = hPaper.offsetWidth || 0;
+        const hiddenRight = paperWidth * (1 - hProgress);
+        const centerOffsetX = (paperWidth / 2) * hShiftFrac;
+
+        hStage.style.transform =
+          centerOffsetX > 0.05
+            ? 'translateX(' + centerOffsetX.toFixed(2) + 'px)'
+            : 'translateX(0px)';
 
         if (hProgress >= 0.999) {
           hPaper.style.clipPath = 'none';
           hPaper.style.webkitClipPath = 'none';
+          hPaper.style.pointerEvents = '';
           hRollerRight.style.transform = 'translateX(0px)';
         } else {
-          const clip = 'inset(-30px ' + hiddenRight.toFixed(2) + 'px -30px 0px)';
+          const clip = 'inset(-40px ' + hiddenRight.toFixed(2) + 'px -40px 0px)';
           hPaper.style.clipPath = clip;
           hPaper.style.webkitClipPath = clip;
+          hPaper.style.pointerEvents = hProgress < 0.05 ? 'none' : '';
           hRollerRight.style.transform = 'translateX(' + (-hiddenRight).toFixed(2) + 'px)';
         }
       }
 
       function stopHorizontalAnim() {
+        hAnimEpoch += 1;
         window.cancelAnimationFrame(hAnimFrame);
         window.clearTimeout(hDelayTimer);
         hAnimFrame = 0;
         hDelayTimer = 0;
       }
 
-      function animateHorizontalScroll(open, withDramaticPause) {
-        stopHorizontalAnim();
-        hIsOpen = open;
+      function setClosedHintVisible(show) {
+        if (!hClosedHint) return;
+        hClosedHint.classList.toggle('is-visible', Boolean(show));
+      }
 
-        const target = open ? 1 : 0;
-        if (reducedMotion.matches) {
-          renderHorizontalFrame(target);
-          if (open && mapInstance) {
-            setTimeout(function () {
-              mapInstance.invalidateSize();
-            }, 60);
+      function runPhase(epoch, duration, onUpdate, onDone) {
+        if (duration <= 0) {
+          onUpdate(1);
+          if (onDone) onDone();
+          return;
+        }
+        const startedAt = performance.now();
+        function step(now) {
+          if (epoch !== hAnimEpoch) return;
+          const t = Math.min(1, (now - startedAt) / duration);
+          onUpdate(t);
+          if (t < 1) {
+            hAnimFrame = window.requestAnimationFrame(step);
+          } else {
+            hAnimFrame = 0;
+            if (onDone) onDone();
           }
+        }
+        hAnimFrame = window.requestAnimationFrame(step);
+      }
+
+      // Open: Centered -> Glide Left -> Pause -> Slow Dramatic Unfurl Left->Right
+      function openHorizontalScroll(withInitialPause) {
+        stopHorizontalAnim();
+        const epoch = hAnimEpoch;
+        hIsOpen = true;
+        setClosedHintVisible(false);
+
+        if (reducedMotion.matches) {
+          renderHorizontalFrame(1, 0);
+          if (mapInstance) setTimeout(function () { mapInstance.invalidateSize({ animate: false }); }, 60);
           return;
         }
 
-        const startVal = hProgress;
-        const duration = open ? 3200 : 1050;
-        const delay = open && withDramaticPause ? 350 : 0;
+        const startShift = hShiftFrac;
+        const startProgress = hProgress;
+        const pauseBeforeMove = withInitialPause ? 300 : 0;
+        const moveDuration = startShift > 0.01 ? Math.round(880 * startShift) : 0;
+        const unfurlDuration = Math.max(700, Math.round(3200 * (1 - startProgress)));
 
-        function startMotion() {
-          const startedAt = performance.now();
-
-          function step(now) {
-            const raw = Math.min(1, (now - startedAt) / duration);
-            // Slow, weighty Emakimono ease-out curve when opening
-            const eased = open
-              ? cubicBezierY(raw, 0.22, 1, 0.36, 1)
-              : raw * raw * (3 - 2 * raw);
-
-            renderHorizontalFrame(startVal + (target - startVal) * eased);
-
-            if (raw < 1) {
-              hAnimFrame = window.requestAnimationFrame(step);
-            } else {
-              hAnimFrame = 0;
-              renderHorizontalFrame(target);
-              if (open && mapInstance) {
-                mapInstance.invalidateSize();
+        function beginUnfurl() {
+          if (epoch !== hAnimEpoch) return;
+          runPhase(
+            epoch,
+            unfurlDuration,
+            function (t) {
+              const eased = cubicBezierY(t, 0.22, 1, 0.36, 1);
+              renderHorizontalFrame(startProgress + (1 - startProgress) * eased, 0);
+            },
+            function () {
+              renderHorizontalFrame(1, 0);
+              if (mapInstance) {
+                mapInstance.invalidateSize({ animate: false });
               }
             }
-          }
-
-          hAnimFrame = window.requestAnimationFrame(step);
+          );
         }
 
-        if (delay > 0) {
-          hDelayTimer = window.setTimeout(startMotion, delay);
+        function beginGlideLeft() {
+          if (epoch !== hAnimEpoch) return;
+          if (moveDuration === 0) {
+            beginUnfurl();
+            return;
+          }
+          runPhase(
+            epoch,
+            moveDuration,
+            function (t) {
+              const eased = 1 - Math.pow(1 - t, 3);
+              renderHorizontalFrame(startProgress, startShift * (1 - eased));
+            },
+            function () {
+              hDelayTimer = window.setTimeout(beginUnfurl, 140);
+            }
+          );
+        }
+
+        if (pauseBeforeMove > 0) {
+          hDelayTimer = window.setTimeout(beginGlideLeft, pauseBeforeMove);
         } else {
-          startMotion();
+          beginGlideLeft();
+        }
+      }
+
+      // Close: Furl Right->Left -> Glide Back to Center
+      function closeHorizontalScroll() {
+        stopHorizontalAnim();
+        const epoch = hAnimEpoch;
+        hIsOpen = false;
+        setClosedHintVisible(false);
+
+        if (reducedMotion.matches) {
+          renderHorizontalFrame(0, 1);
+          setClosedHintVisible(true);
+          return;
+        }
+
+        const startProgress = hProgress;
+        const startShift = hShiftFrac;
+        const furlDuration = startProgress > 0.01 ? Math.max(320, Math.round(1050 * startProgress)) : 0;
+        const centerDuration = Math.max(300, Math.round(860 * (1 - startShift)));
+
+        function beginGlideCenter() {
+          if (epoch !== hAnimEpoch) return;
+          runPhase(
+            epoch,
+            centerDuration,
+            function (t) {
+              const eased = 1 - Math.pow(1 - t, 3);
+              renderHorizontalFrame(0, startShift + (1 - startShift) * eased);
+            },
+            function () {
+              renderHorizontalFrame(0, 1);
+              setClosedHintVisible(true);
+            }
+          );
+        }
+
+        if (furlDuration > 0) {
+          runPhase(
+            epoch,
+            furlDuration,
+            function (t) {
+              const eased = t * t * (3 - 2 * t);
+              renderHorizontalFrame(startProgress * (1 - eased), startShift);
+            },
+            function () {
+              hDelayTimer = window.setTimeout(beginGlideCenter, 90);
+            }
+          );
+        } else {
+          beginGlideCenter();
         }
       }
 
@@ -1172,16 +1380,23 @@ const visualBarPct = Math.max(rawPct, 2);
           return;
         }
         event.preventDefault();
-        animateHorizontalScroll(!hIsOpen, false);
+        if (hIsOpen) {
+          closeHorizontalScroll();
+        } else {
+          openHorizontalScroll(false);
+        }
       }
 
-      if (hRollerLeft) {
-        hRollerLeft.addEventListener('click', toggleHorizontalRoller);
-        hRollerLeft.addEventListener('keydown', toggleHorizontalRoller);
-      }
-      if (hRollerRight) {
-        hRollerRight.addEventListener('click', toggleHorizontalRoller);
-        hRollerRight.addEventListener('keydown', toggleHorizontalRoller);
+      [hRollerLeft, hRollerRight].forEach(function (roller) {
+        if (!roller) return;
+        roller.addEventListener('click', toggleHorizontalRoller);
+        roller.addEventListener('keydown', toggleHorizontalRoller);
+      });
+
+      if (hClosedHint) {
+        hClosedHint.addEventListener('click', function () {
+          openHorizontalScroll(false);
+        });
       }
 
       // ------------------------------------------------------------------
@@ -1189,21 +1404,22 @@ const visualBarPct = Math.max(rawPct, 2);
       // ------------------------------------------------------------------
       function mountMapForCurrentView() {
         const mode = html.getAttribute('data-map-view') || 'horizontal';
-        const targetSlot = mode === 'horizontal' ? hMapSlot : vMapSlot;
+        const targetSlot = mode === 'horizontal' ? horizontalSlot : verticalSlot;
 
         if (mapEl && targetSlot && mapEl.parentElement !== targetSlot) {
           targetSlot.appendChild(mapEl);
         }
 
-        if (btnHorizontal && btnVertical) {
-          btnHorizontal.setAttribute('aria-selected', String(mode === 'horizontal'));
-          btnVertical.setAttribute('aria-selected', String(mode === 'vertical'));
-        }
-
         if (mapInstance) {
+          if (mode === 'horizontal') {
+            mapInstance.scrollWheelZoom.enable();
+          } else {
+            mapInstance.scrollWheelZoom.disable();
+          }
+
           setTimeout(function () {
-            mapInstance.invalidateSize();
-            applyCamera(currentCamera, false);
+            mapInstance.invalidateSize({ animate: false });
+            applyCamera(activeCamera, false);
           }, 90);
         }
       }
@@ -1216,57 +1432,55 @@ const visualBarPct = Math.max(rawPct, 2);
 
         if (mode === 'horizontal') {
           if (previous !== 'horizontal' || !hIsOpen) {
-            renderHorizontalFrame(0);
-            animateHorizontalScroll(true, true);
+            renderHorizontalFrame(0, 1);
+            openHorizontalScroll(true);
           }
         } else {
           stopHorizontalAnim();
-          // Notify BaseLayout / ScrollPhysics ResizeObserver & newsletter spacer
+          setClosedHintVisible(false);
+
+          const vPaper = document.querySelector('body > .scroll-stage > main.washi-scroll');
+          if (
+            window.innerWidth > 680 &&
+            vPaper &&
+            typeof window.prepareScrollUnfurl === 'function'
+          ) {
+            vPaper.style.animation = 'none';
+            void vPaper.offsetHeight;
+            window.prepareScrollUnfurl(vPaper);
+            vPaper.style.animation = '';
+          }
+
           window.dispatchEvent(new Event('resize'));
         }
       }
 
-      if (btnHorizontal) {
-        btnHorizontal.addEventListener('click', function () {
-          setMapView('horizontal', true);
-        });
-      }
-      if (btnVertical) {
-        btnVertical.addEventListener('click', function () {
-          setMapView('vertical', true);
-        });
-      }
-      if (btnExpandHorizontal) {
-        btnExpandHorizontal.addEventListener('click', function () {
-          setMapView('horizontal', true);
+      document.querySelectorAll('[data-switch-mode]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          const targetMode = btn.getAttribute('data-switch-mode') || 'horizontal';
+          setMapView(targetMode, true);
           window.scrollTo({ top: 0, behavior: 'smooth' });
         });
-      }
-      if (btnInlineVertical) {
-        btnInlineVertical.addEventListener('click', function () {
-          setMapView('vertical', true);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-      }
-      if (btnDismissTip && tooltipEl) {
-        btnDismissTip.addEventListener('click', function () {
-          tooltipEl.classList.add('is-dismissed');
+      });
+
+      if (dismissTooltipBtn && rotateTooltip) {
+        dismissTooltipBtn.addEventListener('click', function () {
+          rotateTooltip.classList.add('is-dismissed');
         });
       }
 
-      // Auto-adapt on mobile orientation changes unless manually overridden
       function handleViewportOrientation() {
         if (html.getAttribute('data-map-view') === 'horizontal' && !hAnimFrame) {
-          renderHorizontalFrame(hIsOpen ? 1 : 0);
+          renderHorizontalFrame(hIsOpen ? 1 : 0, hIsOpen ? 0 : 1);
         }
         if (mapInstance) {
-          mapInstance.invalidateSize();
+          mapInstance.invalidateSize({ animate: false });
         }
         if (userLockedMode) return;
 
-        const isDesktop = window.innerWidth > 680;
-        const isLandscape = window.innerWidth > window.innerHeight;
-        const recommended = isDesktop || isLandscape ? 'horizontal' : 'vertical';
+        const isPortraitMobile =
+          window.innerWidth <= 680 && window.innerHeight > window.innerWidth;
+        const recommended = isPortraitMobile ? 'vertical' : 'horizontal';
         if (html.getAttribute('data-map-view') !== recommended) {
           setMapView(recommended, false);
         }
@@ -1281,14 +1495,13 @@ const visualBarPct = Math.max(rawPct, 2);
       // 3. LEAFLET CARTOGRAPHY INITIALIZATION
       // ------------------------------------------------------------------
       function updateCameraButtonStyles(camName) {
-        document.querySelectorAll('.map-cam-btn').forEach(function (btn) {
-          const isMatch = btn.getAttribute('data-cam') === camName;
-          btn.classList.toggle('is-active', isMatch);
+        document.querySelectorAll('.cam-btn[data-camera]').forEach(function (btn) {
+          btn.classList.toggle('is-active', btn.getAttribute('data-camera') === camName);
         });
       }
 
       function applyCamera(camName, animate) {
-        currentCamera = camName;
+        activeCamera = camName;
         updateCameraButtonStyles(camName);
         if (!mapInstance) return;
 
@@ -1301,7 +1514,7 @@ const visualBarPct = Math.max(rawPct, 2);
           });
         } else if (camName === 'walked' && walkedPolyline) {
           mapInstance.fitBounds(walkedPolyline.getBounds(), {
-            padding: [42, 42],
+            padding: [40, 40],
             maxZoom: 8,
             animate: animate !== false,
           });
@@ -1309,6 +1522,12 @@ const visualBarPct = Math.max(rawPct, 2);
           mapInstance.setView(currentCoords, 10, {
             animate: animate !== false,
           });
+          const curIdx = milestones.findIndex(function (m) {
+            return Boolean(m.isCurrent);
+          });
+          if (curIdx >= 0 && milestoneMarkers[curIdx]) {
+            milestoneMarkers[curIdx].openPopup();
+          }
         }
       }
 
@@ -1321,10 +1540,12 @@ const visualBarPct = Math.max(rawPct, 2);
 
         mountMapForCurrentView();
 
+        const initialMode = html.getAttribute('data-map-view') || 'horizontal';
         const L = window.L;
         mapInstance = L.map(mapEl, {
-          scrollWheelZoom: false,
+          scrollWheelZoom: initialMode === 'horizontal',
           zoomControl: true,
+          worldCopyJump: true,
         });
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -1332,7 +1553,7 @@ const visualBarPct = Math.max(rawPct, 2);
           attribution: '&copy; OpenStreetMap contributors',
         }).addTo(mapInstance);
 
-        // 1. Planned Eurasia Corridor (Dashed ink line: SJPP -> over Caspian -> N. India -> S. Korea -> Shikoku)
+        // 1. Planned Eurasia Corridor (Dashed ink line: SJPP -> North Caspian -> N. India -> S. Korea -> Shikoku)
         const plannedLatLngs = plannedWaypoints.map(function (wp) {
           return [wp[0], wp[1]];
         });
@@ -1340,17 +1561,18 @@ const visualBarPct = Math.max(rawPct, 2);
         plannedPolyline = L.polyline(plannedLatLngs, {
           color: '#524D46',
           weight: 2.5,
-          opacity: 0.88,
+          opacity: 0.86,
           dashArray: '6, 8',
         }).addTo(mapInstance);
 
         plannedWaypoints.forEach(function (wp, idx) {
-          if (idx === 0) return; // Avoid overlapping Saint-Jean-Pied-de-Port current beacon
+          if (idx === 0) return;
+          const isDestination = idx === plannedWaypoints.length - 1;
           L.circleMarker([wp[0], wp[1]], {
-            radius: idx === plannedWaypoints.length - 1 ? 5.5 : 3.5,
-            color: '#1C1A17',
-            weight: 1.5,
-            fillColor: idx === plannedWaypoints.length - 1 ? '#6E2B25' : '#E6DFCF',
+            radius: isDestination ? 6 : 3.5,
+            color: isDestination ? '#6E2B25' : '#1C1A17',
+            weight: isDestination ? 2 : 1.25,
+            fillColor: isDestination ? '#D4AF37' : '#E6DFCF',
             fillOpacity: 0.95,
           })
             .bindTooltip(wp[2], { direction: 'top', offset: [0, -4] })
@@ -1364,14 +1586,16 @@ const visualBarPct = Math.max(rawPct, 2);
 
         walkedPolyline = L.polyline(walkedLatLngs, {
           color: '#6E2B25',
-          weight: 3.75,
+          weight: 4,
           opacity: 0.96,
+          lineJoin: 'round',
+          lineCap: 'round',
         }).addTo(mapInstance);
 
-        // 3. Milestone Crimson Stamps & Pulsing Current Location Marker
+        // 3. Static Paper-Map Ink Stamps & Current Location Seal (No Pulsing)
         const stampIcon = L.divIcon({
           className: '',
-          html: '<div class="henro-stamp-marker" title="Trail Milestone">印</div>',
+          html: '<div class="henro-stamp-marker" title="Milestone Stamp">印</div>',
           iconSize: [22, 22],
           iconAnchor: [11, 11],
           popupAnchor: [0, -12],
@@ -1379,51 +1603,75 @@ const visualBarPct = Math.max(rawPct, 2);
 
         const currentIcon = L.divIcon({
           className: '',
-          html: '<div class="henro-current-marker" title="Henro Current Location">今</div>',
+          html: '<div class="henro-current-marker" title="Current Position">今</div>',
           iconSize: [28, 28],
           iconAnchor: [14, 14],
           popupAnchor: [0, -14],
         });
 
+        milestoneMarkers = [];
+
         milestones.forEach(function (ms) {
+          const badgeHtml = ms.isCurrent
+            ? '<span style="color:#6E2B25;font-weight:700;">CURRENT LOCATION</span> &middot; '
+            : '';
+
           const popupHtml =
-            '<div style="font-family: \'EB Garamond\', Georgia, serif; min-width: 205px; max-width: 260px; padding: 2px;">' +
-            '<div style="font-family: \'JetBrains Mono\', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #524D46; margin-bottom: 4px;">' +
-            '<span>' + ms.leg + '</span> &middot; <span style="color: #6E2B25; font-weight: 600;">KM ' + ms.kmMarker + '</span>' +
+            '<div style="font-family:\'EB Garamond\',Georgia,serif;min-width:210px;max-width:265px;padding:2px;">' +
+            '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:#524D46;margin-bottom:4px;">' +
+            badgeHtml +
+            '<span>' + ms.leg + '</span> &middot; <span style="color:#6E2B25;font-weight:600;">KM ' + ms.kmMarker + '</span>' +
             '</div>' +
-            '<div style="font-family: \'Cormorant Garamond\', Georgia, serif; font-size: 18px; font-weight: 700; color: #1C1A17; line-height: 1.25; margin-bottom: 6px;">' +
+            '<div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:18px;font-weight:700;color:#1C1A17;line-height:1.25;margin-bottom:6px;">' +
             ms.title +
             '</div>' +
-            '<p style="font-size: 14px; line-height: 1.5; color: #1C1A17; margin: 0;">' +
+            '<p style="font-size:14px;line-height:1.5;color:#1C1A17;margin:0;">' +
             ms.summary +
             '</p>' +
             '</div>';
 
-          L.marker([ms.lat, ms.lng], {
+          const marker = L.marker([ms.lat, ms.lng], {
             icon: ms.isCurrent ? currentIcon : stampIcon,
-            zIndexOffset: ms.isCurrent ? 600 : 100,
+            zIndexOffset: ms.isCurrent ? 1000 : 100,
           })
             .bindPopup(popupHtml, {
               className: 'henro-washi-popup',
               maxWidth: 280,
             })
             .addTo(mapInstance);
+
+          milestoneMarkers.push(marker);
         });
 
-        // Camera button listeners (synced across horizontal and vertical ribbons)
-        document.querySelectorAll('.map-cam-btn').forEach(function (btn) {
+        // Wire up camera buttons in both views
+        document.querySelectorAll('.cam-btn[data-camera]').forEach(function (btn) {
           btn.addEventListener('click', function () {
-            applyCamera(btn.getAttribute('data-cam'), true);
+            applyCamera(btn.getAttribute('data-camera') || 'corridor', true);
+          });
+        });
+
+        // Wire up clickable milestone quick-jump chips in both views
+        document.querySelectorAll('[data-milestone-index]').forEach(function (chip) {
+          chip.addEventListener('click', function () {
+            const idx = Number(chip.getAttribute('data-milestone-index'));
+            const marker = milestoneMarkers[idx];
+            const ms = milestones[idx];
+            if (marker && ms) {
+              mapInstance.setView([ms.lat, ms.lng], ms.isCurrent ? 10 : 9, {
+                animate: true,
+              });
+              marker.openPopup();
+            }
           });
         });
 
         // Default camera: full Eurasia corridor
         applyCamera('corridor', false);
 
-        // Trigger initial dramatic left-to-right unfurl if starting in horizontal mode
-        if (html.getAttribute('data-map-view') === 'horizontal') {
-          renderHorizontalFrame(0);
-          animateHorizontalScroll(true, true);
+        // Start centered & closed, glide left, then dramatically unfurl left-to-right
+        if (initialMode === 'horizontal') {
+          renderHorizontalFrame(0, 1);
+          openHorizontalScroll(true);
         }
       }
 
