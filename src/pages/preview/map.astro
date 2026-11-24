@@ -1,503 +1,1508 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import siteConfig from '../../data/siteConfig.json';
 import routeData from '../../data/route.json';
+import '../../styles/global.css';
+
+interface NewsletterEntry {
+  title: string;
+  date: string;
+  url: string;
+  excerpt: string;
+}
 
 const stats = routeData.stats || {
-  totalPlannedKm: 14500,
-  completedKm: 115,
-  daysOnTrail: 5,
-  countriesCrossed: 1,
+  totalPlannedKm: 19500,
+  completedKm: 1355,
+  daysOnTrail: 58,
+  countriesCrossed: 3,
+  currentLocation: 'Saint-Jean-Pied-de-Port, France',
+  currentStageLabel: 'Pyrenees Gate • End of Reverse Camino Francés',
 };
 
-const plannedWaypoints = Array.isArray(routeData.plannedWaypoints)
-  ? routeData.plannedWaypoints
-  : [];
+const walkedLegs = Array.isArray(routeData.walkedLegs) ? routeData.walkedLegs : [];
+const walkedTrack = Array.isArray(routeData.walkedTrack) ? routeData.walkedTrack : [];
+const milestones = Array.isArray(routeData.milestones) ? routeData.milestones : [];
+const plannedWaypoints = Array.isArray(routeData.plannedWaypoints) ? routeData.plannedWaypoints : [];
 
-const checkpoints = Array.isArray(routeData.checkpoints)
-  ? routeData.checkpoints
-  : [];
+const substackConfig = routeData.substackNewsletter || {
+  publicationUrl: 'https://caminohenro.substack.com',
+  subscribeUrl: 'https://caminohenro.substack.com/subscribe',
+  newsletterSectionUrl: 'https://caminohenro.substack.com/s/newsletter',
+  feedUrls: ['https://caminohenro.substack.com/s/newsletter/feed'],
+  maxEntries: 24,
+  archiveNotice:
+    'Monthly road dispatches are published on Substack. Past archive issues are accessible to paid subscribers.',
+  fallbackEntries: [],
+};
+
+// Lightweight zero-dependency RSS XML parser for Substack feeds (runs at Astro build time)
+function decodeHtmlEntities(input: string): string {
+  return input
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;|&#x27;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&#8217;|&#x2019;/g, '’')
+    .replace(/&#8216;|&#x2018;/g, '‘')
+    .replace(/&#8220;|&#x201C;/g, '“')
+    .replace(/&#8221;|&#x201D;/g, '”')
+    .replace(/&#8212;|&#x2014;/g, '—')
+    .replace(/&#8211;|&#x2013;/g, '–')
+    .replace(/&#8230;/g, '…')
+    .replace(/&#(\d+);/g, (_m, dec) => String.fromCharCode(Number(dec)));
+}
+
+function stripHtml(input: string): string {
+  return decodeHtmlEntities(input)
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function extractTag(block: string, tagName: string): string {
+  const regex = new RegExp(`<${tagName}[^>]*>([\\s\\S]*?)<\\/${tagName}>`, 'i');
+  const match = block.match(regex);
+  return match ? match[1].trim() : '';
+}
+
+function formatDispatchDate(rawDate: string): string {
+  if (!rawDate) return '—';
+  const parsed = new Date(rawDate);
+  if (Number.isNaN(parsed.getTime())) return rawDate;
+  return parsed.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+  });
+}
+
+function truncateText(text: string, limit = 190): string {
+  if (text.length <= limit) return text;
+  return text.slice(0, limit - 1).trimEnd() + '…';
+}
+
+async function fetchSubstackDispatches(): Promise<{ entries: NewsletterEntry[]; isLive: boolean }> {
+  const feedUrls = Array.isArray(substackConfig.feedUrls) ? substackConfig.feedUrls : [];
+  const maxEntries = typeof substackConfig.maxEntries === 'number' ? substackConfig.maxEntries : 24;
+
+  for (const url of feedUrls) {
+    if (!url || typeof url !== 'string') continue;
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 7000);
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          Accept: 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8',
+          'User-Agent': 'CaminoHenroSite/1.0 (+https://caminohenro.org)',
+        },
+      });
+      clearTimeout(timeout);
+
+      if (!response.ok) continue;
+      const xml = await response.text();
+      if (!xml || !xml.includes('<item')) continue;
+
+      const items = xml.match(/<item\b[\s\S]*?<\/item>/gi) || [];
+      const parsed: NewsletterEntry[] = [];
+
+      for (const itemXml of items.slice(0, maxEntries)) {
+        const rawTitle = extractTag(itemXml, 'title');
+        const rawLink = extractTag(itemXml, 'link');
+        const rawDate = extractTag(itemXml, 'pubDate');
+        const rawDesc = extractTag(itemXml, 'description');
+
+        const title = stripHtml(rawTitle);
+        const link = decodeHtmlEntities(rawLink).trim();
+        if (!title || !link) continue;
+
+        parsed.push({
+          title,
+          date: rawDate,
+          url: link,
+          excerpt: truncateText(stripHtml(rawDesc) || 'Monthly trail dispatch on Substack.'),
+        });
+      }
+
+      if (parsed.length > 0) {
+        return { entries: parsed, isLive: true };
+      }
+    } catch (_err) {
+      // Try next feed URL or fall back to static entries
+    }
+  }
+
+  const fallback = Array.isArray(substackConfig.fallbackEntries)
+    ? (substackConfig.fallbackEntries as NewsletterEntry[])
+    : [];
+
+  return { entries: fallback, isLive: false };
+}
+
+const { entries: substackDispatches, isLive: isFeedLive } = await fetchSubstackDispatches();
 
 const rawPct =
-  stats.totalPlannedKm > 0
-    ? (stats.completedKm / stats.totalPlannedKm) * 100
-    : 0;
-
+  stats.totalPlannedKm > 0 ? (stats.completedKm / stats.totalPlannedKm) * 100 : 0;
 const formattedPct = rawPct.toFixed(2);
-const visualBarPct = Math.max(rawPct, 1.5);
+const visualBarPct = Math.max(rawPct, 2.0);
 ---
 
-<BaseLayout
-  title="Eurasia Route Map | CAMINO HENRO"
-  description="Interactive overland cartography tracing the continuous footpath from Cape Finisterra, Spain to Shikoku, Japan."
->
-  <!-- Load Leaflet 1.9.4 CSS from unpkg CDN -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
+<!doctype html>
+<html lang="en" data-map-scroll-mode="horizontal">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eurasia Route Map | {siteConfig.siteTitleEn || 'CAMINO HENRO'}</title>
+    <meta
+      name="description"
+      content="Interactive overland cartography tracing Henro's continuous footpath from Coimbra through Santiago, Muxía, Finisterra, and Saint-Jean-Pied-de-Port across Eurasia to Shikoku, Japan."
+    />
+    <link rel="icon" type="image/svg+xml" href={siteConfig.crestImage} />
 
-  <!-- Page Header -->
-  <!-- STANDARDIZED_SCROLL_HEADER_START -->
-<div class="scroll-title-block">
-  <div class="scroll-eyebrow">行程図 • 34°N–45°N Overland Corridor</div>
-  <h1 class="page-heading">Eurasia Route Map</h1>
-  <div class="page-subtitle">Tracing the unbroken footpath from Cape Finisterra across Europe and Asia to Temple 1 in Shikoku, Japan</div>
-</div>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+JP:wght@400;600&family=Shippori+Mincho:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
 
-<div class="page-break">
-  <div class="line"></div>
-  <div class="kanji">道</div>
-  <div class="line"></div>
-</div>
-<!-- STANDARDIZED_SCROLL_HEADER_END -->
+    <!-- Leaflet 1.9.4 CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
 
-  <!-- 4-Column Expedition Telemetry Bar + Progress Bar -->
-  <section class="py-6 border-b border-[#1C1A17]/15">
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
-      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-4">
-        <span class="block text-[10px] uppercase tracking-widest text-[#524D46] mb-1">
-          Completed Distance
-        </span>
-        <span class="text-xl sm:text-2xl font-medium text-[#6E2B25]">
-          {stats.completedKm.toLocaleString('en-US')} km
-        </span>
-      </div>
+    <!-- Immediate orientation check before first paint to prevent layout flash -->
+    <script is:inline>
+      (function () {
+        var isPortraitMobile =
+          window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
+        document.documentElement.setAttribute(
+          'data-map-scroll-mode',
+          isPortraitMobile ? 'vertical' : 'horizontal'
+        );
+      })();
+    </script>
+  </head>
 
-      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-4">
-        <span class="block text-[10px] uppercase tracking-widest text-[#524D46] mb-1">
-          Planned Corridor
-        </span>
-        <span class="text-xl sm:text-2xl font-medium text-[#1C1A17]">
-          {stats.totalPlannedKm.toLocaleString('en-US')} km
-        </span>
-      </div>
-
-      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-4">
-        <span class="block text-[10px] uppercase tracking-widest text-[#524D46] mb-1">
-          Days on Trail
-        </span>
-        <span class="text-xl sm:text-2xl font-medium text-[#1C1A17]">
-          {stats.daysOnTrail}
-        </span>
-      </div>
-
-      <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-4">
-        <span class="block text-[10px] uppercase tracking-widest text-[#524D46] mb-1">
-          Countries Crossed
-        </span>
-        <span class="text-xl sm:text-2xl font-medium text-[#1C1A17]">
-          {stats.countriesCrossed}
-        </span>
-      </div>
-    </div>
-
-    <!-- Progress Percentage Bar -->
-    <div class="mt-5">
-      <div class="flex items-center justify-between font-mono text-xs text-[#524D46] mb-1.5">
-        <span class="uppercase tracking-widest">
-          Continental Footpath Progress (Finisterra → Shikoku)
-        </span>
-        <span class="text-[#6E2B25] font-medium">
-          {formattedPct}% ({stats.completedKm} / {stats.totalPlannedKm.toLocaleString('en-US')} km)
-        </span>
-      </div>
-      <div class="w-full h-2.5 bg-[#D8CEB8] border border-[#1C1A17]/25 overflow-hidden">
-        <div
-          class="h-full bg-[#6E2B25] transition-all duration-500"
-          style={`width: ${visualBarPct}%;`}
-        ></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Interactive Map Controls & Map Container -->
-  <section class="py-8 border-b border-[#6E2B25]">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-      <div class="flex flex-wrap items-center gap-2 font-mono text-xs">
-        <button
-          id="btn-zoom-corridor"
-          type="button"
-          class="border border-[#1C1A17] bg-[#E6DFCF] hover:border-[#6E2B25] hover:text-[#6E2B25] text-[#1C1A17] px-3 py-2 uppercase tracking-wider transition-colors"
-        >
-          View Full Eurasia Corridor
-        </button>
-        <button
-          id="btn-zoom-walked"
-          type="button"
-          class="border border-[#6E2B25] bg-[#6E2B25] text-[#E6DFCF] hover:bg-[#8C3B33] px-3 py-2 uppercase tracking-wider transition-colors"
-        >
-          Zoom to Walked Trail (Galicia)
-        </button>
-      </div>
-
-      <!-- Legend -->
-      <div class="flex flex-wrap items-center gap-4 font-mono text-xs text-[#524D46]">
-        <span class="inline-flex items-center gap-1.5">
-          <span class="inline-block w-5 h-[3px] bg-[#6E2B25]"></span>
-          <span>Walked Trail</span>
-        </span>
-        <span class="inline-flex items-center gap-1.5">
-          <span class="inline-block w-5 border-t-2 border-dashed border-[#524D46]"></span>
-          <span>Planned Corridor</span>
-        </span>
-        <span class="inline-flex items-center gap-1.5">
-          <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#6E2B25] border border-[#E6DFCF]"></span>
-          <span>Checkpoint Stamp</span>
-        </span>
-      </div>
-    </div>
-
-    <!-- Leaflet Map Viewport -->
+  <body class="selection:bg-[#6E2B25] selection:text-[#E6DFCF] map-page-body">
+    <!-- Fixed Road & Apple Backdrop (matching BaseLayout.astro) -->
     <div
-      id="henro-map"
-      class="w-full bg-[#D8CEB8] relative z-10"
-      style="height: 480px; border: 1px solid #1C1A17;"
-      aria-label="Interactive Eurasia Pilgrimage Map"
+      class="fixed-backdrop"
+      style="background-image: url('/assets/apple-bg.jpeg'), url('/assets/apple-diff.jpg');"
     ></div>
+    <div class="backdrop-dimmer" id="dimmer"></div>
 
-    <p class="mt-2.5 font-mono text-[11px] text-[#524D46]">
-      Tip: Click any crimson stamp along the trail to inspect field notes and read the dispatch written at that stage.
-    </p>
-  </section>
+    <!-- Persistent Site Header -->
+    <Header />
 
-  <!-- Chronological Checkpoint Log Table -->
-  <section class="pt-8 pb-4">
-    <div class="flex flex-wrap items-baseline justify-between gap-2 mb-6">
-      <div>
-        <span class="font-jp text-xs text-[#6E2B25] tracking-widest block mb-1">
-          宿場・踏破記録
-        </span>
-        <h2 class="font-heading text-2xl sm:text-3xl font-semibold tracking-wider uppercase text-[#1C1A17]">
-          Chronological Checkpoint Log
-        </h2>
-      </div>
-      <span class="font-mono text-xs text-[#524D46]">
-        {checkpoints.length} Stages Inscribed
-      </span>
-    </div>
+    <!-- ================================================================ -->
+    <!-- MODE 1: HORIZONTAL FULL-SCREEN EMAKIMONO MAP SCROLL (LEFT -> RIGHT) -->
+    <!-- ================================================================ -->
+    <section
+      id="horizontal-scroll-view"
+      class="emakimono-shell"
+      aria-label="Full-Screen Horizontal Eurasia Map Scroll"
+    >
+      <div class="emakimono-stage" id="emakimono-stage">
+        <!-- Left Vertical Wooden Roller -->
+        <div class="emakimono-roller emakimono-roller-left" aria-hidden="true">
+          <span class="roller-cap roller-cap-top"></span>
+          <span class="roller-ferrule roller-ferrule-top"></span>
+          <span class="roller-shaft"></span>
+          <span class="roller-ferrule roller-ferrule-bottom"></span>
+          <span class="roller-cap roller-cap-bottom"></span>
+        </div>
 
-    <div class="overflow-x-auto border border-[#1C1A17]/20">
-      <table class="w-full text-left border-collapse">
-        <thead>
-          <tr class="border-b border-[#1C1A17]/20 bg-[#D8CEB8]/60 font-mono text-[11px] uppercase tracking-widest text-[#524D46]">
-            <th class="py-3 px-4">Date</th>
-            <th class="py-3 px-4">KM</th>
-            <th class="py-3 px-4">Stage / Checkpoint</th>
-            <th class="py-3 px-4">Trail Note</th>
-            <th class="py-3 px-4 text-right">Dispatch</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-[#1C1A17]/15 text-sm">
-          {checkpoints.map((cp, idx) => (
-            <tr class="hover:bg-[#D8CEB8]/30 transition-colors">
-              <td class="py-3.5 px-4 font-mono text-xs text-[#524D46] whitespace-nowrap align-top">
-                {cp.date}
-              </td>
-              <td class="py-3.5 px-4 font-mono text-xs text-[#6E2B25] font-medium whitespace-nowrap align-top">
-                KM {cp.kmMarker}
-              </td>
-              <td class="py-3.5 px-4 align-top">
+        <!-- Unfurling Horizontal Washi Paper Canvas -->
+        <div class="emakimono-paper-viewport" id="emakimono-paper-viewport">
+          <div class="emakimono-paper">
+            <!-- Compact Top Cartographic Header & Mode Toggle -->
+            <div class="emakimono-topbar">
+              <div class="emakimono-brand">
+                <span class="font-jp text-xs text-[#6E2B25] tracking-widest">行程図</span>
+                <h1 class="font-heading text-xl lg:text-2xl font-bold uppercase tracking-wider text-[#1C1A17] leading-none">
+                  Eurasia Route Map
+                </h1>
+                <span class="hidden xl:inline-flex items-center gap-1.5 font-mono text-[11px] text-[#524D46] border-l border-[#1C1A17]/20 pl-3 ml-1">
+                  <span class="live-dot"></span>
+                  <span>Now: <strong class="text-[#6E2B25]">{stats.currentLocation}</strong></span>
+                  <span>·</span>
+                  <span>{stats.completedKm.toLocaleString('en-US')} / {stats.totalPlannedKm.toLocaleString('en-US')} km</span>
+                </span>
+              </div>
+
+              <div class="emakimono-controls font-mono text-[11px]">
                 <button
                   type="button"
-                  data-focus-index={idx}
-                  class="checkpoint-focus-btn text-left font-heading text-lg font-semibold text-[#1C1A17] hover:text-[#6E2B25] transition-colors block"
+                  data-camera="corridor"
+                  class="cam-btn cam-btn-corridor"
                 >
-                  {cp.title}
+                  Full Eurasia
                 </button>
-                <span class="font-mono text-[11px] text-[#524D46]">
-                  {cp.lat.toFixed(4)}°N, {cp.lng.toFixed(4)}°E
+                <button
+                  type="button"
+                  data-camera="walked"
+                  class="cam-btn cam-btn-walked is-active"
+                >
+                  Walked (Iberia)
+                </button>
+                <button
+                  type="button"
+                  data-camera="current"
+                  class="cam-btn cam-btn-current"
+                >
+                  ● Current Spot
+                </button>
+                <button
+                  type="button"
+                  data-switch-mode="vertical"
+                  class="mode-toggle-btn"
+                  title="Switch to Vertical Scroll for route details & Substack dispatch log"
+                >
+                  ↕ Vertical Info &amp; Log
+                </button>
+              </div>
+            </div>
+
+            <!-- Full-Canvas Map Mount Slot -->
+            <div id="horizontal-map-slot" class="emakimono-map-slot"></div>
+
+            <!-- Slim Bottom Legend + Quick-Jump Milestone Bar -->
+            <div class="emakimono-bottombar font-mono text-[11px]">
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[#524D46]">
+                <span class="inline-flex items-center gap-1.5">
+                  <span class="inline-block w-4 h-[3px] bg-[#6E2B25]"></span>
+                  <span>Walked ({stats.completedKm.toLocaleString('en-US')} km)</span>
                 </span>
-              </td>
-              <td class="py-3.5 px-4 font-body text-[#1C1A17]/90 leading-relaxed align-top max-w-xs">
-                {cp.summary}
-              </td>
-              <td class="py-3.5 px-4 font-mono text-xs text-right whitespace-nowrap align-top">
-                {cp.essaySlug ? (
-                  <a
-                    href={`/blog/${cp.essaySlug}`}
-                    class="text-[#6E2B25] hover:text-[#8C3B33] underline underline-offset-4 font-medium"
+                <span class="inline-flex items-center gap-1.5">
+                  <span class="inline-block w-4 border-t-2 border-dashed border-[#524D46]"></span>
+                  <span>Planned (North Caspian → N. India → S. Korea → Shikoku)</span>
+                </span>
+                <span class="inline-flex items-center gap-1.5">
+                  <span class="live-dot"></span>
+                  <span>Current Position</span>
+                </span>
+              </div>
+
+              <div class="milestone-chips" aria-label="Jump to walked milestone">
+                {milestones.map((m, idx) => (
+                  <button
+                    type="button"
+                    data-milestone-index={idx}
+                    class:list={[
+                      'milestone-chip',
+                      m.isCurrent && 'milestone-chip-current',
+                    ]}
                   >
-                    Read Dispatch →
-                  </a>
-                ) : (
-                  <span class="text-[#524D46]/70">Log Only</span>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                    {m.shortLabel || m.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Vertical Wooden Roller (glides left -> right on unfurl) -->
+        <div class="emakimono-roller emakimono-roller-right" aria-hidden="true">
+          <span class="roller-cap roller-cap-top"></span>
+          <span class="roller-ferrule roller-ferrule-top"></span>
+          <span class="roller-shaft"></span>
+          <span class="roller-ferrule roller-ferrule-bottom"></span>
+          <span class="roller-cap roller-cap-bottom"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- MODE 2: VERTICAL KAKEMONO INFO & LOG SCROLL (TOP -> BOTTOM)      -->
+    <!-- ================================================================ -->
+    <section
+      id="vertical-scroll-view"
+      class="kakemono-shell"
+      aria-label="Vertical Route Information and Substack Dispatch Log Scroll"
+    >
+      <div class="kakemono-stage" id="kakemono-stage">
+        <!-- Top Horizontal Wooden Roller -->
+        <div class="kakemono-roller" aria-hidden="true">
+          <span class="h-roller-cap h-roller-cap-left"></span>
+          <span class="h-roller-ferrule"></span>
+          <span class="h-roller-shaft"></span>
+          <span class="h-roller-ferrule"></span>
+          <span class="h-roller-cap h-roller-cap-right"></span>
+        </div>
+
+        <!-- Unfurling Vertical Washi Parchment -->
+        <main class="kakemono-paper" id="kakemono-paper">
+          <!-- Mobile Portrait Orientation Tooltip -->
+          <div
+            id="mobile-rotate-tooltip"
+            class="mobile-rotate-tooltip"
+            role="status"
+          >
+            <div class="flex items-start gap-2.5">
+              <span class="rotate-icon" aria-hidden="true">↻</span>
+              <div>
+                <strong class="block font-mono text-[11px] uppercase tracking-wider text-[#6E2B25]">
+                  Best Viewed Sideways
+                </strong>
+                <p class="font-body text-sm text-[#1C1A17] leading-snug mt-0.5">
+                  Rotate your phone horizontally to unfurl the full-screen Eurasia Map Scroll left to right.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              id="dismiss-rotate-tooltip"
+              class="shrink-0 font-mono text-xs text-[#524D46] hover:text-[#6E2B25] px-1.5 py-0.5 cursor-pointer"
+              aria-label="Dismiss orientation tip"
+            >
+              ✕
+            </button>
+          </div>
+
+          <!-- Top Mode Switch Banner -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-2 border-b border-[#1C1A17]/15 font-mono text-[11px]">
+            <span class="uppercase tracking-widest text-[#524D46]">
+              ↕ Information &amp; Dispatch Scroll
+            </span>
+            <button
+              type="button"
+              data-switch-mode="horizontal"
+              class="mode-toggle-btn"
+            >
+              ⟷ Unfurl Full-Screen Horizontal Map Scroll
+            </button>
+          </div>
+
+          <!-- Standardized Scroll Title Block -->
+          <div class="scroll-title-block">
+            <div class="scroll-eyebrow">行程図 • Coimbra → Shikoku Overland Corridor</div>
+            <h1 class="page-heading">Eurasia Route Map</h1>
+            <div class="page-subtitle">
+              Tracing the continuous footpath from Coimbra through Santiago, Muxía, Finisterra, and Saint-Jean-Pied-de-Port — north of the Caspian Sea, through Northern India and South Korea to Shikoku
+            </div>
+          </div>
+
+          <div class="page-break">
+            <div class="line"></div>
+            <div class="kanji">道</div>
+            <div class="line"></div>
+          </div>
+
+          <!-- 4-Column Expedition Telemetry + Progress Bar -->
+          <section class="py-6 border-b border-[#1C1A17]/15">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
+              <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-4">
+                <span class="block text-[10px] uppercase tracking-widest text-[#524D46] mb-1">
+                  Distance Walked
+                </span>
+                <span class="text-xl sm:text-2xl font-medium text-[#6E2B25]">
+                  {stats.completedKm.toLocaleString('en-US')} km
+                </span>
+              </div>
+
+              <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-4">
+                <span class="block text-[10px] uppercase tracking-widest text-[#524D46] mb-1">
+                  Planned Corridor
+                </span>
+                <span class="text-xl sm:text-2xl font-medium text-[#1C1A17]">
+                  ~{stats.totalPlannedKm.toLocaleString('en-US')} km
+                </span>
+              </div>
+
+              <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/40 p-4">
+                <span class="block text-[10px] uppercase tracking-widest text-[#524D46] mb-1">
+                  Countries Crossed
+                </span>
+                <span class="text-xl sm:text-2xl font-medium text-[#1C1A17]">
+                  {stats.countriesCrossed}
+                </span>
+                <span class="block text-[10px] text-[#524D46] mt-0.5">PT · ES · FR</span>
+              </div>
+
+              <div class="border border-[#6E2B25]/45 bg-[#6E2B25]/8 p-4">
+                <span class="block text-[10px] uppercase tracking-widest text-[#6E2B25] mb-1">
+                  ● Current Position
+                </span>
+                <span class="text-sm sm:text-base font-medium text-[#1C1A17] leading-tight block">
+                  {stats.currentLocation}
+                </span>
+              </div>
+            </div>
+
+            <!-- Progress Percentage Bar -->
+            <div class="mt-5">
+              <div class="flex flex-wrap items-center justify-between gap-1 font-mono text-xs text-[#524D46] mb-1.5">
+                <span class="uppercase tracking-widest">
+                  Overland Progress (Coimbra → Shikoku)
+                </span>
+                <span class="text-[#6E2B25] font-medium">
+                  {formattedPct}% ({stats.completedKm.toLocaleString('en-US')} / {stats.totalPlannedKm.toLocaleString('en-US')} km)
+                </span>
+              </div>
+              <div class="w-full h-2.5 bg-[#D8CEB8] border border-[#1C1A17]/25 overflow-hidden">
+                <div
+                  class="h-full bg-[#6E2B25] transition-all duration-500"
+                  style={`width: ${visualBarPct}%;`}
+                ></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Compact Inset Map Preview (hosts the shared Leaflet instance in vertical mode) -->
+          <section class="py-7 border-b border-[#1C1A17]/15">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3 font-mono text-[11px]">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <button type="button" data-camera="corridor" class="cam-btn cam-btn-corridor">
+                  Full Eurasia
+                </button>
+                <button type="button" data-camera="walked" class="cam-btn cam-btn-walked is-active">
+                  Walked Trail
+                </button>
+                <button type="button" data-camera="current" class="cam-btn cam-btn-current">
+                  ● Current Spot
+                </button>
+              </div>
+              <button
+                type="button"
+                data-switch-mode="horizontal"
+                class="text-[#6E2B25] hover:text-[#8C3B33] underline underline-offset-4 uppercase tracking-wider cursor-pointer"
+              >
+                Expand Full-Screen Map ⟷
+              </button>
+            </div>
+
+            <div id="vertical-map-slot" class="vertical-map-slot"></div>
+
+            <div class="mt-2.5 flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-[#524D46]">
+              <span>Click any crimson 印 stamp on the map to inspect trail notes.</span>
+              <span>Coimbra → Santiago → Muxía → Finisterra → Santiago → SJPP</span>
+            </div>
+          </section>
+
+          <!-- Detailed Walked Legs & Planned Corridor Breakdown -->
+          <section class="py-8 border-b border-[#6E2B25]">
+            <div class="mb-5">
+              <span class="font-jp text-xs text-[#6E2B25] tracking-widest block mb-1">
+                踏破区間 • TRAIL ARCHIVE
+              </span>
+              <h2 class="font-heading text-2xl sm:text-3xl font-semibold tracking-wider uppercase text-[#1C1A17]">
+                Route Completed &amp; Corridor Ahead
+              </h2>
+            </div>
+
+            <div class="space-y-3.5">
+              {walkedLegs.map((leg) => (
+                <article class="border border-[#1C1A17]/20 bg-[#D8CEB8]/35 p-4 sm:p-5">
+                  <div class="flex flex-wrap items-baseline justify-between gap-2 mb-1">
+                    <h3 class="font-heading text-xl font-semibold text-[#1C1A17]">
+                      {leg.name}
+                    </h3>
+                    <span class="font-mono text-xs text-[#6E2B25] font-medium">
+                      {leg.kmRange} ({leg.distanceKm} km)
+                    </span>
+                  </div>
+                  <div class="font-mono text-[11px] uppercase tracking-wider text-[#524D46] mb-2">
+                    {leg.span}
+                  </div>
+                  <p class="font-body text-base text-[#1C1A17]/90 leading-relaxed">
+                    {leg.summary}
+                  </p>
+                </article>
+              ))}
+
+              <article class="border border-dashed border-[#524D46]/60 bg-[#E6DFCF]/70 p-4 sm:p-5">
+                <div class="flex flex-wrap items-baseline justify-between gap-2 mb-1">
+                  <h3 class="font-heading text-xl font-semibold text-[#1C1A17]">
+                    Ahead • Planned Eurasia Overland Corridor
+                  </h3>
+                  <span class="font-mono text-xs text-[#524D46]">
+                    Dotted Line • ~18,150 km Remaining
+                  </span>
+                </div>
+                <div class="font-mono text-[11px] uppercase tracking-wider text-[#524D46] mb-2">
+                  France → Italy → Balkans → Turkey → Caucasus → North Caspian → Central Asia → Northern India → China → South Korea → Shikoku
+                </div>
+                <p class="font-body text-base text-[#1C1A17]/85 leading-relaxed">
+                  Continuing eastward from Saint-Jean-Pied-de-Port across southern Europe and Anatolia into the Caucasus, arcing north around the Caspian Sea (Astrakhan &amp; Atyrau), descending through Central Asia into Northern India (Ladakh, Himachal, Uttarakhand, Varanasi), crossing China to the Yellow Sea, walking South Korea from Incheon/Seoul to Busan, and crossing the strait to Temple 1 (Ryōzen-ji) in Shikoku.
+                </p>
+              </article>
+            </div>
+          </section>
+
+          <!-- Monthly Substack Dispatch Log (Replaces Outdated Chronological Checkpoints) -->
+          <section class="pt-8 pb-4">
+            <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+              <div>
+                <span class="font-jp text-xs text-[#6E2B25] tracking-widest block mb-1">
+                  月報・書簡 • SUBSTACK NEWSLETTER LOG
+                </span>
+                <h2 class="font-heading text-2xl sm:text-3xl font-semibold tracking-wider uppercase text-[#1C1A17]">
+                  Monthly Trail Dispatches
+                </h2>
+              </div>
+              <div class="flex items-center gap-2 font-mono text-[11px]">
+                <span class="text-[#524D46]">
+                  {substackDispatches.length} {substackDispatches.length === 1 ? 'Issue' : 'Issues'} Logged
+                </span>
+                <a
+                  href={substackConfig.subscribeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="bg-[#6E2B25] hover:bg-[#8C3B33] text-[#E6DFCF] px-3 py-1.5 uppercase tracking-wider transition-colors"
+                >
+                  Subscribe on Substack 印
+                </a>
+              </div>
+            </div>
+
+            <div class="mb-5 border-l-2 border-[#6E2B25] bg-[#D8CEB8]/40 px-4 py-3 font-body text-sm sm:text-base text-[#524D46]">
+              {substackConfig.archiveNotice}{' '}
+              <a
+                href={substackConfig.newsletterSectionUrl || substackConfig.publicationUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-[#6E2B25] hover:text-[#8C3B33] underline underline-offset-4 font-medium"
+              >
+                Open Substack Archive ↗
+              </a>
+            </div>
+
+            {substackDispatches.length > 0 ? (
+              <div class="overflow-x-auto border border-[#1C1A17]/20">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr class="border-b border-[#1C1A17]/20 bg-[#D8CEB8]/60 font-mono text-[11px] uppercase tracking-widest text-[#524D46]">
+                      <th class="py-3 px-4">Date</th>
+                      <th class="py-3 px-4">Monthly Newsletter</th>
+                      <th class="py-3 px-4 text-right">Substack</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-[#1C1A17]/15 text-sm">
+                    {substackDispatches.map((entry) => (
+                      <tr class="hover:bg-[#D8CEB8]/30 transition-colors">
+                        <td class="py-3.5 px-4 font-mono text-xs text-[#524D46] whitespace-nowrap align-top">
+                          {formatDispatchDate(entry.date)}
+                        </td>
+                        <td class="py-3.5 px-4 align-top">
+                          <a
+                            href={entry.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="font-heading text-lg font-semibold text-[#1C1A17] hover:text-[#6E2B25] transition-colors block leading-snug"
+                          >
+                            {entry.title}
+                          </a>
+                          {entry.excerpt && (
+                            <p class="font-body text-sm text-[#524D46] leading-relaxed mt-1">
+                              {entry.excerpt}
+                            </p>
+                          )}
+                        </td>
+                        <td class="py-3.5 px-4 font-mono text-xs text-right whitespace-nowrap align-top">
+                          <a
+                            href={entry.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="inline-block text-[#6E2B25] hover:text-[#8C3B33] underline underline-offset-4 font-medium"
+                          >
+                            Read Issue ↗
+                          </a>
+                          <span class="block text-[10px] text-[#524D46]/80 mt-0.5">
+                            Paid Archive
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div class="border border-[#1C1A17]/20 bg-[#D8CEB8]/30 p-6 text-center">
+                <p class="font-body italic text-base text-[#524D46] mb-3">
+                  Monthly trail dispatches will appear here automatically as they are published on Substack.
+                </p>
+                <a
+                  href={substackConfig.subscribeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-block bg-[#6E2B25] hover:bg-[#8C3B33] text-[#E6DFCF] font-mono text-xs uppercase tracking-widest px-4 py-2 transition-colors"
+                >
+                  Follow on Substack ↗
+                </a>
+              </div>
+            )}
+
+            <p class="mt-3 font-mono text-[10px] uppercase tracking-wider text-[#524D46]/75">
+              Feed status: {isFeedLive ? 'Synced live from Substack RSS at build time' : 'Showing cached dispatch entries (configure feedUrls in route.json)'}
+            </p>
+          </section>
+
+          <Footer />
+        </main>
+
+        <!-- Bottom Horizontal Wooden Roller -->
+        <div class="kakemono-roller" aria-hidden="true">
+          <span class="h-roller-cap h-roller-cap-left"></span>
+          <span class="h-roller-ferrule"></span>
+          <span class="h-roller-shaft"></span>
+          <span class="h-roller-ferrule"></span>
+          <span class="h-roller-cap h-roller-cap-right"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Single Shared Leaflet Map Element (reparented smoothly between Horizontal & Vertical slots) -->
+    <div id="henro-map-parking" hidden>
+      <div
+        id="henro-map"
+        class="henro-map-canvas"
+        aria-label="Interactive Eurasia Pilgrimage Map"
+      ></div>
     </div>
-  </section>
 
-  <!-- Custom Cartographic Sepia Filter & Washi Popup Styling -->
-  <style is:global>
-    #henro-map .leaflet-tile-pane {
-      filter: sepia(0.55) contrast(1.05) brightness(0.92) hue-rotate(-10deg);
-    }
+    <!-- Custom Styling for Dual Scroll Architecture + Sepia Cartography -->
+    <style is:global>
+      /* Mode visibility controlled cleanly by <html data-map-scroll-mode> */
+      html[data-map-scroll-mode='horizontal'] #horizontal-scroll-view {
+        display: flex;
+      }
+      html[data-map-scroll-mode='horizontal'] #vertical-scroll-view {
+        display: none;
+      }
+      html[data-map-scroll-mode='vertical'] #horizontal-scroll-view {
+        display: none;
+      }
+      html[data-map-scroll-mode='vertical'] #vertical-scroll-view {
+        display: block;
+      }
 
-    #henro-map .leaflet-control-attribution {
-      background: rgba(230, 223, 207, 0.88) !important;
-      color: #524D46 !important;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      border-top: 1px solid rgba(28, 26, 23, 0.2);
-      border-left: 1px solid rgba(28, 26, 23, 0.2);
-    }
+      /* ============================================================== */
+      /* HORIZONTAL EMAKIMONO SCROLL (FULL-SCREEN, LEFT -> RIGHT)       */
+      /* ============================================================== */
+      .emakimono-shell {
+        position: relative;
+        z-index: 20;
+        width: 100%;
+        min-height: calc(100dvh - 76px);
+        padding: 12px 14px 18px;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+      }
 
-    #henro-map .leaflet-control-attribution a {
-      color: #6E2B25 !important;
-    }
+      .emakimono-stage {
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        width: 100%;
+        max-width: 1840px;
+        height: calc(100dvh - 104px);
+        min-height: 460px;
+      }
 
-    #henro-map .leaflet-control-zoom a {
-      background-color: #E6DFCF !important;
-      color: #1C1A17 !important;
-      border-color: rgba(28, 26, 23, 0.3) !important;
-      font-family: 'JetBrains Mono', monospace;
-    }
+      /* Vertical Wooden Rollers (Left & Right) */
+      .emakimono-roller {
+        position: relative;
+        z-index: 30;
+        flex: 0 0 26px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: -14px 0;
+        filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.65));
+        user-select: none;
+      }
 
-    #henro-map .leaflet-control-zoom a:hover {
-      background-color: #D8CEB8 !important;
-      color: #6E2B25 !important;
-    }
+      .roller-cap {
+        width: 30px;
+        height: 15px;
+        background: linear-gradient(90deg, #5c381e 0%, #26160c 55%, #120904 100%);
+        border: 1px solid #5c381e;
+        box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.12);
+      }
 
-    .henro-washi-popup .leaflet-popup-content-wrapper {
-      background-color: #E6DFCF;
-      color: #1C1A17;
-      border: 1px solid #6E2B25;
-      border-radius: 0;
-      box-shadow: 0 6px 20px rgba(28, 26, 23, 0.28);
-      padding: 2px;
-    }
+      .roller-cap-top {
+        border-radius: 5px 5px 0 0;
+      }
 
-    .henro-washi-popup .leaflet-popup-tip {
-      background-color: #E6DFCF;
-      border: 1px solid #6E2B25;
-    }
+      .roller-cap-bottom {
+        border-radius: 0 0 5px 5px;
+      }
 
-    .henro-washi-popup .leaflet-popup-close-button {
-      color: #524D46 !important;
-      font-family: 'JetBrains Mono', monospace;
-      padding: 4px 6px 0 0 !important;
-    }
+      .roller-ferrule {
+        width: 26px;
+        height: 8px;
+        background: linear-gradient(90deg, #fdf0a6 0%, #d4af37 30%, #8c6d3b 70%, #4d3816 100%);
+        border-left: 1px solid #fdf0a6;
+        border-right: 1px solid #36260c;
+      }
 
-    .henro-washi-popup .leaflet-popup-close-button:hover {
-      color: #6E2B25 !important;
-    }
+      .roller-shaft {
+        flex: 1;
+        width: 24px;
+        background: linear-gradient(90deg, #5b3720 0%, #3a2213 28%, #1d0f07 72%, #3d2415 100%);
+        border-left: 1px solid #75492b;
+        border-right: 1px solid #0e0603;
+      }
 
-    .henro-stamp-marker {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 24px;
-      height: 24px;
-      border-radius: 9999px;
-      background-color: #6E2B25;
-      color: #E6DFCF;
-      border: 2px solid #E6DFCF;
-      box-shadow: 0 0 0 1px #6E2B25, 0 2px 6px rgba(28, 26, 23, 0.45);
-      font-family: 'Shippori Mincho', serif;
-      font-size: 11px;
-      line-height: 1;
-      cursor: pointer;
-      transition: transform 0.15s ease;
-    }
+      /* Horizontal Unfurl Viewport (animates Left -> Right) */
+      .emakimono-paper-viewport {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 20px 48px rgba(0, 0, 0, 0.65);
+        border-top: 1px solid #c8bea7;
+        border-bottom: 1px solid #c8bea7;
+        background-color: #e6dfcf;
+      }
 
-    .henro-stamp-marker:hover {
-      transform: scale(1.15);
-      background-color: #8C3B33;
-    }
-  </style>
-
-  <!-- Load Leaflet 1.9.4 JS from unpkg CDN and Initialize Map -->
-  <script
-    is:inline
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
-
-  <script
-    is:inline
-    define:vars={{
-      plannedWaypoints,
-      checkpoints,
-    }}
-  >
-    (function () {
-      function initHenroMap() {
-        if (typeof window.L === 'undefined') {
-          setTimeout(initHenroMap, 50);
-          return;
+      @keyframes unfurlLeftToRight {
+        0% {
+          max-width: 0%;
+          opacity: 0.7;
         }
+        12% {
+          opacity: 1;
+        }
+        100% {
+          max-width: 100%;
+          opacity: 1;
+        }
+      }
 
-        const L = window.L;
-        const mapEl = document.getElementById('henro-map');
-        if (!mapEl) return;
+      .emakimono-paper-viewport.is-unfurling {
+        animation: unfurlLeftToRight 1.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
 
-        const map = L.map(mapEl, {
-          scrollWheelZoom: false,
-          zoomControl: true,
-        });
+      .emakimono-paper {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+        background-color: #e6dfcf;
+        background-image:
+          radial-gradient(rgba(110, 43, 37, 0.03) 1px, transparent 0),
+          linear-gradient(90deg, rgba(28, 26, 23, 0.08) 0%, transparent 2.5%, transparent 97.5%, rgba(28, 26, 23, 0.08) 100%);
+        background-size: 24px 24px, 100% 100%;
+      }
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 18,
-          attribution: '&copy; OpenStreetMap contributors',
-        }).addTo(map);
+      .emakimono-topbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px 14px;
+        padding: 10px 16px;
+        border-bottom: 1px solid rgba(28, 26, 23, 0.2);
+        background: rgba(216, 206, 184, 0.55);
+      }
 
-        // 1. Plot Planned Eurasia Corridor as a dashed #524D46 ink polyline
-        const plannedLatLngs = plannedWaypoints.map(function (wp) {
-          return [wp[0], wp[1]];
-        });
+      .emakimono-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
 
-        const plannedPolyline = L.polyline(plannedLatLngs, {
-          color: '#524D46',
-          weight: 2.5,
-          opacity: 0.85,
-          dashArray: '6, 8',
-        }).addTo(map);
+      .emakimono-controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+      }
 
-        // Add subtle ink waypoint dots along the macro corridor
-        plannedWaypoints.forEach(function (wp) {
-          L.circleMarker([wp[0], wp[1]], {
-            radius: 4,
-            color: '#1C1A17',
-            weight: 1.5,
-            fillColor: '#E6DFCF',
-            fillOpacity: 0.95,
-          })
-            .bindTooltip(wp[2], {
-              direction: 'top',
-              offset: [0, -4],
-            })
-            .addTo(map);
-        });
+      .emakimono-map-slot {
+        flex: 1 1 auto;
+        min-height: 0;
+        position: relative;
+        width: 100%;
+      }
 
-        // 2. Plot Completed Checkpoints as a solid #6E2B25 Aged Bengala Crimson polyline
-        const walkedLatLngs = checkpoints.map(function (cp) {
-          return [cp.lat, cp.lng];
-        });
+      .emakimono-bottombar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px 14px;
+        padding: 8px 16px;
+        border-top: 1px solid rgba(28, 26, 23, 0.2);
+        background: rgba(216, 206, 184, 0.55);
+      }
 
-        const walkedPolyline = L.polyline(walkedLatLngs, {
-          color: '#6E2B25',
-          weight: 4,
-          opacity: 0.95,
-        }).addTo(map);
+      /* ============================================================== */
+      /* VERTICAL KAKEMONO SCROLL (INFO & LOG, TOP -> BOTTOM)           */
+      /* ============================================================== */
+      .kakemono-shell {
+        position: relative;
+        z-index: 20;
+        width: 100%;
+        padding: 20px 12px 64px;
+        box-sizing: border-box;
+      }
 
-        // 3. Add Interactive Circular Crimson Stamp Markers for each walked checkpoint
-        const stampIcon = L.divIcon({
-          className: '',
-          html: '<div class="henro-stamp-marker" title="Checkpoint Stamp">印</div>',
-          iconSize: [24, 24],
-          iconAnchor: [12, 12],
-          popupAnchor: [0, -12],
-        });
+      .kakemono-stage {
+        width: 100%;
+        max-width: 860px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
 
-        const checkpointMarkers = [];
+      .kakemono-roller {
+        width: calc(100% + 24px);
+        max-width: calc(100vw - 12px);
+        height: 24px;
+        display: flex;
+        align-items: center;
+        position: relative;
+        z-index: 25;
+        filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.6));
+      }
 
-        checkpoints.forEach(function (cp) {
-          const dispatchLinkHtml = cp.essaySlug
-            ? '<div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(28, 26, 23, 0.15);">' +
-              '<a href="/blog/' +
-              cp.essaySlug +
-              '" style="font-family: \'JetBrains Mono\', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #6E2B25; text-decoration: underline; font-weight: 600;">' +
-              'Read Dispatch Written Here →' +
-              '</a></div>'
-            : '';
+      .h-roller-cap {
+        width: 14px;
+        height: 28px;
+        background: linear-gradient(180deg, #5c381e 0%, #26160c 55%, #120904 100%);
+        border: 1px solid #5c381e;
+      }
 
-          const popupHtml =
-            '<div style="font-family: \'EB Garamond\', Georgia, serif; min-width: 210px; max-width: 260px; padding: 2px;">' +
-            '<div style="font-family: \'JetBrains Mono\', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #524D46; margin-bottom: 4px;">' +
-            '<span>' +
-            cp.date +
-            '</span> &middot; <span style="color: #6E2B25; font-weight: 600;">KM ' +
-            cp.kmMarker +
-            '</span>' +
-            '</div>' +
-            '<div style="font-family: \'Cormorant Garamond\', Georgia, serif; font-size: 18px; font-weight: 700; color: #1C1A17; line-height: 1.25; margin-bottom: 6px;">' +
-            cp.title +
-            '</div>' +
-            '<p style="font-size: 14px; line-height: 1.5; color: #1C1A17; margin: 0;">' +
-            cp.summary +
-            '</p>' +
-            dispatchLinkHtml +
-            '</div>';
+      .h-roller-cap-left {
+        border-radius: 4px 0 0 4px;
+      }
 
-          const marker = L.marker([cp.lat, cp.lng], { icon: stampIcon })
-            .bindPopup(popupHtml, {
-              className: 'henro-washi-popup',
-              maxWidth: 280,
-            })
-            .addTo(map);
+      .h-roller-cap-right {
+        border-radius: 0 4px 4px 0;
+      }
 
-          checkpointMarkers.push(marker);
-        });
+      .h-roller-ferrule {
+        width: 8px;
+        height: 24px;
+        background: linear-gradient(180deg, #fdf0a6 0%, #d4af37 35%, #8c6d3b 70%, #4d3816 100%);
+      }
 
-        // Initial camera view: show the full Eurasia corridor
-        if (plannedLatLngs.length > 0) {
-          map.fitBounds(plannedPolyline.getBounds(), {
-            padding: [30, 30],
+      .h-roller-shaft {
+        flex: 1;
+        height: 22px;
+        background: linear-gradient(180deg, #5b3720 0%, #3a2213 30%, #1d0f07 75%, #3d2415 100%);
+        border-top: 1px solid #75492b;
+        border-bottom: 1px solid #0e0603;
+      }
+
+      .kakemono-paper {
+        width: 100%;
+        background-color: #e6dfcf;
+        color: #1c1a17;
+        padding: 28px 34px 36px;
+        border-left: 1px solid #c8bea7;
+        border-right: 1px solid #c8bea7;
+        box-shadow: 0 18px 44px rgba(0, 0, 0, 0.65);
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+
+      @keyframes unfurlTopToBottom {
+        0% {
+          max-height: 0px;
+          opacity: 0.7;
+        }
+        15% {
+          opacity: 1;
+        }
+        100% {
+          max-height: 4500px;
+          opacity: 1;
+        }
+      }
+
+      .kakemono-paper.is-unfurling {
+        animation: unfurlTopToBottom 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+
+      .vertical-map-slot {
+        width: 100%;
+        height: 360px;
+        border: 1px solid #1c1a17;
+        background-color: #d8ceb8;
+        position: relative;
+      }
+
+      /* Mobile Portrait Rotate Tooltip */
+      .mobile-rotate-tooltip {
+        display: none;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 16px;
+        padding: 10px 12px;
+        background: #dfd7c4;
+        border: 1px solid #6e2b25;
+        border-left: 4px solid #6e2b25;
+      }
+
+      .mobile-rotate-tooltip .rotate-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        border-radius: 9999px;
+        background: #6e2b25;
+        color: #e6dfcf;
+        font-size: 15px;
+        flex-shrink: 0;
+      }
+
+      @media (max-width: 768px) and (orientation: portrait) {
+        .mobile-rotate-tooltip:not(.is-dismissed) {
+          display: flex;
+        }
+        .kakemono-paper {
+          padding: 20px 16px 28px;
+        }
+        .vertical-map-slot {
+          height: 300px;
+        }
+      }
+
+      /* Compact horizontal scroll on short mobile landscape screens */
+      @media (max-height: 520px) and (orientation: landscape) {
+        .emakimono-shell {
+          padding: 6px 8px 8px;
+          min-height: calc(100dvh - 54px);
+        }
+        .emakimono-stage {
+          height: calc(100dvh - 68px);
+          min-height: 260px;
+        }
+        .emakimono-topbar {
+          padding: 6px 10px;
+        }
+        .emakimono-bottombar {
+          display: none;
+        }
+        .emakimono-roller {
+          flex: 0 0 18px;
+          margin: -8px 0;
+        }
+        .roller-cap {
+          width: 22px;
+          height: 10px;
+        }
+        .roller-ferrule {
+          width: 18px;
+          height: 6px;
+        }
+        .roller-shaft {
+          width: 16px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .emakimono-paper-viewport.is-unfurling,
+        .kakemono-paper.is-unfurling {
+          animation: none !important;
+        }
+      }
+
+      /* ============================================================== */
+      /* SHARED CONTROLS, CHIPS & LEAFLET CARTOGRAPHY                   */
+      /* ============================================================== */
+      .cam-btn {
+        border: 1px solid #1c1a17;
+        background: #e6dfcf;
+        color: #1c1a17;
+        padding: 5px 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .cam-btn:hover {
+        border-color: #6e2b25;
+        color: #6e2b25;
+      }
+
+      .cam-btn.is-active {
+        border-color: #6e2b25;
+        background: #6e2b25;
+        color: #e6dfcf;
+      }
+
+      .mode-toggle-btn {
+        border: 1px solid #6e2b25;
+        background: #1c1a17;
+        color: #e6dfcf;
+        padding: 5px 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+      }
+
+      .mode-toggle-btn:hover {
+        background: #6e2b25;
+      }
+
+      .milestone-chips {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .milestone-chip {
+        border: 1px solid rgba(28, 26, 23, 0.25);
+        background: rgba(230, 223, 207, 0.85);
+        color: #1c1a17;
+        padding: 2px 7px;
+        font-size: 10px;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .milestone-chip:hover {
+        border-color: #6e2b25;
+        color: #6e2b25;
+      }
+
+      .milestone-chip-current {
+        border-color: #6e2b25;
+        background: #6e2b25;
+        color: #e6dfcf;
+        font-weight: 600;
+      }
+
+      .milestone-chip-current:hover {
+        background: #8c3b33;
+        color: #e6dfcf;
+      }
+
+      .live-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 9999px;
+        background: #6e2b25;
+        box-shadow: 0 0 0 2px rgba(110, 43, 37, 0.28);
+      }
+
+      .henro-map-canvas {
+        width: 100%;
+        height: 100%;
+        background-color: #d8ceb8;
+        z-index: 10;
+      }
+
+      /* Sepia Washi Cartographic Filter */
+      #henro-map .leaflet-tile-pane {
+        filter: sepia(0.55) contrast(1.05) brightness(0.92) hue-rotate(-10deg);
+      }
+
+      #henro-map .leaflet-control-attribution {
+        background: rgba(230, 223, 207, 0.88) !important;
+        color: #524d46 !important;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        border-top: 1px solid rgba(28, 26, 23, 0.2);
+        border-left: 1px solid rgba(28, 26, 23, 0.2);
+      }
+
+      #henro-map .leaflet-control-attribution a {
+        color: #6e2b25 !important;
+      }
+
+      #henro-map .leaflet-control-zoom a {
+        background-color: #e6dfcf !important;
+        color: #1c1a17 !important;
+        border-color: rgba(28, 26, 23, 0.3) !important;
+        font-family: 'JetBrains Mono', monospace;
+      }
+
+      #henro-map .leaflet-control-zoom a:hover {
+        background-color: #d8ceb8 !important;
+        color: #6e2b25 !important;
+      }
+
+      .henro-washi-popup .leaflet-popup-content-wrapper {
+        background-color: #e6dfcf;
+        color: #1c1a17;
+        border: 1px solid #6e2b25;
+        border-radius: 0;
+        box-shadow: 0 6px 20px rgba(28, 26, 23, 0.28);
+        padding: 2px;
+      }
+
+      .henro-washi-popup .leaflet-popup-tip {
+        background-color: #e6dfcf;
+        border: 1px solid #6e2b25;
+      }
+
+      .henro-washi-popup .leaflet-popup-close-button {
+        color: #524d46 !important;
+        font-family: 'JetBrains Mono', monospace;
+        padding: 4px 6px 0 0 !important;
+      }
+
+      .henro-stamp-marker {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 9999px;
+        background-color: #6e2b25;
+        color: #e6dfcf;
+        border: 2px solid #e6dfcf;
+        box-shadow: 0 0 0 1px #6e2b25, 0 2px 6px rgba(28, 26, 23, 0.45);
+        font-family: 'Shippori Mincho', serif;
+        font-size: 10px;
+        line-height: 1;
+        cursor: pointer;
+        transition: transform 0.15s ease;
+      }
+
+      .henro-stamp-marker:hover {
+        transform: scale(1.18);
+        background-color: #8c3b33;
+      }
+
+      @keyframes henroPulseRing {
+        0% {
+          box-shadow: 0 0 0 0 rgba(110, 43, 37, 0.7), 0 0 0 2px #d4af37;
+        }
+        70% {
+          box-shadow: 0 0 0 12px rgba(110, 43, 37, 0), 0 0 0 2px #d4af37;
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(110, 43, 37, 0), 0 0 0 2px #d4af37;
+        }
+      }
+
+      .henro-current-marker {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 9999px;
+        background-color: #6e2b25;
+        color: #fdf0a6;
+        border: 2px solid #e6dfcf;
+        font-family: 'Shippori Mincho', serif;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        animation: henroPulseRing 2.2s infinite;
+      }
+    </style>
+
+    <!-- Leaflet 1.9.4 JS -->
+    <script
+      is:inline
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+
+    <script
+      is:inline
+      define:vars={{
+        walkedTrack,
+        milestones,
+        plannedWaypoints,
+      }}
+    >
+      (function () {
+        function initMapPage() {
+          if (typeof window.L === 'undefined') {
+            setTimeout(initMapPage, 50);
+            return;
+          }
+
+          const L = window.L;
+          const html = document.documentElement;
+          const mapEl = document.getElementById('henro-map');
+          const horizontalSlot = document.getElementById('horizontal-map-slot');
+          const verticalSlot = document.getElementById('vertical-map-slot');
+          const emakimonoViewport = document.getElementById('emakimono-paper-viewport');
+          const kakemonoPaper = document.getElementById('kakemono-paper');
+          const rotateTooltip = document.getElementById('mobile-rotate-tooltip');
+          const dismissTooltipBtn = document.getElementById('dismiss-rotate-tooltip');
+
+          if (!mapEl || !horizontalSlot || !verticalSlot) return;
+
+          // Mount map element into initial active slot before Leaflet initializes
+          let currentMode = html.getAttribute('data-map-scroll-mode') || 'horizontal';
+          (currentMode === 'horizontal' ? horizontalSlot : verticalSlot).appendChild(mapEl);
+
+          const map = L.map(mapEl, {
+            scrollWheelZoom: true,
+            zoomControl: true,
+            worldCopyJump: true,
           });
-        }
 
-        // Camera-jump button handlers
-        const btnCorridor = document.getElementById('btn-zoom-corridor');
-        const btnWalked = document.getElementById('btn-zoom-walked');
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '&copy; OpenStreetMap contributors',
+          }).addTo(map);
 
-        function setActiveButton(activeBtn, inactiveBtn) {
-          if (!activeBtn || !inactiveBtn) return;
-          activeBtn.className =
-            'border border-[#6E2B25] bg-[#6E2B25] text-[#E6DFCF] hover:bg-[#8C3B33] px-3 py-2 uppercase tracking-wider transition-colors';
-          inactiveBtn.className =
-            'border border-[#1C1A17] bg-[#E6DFCF] hover:border-[#6E2B25] hover:text-[#6E2B25] text-[#1C1A17] px-3 py-2 uppercase tracking-wider transition-colors';
-        }
+          // 1. Planned Eurasia Corridor (Dashed ink line: SJPP -> Europe -> North Caspian -> N. India -> S. Korea -> Shikoku)
+          const plannedLatLngs = plannedWaypoints.map(function (wp) {
+            return [wp[0], wp[1]];
+          });
 
-        if (btnCorridor) {
-          btnCorridor.addEventListener('click', function () {
-            setActiveButton(btnCorridor, btnWalked);
-            if (plannedLatLngs.length > 0) {
-              map.fitBounds(plannedPolyline.getBounds(), {
-                padding: [30, 30],
-              });
+          const plannedPolyline = L.polyline(plannedLatLngs, {
+            color: '#524D46',
+            weight: 2.5,
+            opacity: 0.85,
+            dashArray: '6, 8',
+          }).addTo(map);
+
+          plannedWaypoints.forEach(function (wp, idx) {
+            // Skip duplicate dot on index 0 (Saint-Jean-Pied-de-Port already has the pulsing current marker)
+            if (idx === 0) return;
+            const isDestination = idx === plannedWaypoints.length - 1;
+            L.circleMarker([wp[0], wp[1]], {
+              radius: isDestination ? 6 : 3.5,
+              color: isDestination ? '#6E2B25' : '#1C1A17',
+              weight: isDestination ? 2 : 1.25,
+              fillColor: isDestination ? '#D4AF37' : '#E6DFCF',
+              fillOpacity: 0.95,
+            })
+              .bindTooltip(wp[2], {
+                direction: 'top',
+                offset: [0, -4],
+              })
+              .addTo(map);
+          });
+
+          // 2. Detailed Walked Iberian Trail (Solid Aged Bengala Crimson polyline)
+          const walkedPolyline = L.polyline(walkedTrack, {
+            color: '#6E2B25',
+            weight: 4,
+            opacity: 0.96,
+            lineJoin: 'round',
+            lineCap: 'round',
+          }).addTo(map);
+
+          // 3. Milestone Crimson Stamps & Pulsing Current Position Marker
+          const stampIcon = L.divIcon({
+            className: '',
+            html: '<div class="henro-stamp-marker" title="Milestone Stamp">印</div>',
+            iconSize: [22, 22],
+            iconAnchor: [11, 11],
+            popupAnchor: [0, -12],
+          });
+
+          const currentIcon = L.divIcon({
+            className: '',
+            html: '<div class="henro-current-marker" title="Henro Current Position">今</div>',
+            iconSize: [28, 28],
+            iconAnchor: [14, 14],
+            popupAnchor: [0, -14],
+          });
+
+          const milestoneMarkers = [];
+          let currentMarker = null;
+          let currentMilestone = null;
+
+          milestones.forEach(function (m) {
+            const badgeHtml = m.isCurrent
+              ? '<span style="color:#6E2B25;font-weight:700;">● CURRENT LOCATION</span> &middot; '
+              : '';
+
+            const popupHtml =
+              '<div style="font-family:\'EB Garamond\',Georgia,serif;min-width:210px;max-width:265px;padding:2px;">' +
+              '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:#524D46;margin-bottom:4px;">' +
+              badgeHtml +
+              '<span>' + m.leg + '</span> &middot; <span style="color:#6E2B25;font-weight:600;">KM ' + m.kmMarker + '</span>' +
+              '</div>' +
+              '<div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:18px;font-weight:700;color:#1C1A17;line-height:1.25;margin-bottom:6px;">' +
+              m.title +
+              '</div>' +
+              '<p style="font-size:14px;line-height:1.5;color:#1C1A17;margin:0;">' +
+              m.summary +
+              '</p>' +
+              '</div>';
+
+            const marker = L.marker([m.lat, m.lng], {
+              icon: m.isCurrent ? currentIcon : stampIcon,
+              zIndexOffset: m.isCurrent ? 1000 : 100,
+            })
+              .bindPopup(popupHtml, {
+                className: 'henro-washi-popup',
+                maxWidth: 280,
+              })
+              .addTo(map);
+
+            milestoneMarkers.push(marker);
+            if (m.isCurrent) {
+              currentMarker = marker;
+              currentMilestone = m;
             }
           });
-        }
 
-        if (btnWalked) {
-          btnWalked.addEventListener('click', function () {
-            setActiveButton(btnWalked, btnCorridor);
-            if (walkedLatLngs.length > 0) {
+          // Camera control helpers
+          let activeCamera = 'corridor';
+          const allCorridorBounds = L.featureGroup([plannedPolyline, walkedPolyline]).getBounds();
+
+          function updateCameraButtonStyles(target) {
+            activeCamera = target;
+            document.querySelectorAll('.cam-btn').forEach(function (btn) {
+              btn.classList.toggle('is-active', btn.getAttribute('data-camera') === target);
+            });
+          }
+
+          function applyCamera(target, animate) {
+            updateCameraButtonStyles(target);
+            if (target === 'walked' && walkedTrack.length > 0) {
               map.fitBounds(walkedPolyline.getBounds(), {
-                padding: [50, 50],
-                maxZoom: 10,
+                padding: [40, 40],
+                maxZoom: 8,
+                animate: Boolean(animate),
+              });
+            } else if (target === 'current' && currentMilestone) {
+              map.setView([currentMilestone.lat, currentMilestone.lng], 10, {
+                animate: Boolean(animate),
+              });
+              if (currentMarker) currentMarker.openPopup();
+            } else {
+              map.fitBounds(allCorridorBounds, {
+                padding: [28, 28],
+                animate: Boolean(animate),
               });
             }
+          }
+
+          function triggerUnfurl(mode) {
+            if (mode === 'horizontal' && emakimonoViewport) {
+              emakimonoViewport.classList.remove('is-unfurling');
+              void emakimonoViewport.offsetWidth;
+              emakimonoViewport.classList.add('is-unfurling');
+            } else if (mode === 'vertical' && kakemonoPaper) {
+              kakemonoPaper.classList.remove('is-unfurling');
+              void kakemonoPaper.offsetWidth;
+              kakemonoPaper.classList.add('is-unfurling');
+            }
+          }
+
+          function syncMapSize(refitCamera) {
+            map.invalidateSize({ animate: false });
+            if (refitCamera) {
+              applyCamera(activeCamera, false);
+            }
+          }
+
+          function setScrollMode(nextMode, animateUnfurl) {
+            currentMode = nextMode === 'vertical' ? 'vertical' : 'horizontal';
+            html.setAttribute('data-map-scroll-mode', currentMode);
+
+            const targetSlot = currentMode === 'horizontal' ? horizontalSlot : verticalSlot;
+            if (mapEl.parentElement !== targetSlot) {
+              targetSlot.appendChild(mapEl);
+            }
+
+            // Enable scroll wheel zoom primarily in full-screen horizontal mode so vertical page scrolling stays smooth
+            if (currentMode === 'horizontal') {
+              map.scrollWheelZoom.enable();
+            } else {
+              map.scrollWheelZoom.disable();
+            }
+
+            if (animateUnfurl) {
+              triggerUnfurl(currentMode);
+            }
+
+            // Refresh Leaflet tiles during & immediately after scroll unfurl
+            setTimeout(function () { syncMapSize(false); }, 120);
+            setTimeout(function () { syncMapSize(true); }, 650);
+            setTimeout(function () { syncMapSize(false); }, 1350);
+          }
+
+          // Wire up mode toggle buttons
+          document.querySelectorAll('[data-switch-mode]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              const targetMode = btn.getAttribute('data-switch-mode');
+              setScrollMode(targetMode, true);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
           });
+
+          // Wire up camera buttons in both views
+          document.querySelectorAll('[data-camera]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              const cam = btn.getAttribute('data-camera') || 'corridor';
+              applyCamera(cam, true);
+            });
+          });
+
+          // Wire up milestone quick-jump chips in the horizontal scroll footer
+          document.querySelectorAll('[data-milestone-index]').forEach(function (chip) {
+            chip.addEventListener('click', function () {
+              const idx = Number(chip.getAttribute('data-milestone-index'));
+              const marker = milestoneMarkers[idx];
+              const m = milestones[idx];
+              if (marker && m) {
+                map.setView([m.lat, m.lng], m.isCurrent ? 10 : 9, { animate: true });
+                marker.openPopup();
+              }
+            });
+          });
+
+          // Dismissible mobile portrait rotate tooltip
+          if (dismissTooltipBtn && rotateTooltip) {
+            dismissTooltipBtn.addEventListener('click', function () {
+              rotateTooltip.classList.add('is-dismissed');
+            });
+          }
+
+          // Automatic orientation switching on mobile/tablet rotation
+          const landscapeQuery = window.matchMedia('(orientation: landscape)');
+          function handleOrientationChange() {
+            const shortestSide = Math.min(window.innerWidth, window.innerHeight);
+            if (shortestSide <= 768) {
+              const autoMode = landscapeQuery.matches ? 'horizontal' : 'vertical';
+              if (autoMode !== currentMode) {
+                setScrollMode(autoMode, true);
+              } else {
+                setTimeout(function () { syncMapSize(false); }, 200);
+              }
+            } else {
+              setTimeout(function () { syncMapSize(false); }, 150);
+            }
+          }
+
+          if (typeof landscapeQuery.addEventListener === 'function') {
+            landscapeQuery.addEventListener('change', handleOrientationChange);
+          }
+          window.addEventListener('resize', function () {
+            setTimeout(function () { syncMapSize(false); }, 150);
+          });
+
+          // Initial unfurl + default view (Full Eurasia corridor)
+          setScrollMode(currentMode, true);
+          applyCamera('corridor', false);
         }
 
-        // Allow clicking a checkpoint title in the table below to focus & open its stamp popup
-        const focusButtons = document.querySelectorAll('.checkpoint-focus-btn');
-        focusButtons.forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            const idx = Number(btn.getAttribute('data-focus-index'));
-            const targetMarker = checkpointMarkers[idx];
-            const targetCp = checkpoints[idx];
-            if (targetMarker && targetCp) {
-              mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              map.setView([targetCp.lat, targetCp.lng], 11, { animate: true });
-              targetMarker.openPopup();
-            }
-          });
-        });
-      }
-
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initHenroMap);
-      } else {
-        initHenroMap();
-      }
-    })();
-  </script>
-</BaseLayout>
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initMapPage);
+        } else {
+          initMapPage();
+        }
+      })();
+    </script>
+  </body>
+</html>

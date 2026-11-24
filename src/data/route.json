@@ -1,107 +1,291 @@
 {
   "stats": {
-    "totalPlannedKm": 14500,
-    "completedKm": 115,
-    "daysOnTrail": 5,
-    "countriesCrossed": 1
+    "totalPlannedKm": 19500,
+    "completedKm": 1355,
+    "daysOnTrail": 58,
+    "countriesCrossed": 3,
+    "currentLocation": "Saint-Jean-Pied-de-Port, France",
+    "currentStageLabel": "Pyrenees Gate • End of Reverse Camino Francés"
   },
-  "plannedWaypoints": [
-    [
-      42.9078,
-      -9.265,
-      "Cape Finisterra, Spain"
+  "substackNewsletter": {
+    "publicationUrl": "https://caminohenro.substack.com",
+    "subscribeUrl": "https://caminohenro.substack.com/subscribe",
+    "newsletterSectionUrl": "https://caminohenro.substack.com/s/newsletter",
+    "feedUrls": [
+      "https://caminohenro.substack.com/feed?sectionId=508223"
     ],
-    [
-      42.8782,
-      -8.5448,
-      "Santiago de Compostela, Spain"
-    ],
-    [
-      43.1636,
-      -1.2358,
-      "Saint-Jean-Pied-de-Port, Pyrenees"
-    ],
-    [
-      45.764,
-      4.8357,
-      "Lyon, France"
-    ],
-    [
-      45.4408,
-      12.3155,
-      "Venice, Italy"
-    ],
-    [
-      44.7866,
-      20.4489,
-      "Belgrade, Serbia"
-    ],
-    [
-      41.0082,
-      28.9784,
-      "Istanbul, Turkey"
-    ],
-    [
-      41.7151,
-      44.8271,
-      "Tbilisi, Georgia"
-    ],
-    [
-      39.6542,
-      66.9597,
-      "Samarkand, Uzbekistan"
-    ],
-    [
-      43.222,
-      76.8512,
-      "Almaty, Kazakhstan"
-    ],
-    [
-      34.3416,
-      108.9398,
-      "Xi'an, China"
-    ],
-    [
-      35.1796,
-      129.0756,
-      "Busan, South Korea"
-    ],
-    [
-      34.1594,
-      134.5025,
-      "Ryōzen-ji (Temple 1), Shikoku, Japan"
+    "maxEntries": 24,
+    "archiveNotice": "Monthly road dispatches are published on Substack. Current issues are open to all; past archive issues are accessible to paid subscribers.",
+    "fallbackEntries": [
+      {
+        "title": "Crossing the Pyrenees in Reverse — Arrival at Saint-Jean-Pied-de-Port",
+        "date": "2026-11-01",
+        "url": "https://caminohenro.substack.com",
+        "excerpt": "After tracing the Camino Portugués Central from Coimbra, looping through Muxía and Finisterra, and walking the entire Camino Francés eastward, the Iberian chapter closes at the foot of the Pyrenees."
+      }
     ]
-  ],
-  "checkpoints": [
+  },
+  "walkedLegs": [
     {
-      "id": "chk-001",
-      "title": "<checkpoint_title>",
-      "date": "2026-10-10",
-      "lat": 42.9078,
-      "lng": -9.265,
-      "kmMarker": 0,
-      "summary": "<trail_note>",
-      "essaySlug": "placeholder-essay-1"
+      "id": "portugues-central",
+      "name": "Leg I • Camino Portugués (Central)",
+      "span": "Coimbra → Porto → Tui → Santiago de Compostela",
+      "kmRange": "KM 0 – 365",
+      "distanceKm": 365,
+      "summary": "Northbound through the eucalyptus ridges of Beira Litoral, across the Douro in Porto, over the Labruja pass past Ponte de Lima, crossing the Minho at Valença/Tui into Galicia."
     },
     {
-      "id": "chk-002",
-      "title": "<checkpoint_title>",
-      "date": "2026-10-14",
-      "lat": 42.9564,
-      "lng": -9.1897,
-      "kmMarker": 18,
-      "summary": "<trail_note>",
-      "essaySlug": "placeholder-essay-2"
+      "id": "muxia-finisterra",
+      "name": "Leg II • Muxía & Cape Finisterra Loop",
+      "span": "Santiago → Muxía → Cape Finisterra → Cee → Santiago",
+      "kmRange": "KM 365 – 576",
+      "distanceKm": 211,
+      "summary": "West from Santiago via Negreira and Olveiroa, splitting north at Hospital to the Atlantic rocks of Muxía, south via Lires to the Zero Kilometer lighthouse at Finisterra, then returning through Cee to Santiago."
     },
     {
-      "id": "chk-003",
-      "title": "<checkpoint_title>",
-      "date": "2026-10-16",
-      "lat": 42.8782,
-      "lng": -8.5448,
-      "kmMarker": 115,
-      "summary": "<trail_note>",
-      "essaySlug": ""
+      "id": "frances-reverse",
+      "name": "Leg III • Camino Francés in Reverse",
+      "span": "Santiago → O Cebreiro → León → Burgos → Pamplona → Saint-Jean-Pied-de-Port",
+      "kmRange": "KM 576 – 1,355",
+      "distanceKm": 779,
+      "summary": "Turning east against the stream of westbound pilgrims: climbing O Cebreiro and Cruz de Ferro, crossing the Meseta through León and Burgos, winding across La Rioja and Navarra, and descending from Roncesvalles over Col de Lepoeder into France."
     }
+  ],
+  "walkedTrack": [
+    [40.2033, -8.4103],
+    [40.3775, -8.4494],
+    [40.5744, -8.4481],
+    [40.6939, -8.4808],
+    [40.8414, -8.4772],
+    [40.9006, -8.4906],
+    [41.0289, -8.5836],
+    [41.1579, -8.6291],
+    [41.3008, -8.6514],
+    [41.4222, -8.6725],
+    [41.5318, -8.6184],
+    [41.7672, -8.5841],
+    [41.8480, -8.6120],
+    [41.8942, -8.6258],
+    [42.0282, -8.6440],
+    [42.0471, -8.6444],
+    [42.1619, -8.6197],
+    [42.2836, -8.6094],
+    [42.4310, -8.6444],
+    [42.6033, -8.6425],
+    [42.7381, -8.6606],
+    [42.8805, -8.5446],
+    [42.9103, -8.7364],
+    [42.9675, -9.0419],
+    [42.9892, -9.0836],
+    [43.0589, -9.1667],
+    [43.1121, -9.2188],
+    [43.0056, -9.2392],
+    [42.9078, -9.2625],
+    [42.8825, -9.2719],
+    [42.9553, -9.1897],
+    [42.9892, -9.0836],
+    [42.9675, -9.0419],
+    [42.9103, -8.7364],
+    [42.8805, -8.5446],
+    [42.8894, -8.4914],
+    [42.9056, -8.3611],
+    [42.9269, -8.1636],
+    [42.9147, -8.0136],
+    [42.8736, -7.8689],
+    [42.8075, -7.6156],
+    [42.7808, -7.4142],
+    [42.7556, -7.2403],
+    [42.7078, -7.0436],
+    [42.6061, -6.8111],
+    [42.5466, -6.5962],
+    [42.5378, -6.5194],
+    [42.4889, -6.3608],
+    [42.4814, -6.2844],
+    [42.4589, -6.0561],
+    [42.4631, -5.8819],
+    [42.5987, -5.5671],
+    [42.4983, -5.4167],
+    [42.3711, -5.0314],
+    [42.3389, -4.6025],
+    [42.2669, -4.4064],
+    [42.2889, -4.1389],
+    [42.3381, -3.9242],
+    [42.3440, -3.6969],
+    [42.3758, -3.4367],
+    [42.4197, -3.1903],
+    [42.4411, -2.9536],
+    [42.4164, -2.7347],
+    [42.4627, -2.4450],
+    [42.5150, -2.3717],
+    [42.5692, -2.1922],
+    [42.6714, -2.0314],
+    [42.6719, -1.8147],
+    [42.7361, -1.7294],
+    [42.8125, -1.6458],
+    [42.9306, -1.5042],
+    [43.0092, -1.3194],
+    [43.0358, -1.2817],
+    [43.1636, -1.2361]
+  ],
+  "milestones": [
+    {
+      "id": "coimbra",
+      "title": "Coimbra, Portugal",
+      "shortLabel": "Coimbra",
+      "leg": "Camino Portugués (Central)",
+      "kmMarker": 0,
+      "lat": 40.2033,
+      "lng": -8.4103,
+      "summary": "First steps north along the central Portuguese route toward Porto and Galicia."
+    },
+    {
+      "id": "porto",
+      "title": "Porto, Portugal",
+      "shortLabel": "Porto",
+      "leg": "Camino Portugués (Central)",
+      "kmMarker": 120,
+      "lat": 41.1579,
+      "lng": -8.6291,
+      "summary": "Crossed the Douro and followed the ancient interior way through Rates, Barcelos, and Ponte de Lima."
+    },
+    {
+      "id": "valenca-tui",
+      "title": "Valença / Tui (Border)",
+      "shortLabel": "Valença/Tui",
+      "leg": "Camino Portugués (Central)",
+      "kmMarker": 248,
+      "lat": 42.0471,
+      "lng": -8.6444,
+      "summary": "Crossed the international bridge over the Minho River from Portugal into Galicia, continuing via Pontevedra and Padrón."
+    },
+    {
+      "id": "santiago",
+      "title": "Santiago de Compostela",
+      "shortLabel": "Santiago",
+      "leg": "Hub • Passed Twice",
+      "kmMarker": 365,
+      "lat": 42.8805,
+      "lng": -8.5446,
+      "summary": "Reached via the Camino Portugués (KM 365), departed west to Muxía and Finisterra, and returned (KM 576) to begin walking the Camino Francés in reverse."
+    },
+    {
+      "id": "muxia",
+      "title": "Muxía (Virxe da Barca)",
+      "shortLabel": "Muxía",
+      "leg": "Atlantic Loop",
+      "kmMarker": 455,
+      "lat": 43.1121,
+      "lng": -9.2188,
+      "summary": "Followed the northern split past Olveiroa and Hospital to the windswept granite headland of the Costa da Morte."
+    },
+    {
+      "id": "finisterra",
+      "title": "Cape Finisterra (Km 0.000)",
+      "shortLabel": "Finisterra",
+      "leg": "Atlantic Loop",
+      "kmMarker": 486,
+      "lat": 42.8825,
+      "lng": -9.2719,
+      "summary": "Walked south via Lires to the Atlantic promontory at the End of the Earth, then looped back through Cee toward Santiago."
+    },
+    {
+      "id": "ocebreiro",
+      "title": "O Cebreiro",
+      "shortLabel": "O Cebreiro",
+      "leg": "Reverse Camino Francés",
+      "kmMarker": 732,
+      "lat": 42.7078,
+      "lng": -7.0436,
+      "summary": "Ascended eastward out of Galicia past Sarria and Triacastela into the mountain passes of León."
+    },
+    {
+      "id": "leon",
+      "title": "León, Spain",
+      "shortLabel": "León",
+      "leg": "Reverse Camino Francés",
+      "kmMarker": 887,
+      "lat": 42.5987,
+      "lng": -5.5671,
+      "summary": "Descended from Cruz de Ferro and Astorga across Hospital de Órbigo onto the broad plains of the Meseta."
+    },
+    {
+      "id": "burgos",
+      "title": "Burgos, Spain",
+      "shortLabel": "Burgos",
+      "leg": "Reverse Camino Francés",
+      "kmMarker": 1068,
+      "lat": 42.3440,
+      "lng": -3.6969,
+      "summary": "Crossed the endless steppe through Sahagún, Carrión de los Condes, Frómista, and Castrojeriz."
+    },
+    {
+      "id": "logrono",
+      "title": "Logroño, Spain",
+      "shortLabel": "Logroño",
+      "leg": "Reverse Camino Francés",
+      "kmMarker": 1188,
+      "lat": 42.4627,
+      "lng": -2.4450,
+      "summary": "Walked east through Santo Domingo de la Calzada and Nájera across the vineyards of La Rioja."
+    },
+    {
+      "id": "pamplona",
+      "title": "Pamplona, Spain",
+      "shortLabel": "Pamplona",
+      "leg": "Reverse Camino Francés",
+      "kmMarker": 1286,
+      "lat": 42.8125,
+      "lng": -1.6458,
+      "summary": "Passed Estella, Puente la Reina, and Alto del Perdón before climbing through Zubiri toward Roncesvalles."
+    },
+    {
+      "id": "sjpp",
+      "title": "Saint-Jean-Pied-de-Port, France",
+      "shortLabel": "SJPP (Now)",
+      "leg": "Current Position",
+      "kmMarker": 1355,
+      "lat": 43.1636,
+      "lng": -1.2361,
+      "isCurrent": true,
+      "summary": "Current position. Crossed the Pyrenees in reverse from Roncesvalles over Col de Lepoeder into France, completing the Iberian chapter."
+    }
+  ],
+  "plannedWaypoints": [
+    [43.1636, -1.2361, "Saint-Jean-Pied-de-Port, France (Current Trailhead)"],
+    [43.6047, 1.4442, "Toulouse, France"],
+    [43.9493, 4.8055, "Avignon, France"],
+    [45.0703, 7.6869, "Turin, Italy"],
+    [45.6495, 13.7768, "Trieste, Italy"],
+    [44.7866, 20.4489, "Belgrade, Serbia"],
+    [42.6977, 23.3219, "Sofia, Bulgaria"],
+    [41.0082, 28.9784, "Istanbul, Turkey"],
+    [41.6168, 41.6367, "Batumi, Georgia"],
+    [41.7151, 44.8271, "Tbilisi, Georgia"],
+    [43.0246, 44.6818, "Vladikavkaz, North Caucasus"],
+    [46.3497, 48.0408, "Astrakhan (North of Caspian Sea)"],
+    [47.0945, 51.9238, "Atyrau, Kazakhstan (Northern Caspian Arc)"],
+    [45.3167, 55.2000, "Beyneu, Kazakhstan"],
+    [42.4619, 59.6166, "Nukus, Uzbekistan"],
+    [39.6542, 66.9597, "Samarkand, Uzbekistan"],
+    [38.5598, 68.7870, "Dushanbe, Tajikistan"],
+    [37.4917, 71.5531, "Khorog, Pamir Corridor"],
+    [35.9208, 74.3089, "Gilgit, Karakoram"],
+    [34.1526, 77.5771, "Leh, Ladakh (Northern India)"],
+    [32.2396, 77.1887, "Manali, Himachal Pradesh (Northern India)"],
+    [30.0869, 78.2676, "Rishikesh, Uttarakhand (Northern India)"],
+    [25.3176, 82.9739, "Varanasi, Uttar Pradesh (Northern India)"],
+    [27.7172, 85.3240, "Kathmandu, Nepal"],
+    [26.7271, 88.3953, "Siliguri, India"],
+    [25.0389, 102.7183, "Kunming, China"],
+    [30.5728, 104.0668, "Chengdu, China"],
+    [34.3416, 108.9398, "Xi'an, China"],
+    [36.0671, 120.3826, "Qingdao, China (Yellow Sea Crossing)"],
+    [37.4563, 126.7052, "Incheon, South Korea"],
+    [37.5665, 126.9780, "Seoul, South Korea"],
+    [35.8714, 128.6014, "Daegu, South Korea"],
+    [35.1796, 129.0756, "Busan, South Korea (Korea Strait Ferry)"],
+    [33.5902, 130.4017, "Fukuoka, Kyushu, Japan"],
+    [33.8392, 132.7657, "Matsuyama, Shikoku, Japan"],
+    [34.1597, 134.5025, "Temple 1 — Ryōzen-ji, Shikoku, Japan"]
   ]
 }
